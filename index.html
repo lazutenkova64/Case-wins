@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>CS2 Case Opening | Открытие кейсов</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background: linear-gradient(145deg, #1a1e2b 0%, #0f1219 100%);
+      min-height: 100vh;
+      color: #e0e0e0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: rgba(20, 23, 31, 0.7);
+      backdrop-filter: blur(20px);
+      border-radius: 2rem;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 215, 0, 0.1);
+    }
+    h1, h2 {
+      background: linear-gradient(135deg, #f7c948, #e2a83a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 200, 0, 0.2);
+      padding-bottom: 15px;
+    }
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #2a2f3c;
+      border: 1px solid #3f4451;
+      color: #f0f0f0;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: linear-gradient(180deg, #3a4050 0%, #232832 100%);
+      letter-spacing: 0.5px;
+    }
+    button:hover {
+      border-color: #f0b90b;
+      box-shadow: 0 0 15px rgba(240, 185, 11, 0.3);
+      color: white;
+    }
+    button.primary {
+      background: linear-gradient(180deg, #f5cb42, #d6941a);
+      border: none;
+      color: #0a0a0a;
+      font-weight: 700;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+    }
+    button.danger {
+      background: linear-gradient(180deg, #5e3a3a, #3a2020);
+      border-color: #a55;
+    }
+    input {
+      background: #1e212b;
+      border: 1px solid #3d424f;
+      padding: 12px 18px;
+      border-radius: 30px;
+      color: white;
+      outline: none;
+      font-size: 15px;
+      width: 200px;
+    }
+    input:focus {
+      border-color: #f0b90b;
+    }
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      margin: 25px 0;
+    }
+    .case-card {
+      background: #1b1f2b;
+      border-radius: 24px;
+      padding: 20px;
+      border: 1px solid #333b4a;
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .case-card:hover {
+      transform: translateY(-5px);
+      border-color: #f0b90b;
+      box-shadow: 0 15px 25px rgba(0,0,0,0.6);
+    }
+    .case-img {
+      font-size: 70px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 8px 10px #00000080);
+    }
+    .items-preview {
+      font-size: 14px;
+      color: #aaa;
+      margin: 12px 0;
+      background: #0d0f14;
+      padding: 8px;
+      border-radius: 16px;
+      width: 100%;
+    }
+    .bal {
+      font-weight: bold;
+      color: #f5cb42;
+    }
+    .inventory-panel {
+      background: #151821;
+      border-radius: 20px;
+      padding: 18px;
+      margin-top: 25px;
+      border: 1px solid #2e3540;
+    }
+    .item-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 12px;
+    }
+    .item-card {
+      background: #1e2330;
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #3c4252;
+      min-width: 200px;
+    }
+    .rarity-common { border-left: 5px solid #b0b0b0; }
+    .rarity-mil { border-left: 5px solid #4b69ff; }
+    .rarity-restricted { border-left: 5px solid #8845ff; }
+    .rarity-classified { border-left: 5px solid #d32ce6; }
+    .rarity-covert { border-left: 5px solid #eb4b4b; }
+    .rarity-gold { border-left: 5px solid #f3b23f; }
+
+    .auth-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .profile-stat {
+      display: inline-block;
+      background: #0b0d14;
+      padding: 6px 15px;
+      border-radius: 20px;
+      margin: 5px;
+    }
+    hr { border-color: #2a2f3a; margin: 20px 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔫 CS2 CASE OPENING</h1>
+    <div class="user-section" id="authArea"></div>
+  </div>
+
+  <!-- Экран входа / регистрации (если не вошёл) -->
+  <div id="loginPanel" style="display: none;"></div>
+  
+  <!-- Основной интерфейс (после входа) -->
+  <div id="appMain" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>📦 Доступные кейсы</h2>
+      <span class="bal" style="font-size: 20px;">💰 Баланс: <span id="balanceDisplay">0</span> ₽</span>
+    </div>
+    <div class="cases-grid" id="casesContainer"></div>
+    
+    <div class="inventory-panel">
+      <div style="display: flex; justify-content: space-between;">
+        <h2>🎒 Ваш инвентарь</h2>
+        <span id="totalValue" style="color:#ccc;"></span>
+      </div>
+      <div class="item-grid" id="inventoryItems"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- БАЗА ДАННЫХ ПРЕДМЕТОВ (как в CS) ----------
+    const ITEMS_DB = [
+      { id: 'awp_dragon', name: 'AWP | Dragon Lore', rarity: 'covert', price: 12500, emoji: '🐉' },
+      { id: 'ak_fire', name: 'AK-47 | Fire Serpent', rarity: 'covert', price: 9800, emoji: '🔥' },
+      { id: 'm4_howl', name: 'M4A4 | Howl', rarity: 'covert', price: 15000, emoji: '🐺' },
+      { id: 'knife_karambit', name: 'Karambit | Gamma Doppler', rarity: 'gold', price: 45000, emoji: '🔪' },
+      { id: 'glock_fade', name: 'Glock-18 | Fade', rarity: 'restricted', price: 3200, emoji: '🌈' },
+      { id: 'deagle_blaze', name: 'Desert Eagle | Blaze', rarity: 'mil', price: 5100, emoji: '🔥' },
+      { id: 'usp_kill', name: 'USP-S | Kill Confirmed', rarity: 'covert', price: 7800, emoji: '💀' },
+      { id: 'ak_vulcan', name: 'AK-47 | Vulcan', rarity: 'classified', price: 6500, emoji: '🌋' },
+      { id: 'm4_neo', name: 'M4A1-S | Hyper Beast', rarity: 'classified', price: 4200, emoji: '👾' },
+      { id: 'awp_asiimov', name: 'AWP | Asiimov', rarity: 'classified', price: 5500, emoji: '⬜' },
+      { id: 'p250_sand', name: 'P250 | Sand Dune', rarity: 'common', price: 15, emoji: '🏜️' },
+      { id: 'mp7_forest', name: 'MP7 | Forest DDPAT', rarity: 'common', price: 35, emoji: '🌿' },
+      { id: 'nova_walnut', name: 'Nova | Walnut', rarity: 'common', price: 45, emoji: '🪵' },
+      { id: 'five_seven', name: 'Five-SeveN | Case Hardened', rarity: 'mil', price: 2400, emoji: '🔫' },
+      { id: 'tec9_toxic', name: 'Tec-9 | Toxic', rarity: 'restricted', price: 1100, emoji: '☣️' }
+    ];
+
+    // ---------- КЕЙСЫ ----------
+    const CASES = [
+      {
+        id: 'case_gamma',
+        name: 'Gamma Case',
+        price: 300,
+        image: '📦',
+        items: [
+          { itemId: 'glock_fade', weight: 8 },
+          { itemId: 'awp_asiimov', weight: 5 },
+          { itemId: 'ak_vulcan', weight: 5 },
+          { itemId: 'deagle_blaze', weight: 10 },
+          { itemId: 'five_seven', weight: 18 },
+          { itemId: 'p250_sand', weight: 30 },
+          { itemId: 'mp7_forest', weight: 24 }
+        ]
+      },
+      {
+        id: 'case_legend',
+        name: 'Legend Case',
+        price: 600,
+        image: '🧰',
+        items: [
+          { itemId: 'awp_dragon', weight: 2 },
+          { itemId: 'ak_fire', weight: 4 },
+          { itemId: 'm4_howl', weight: 3 },
+          { itemId: 'usp_kill', weight: 7 },
+          { itemId: 'm4_neo', weight: 10 },
+          { itemId: 'tec9_toxic', weight: 18 },
+          { itemId: 'nova_walnut', weight: 30 },
+          { itemId: 'p250_sand', weight: 26 }
+        ]
+      },
+      {
+        id: 'case_knife_dream',
+        name: 'Knife Dream Case',
+        price: 1200,
+        image: '💎',
+        items: [
+          { itemId: 'knife_karambit', weight: 1 },
+          { itemId: 'awp_dragon', weight: 4 },
+          { itemId: 'deagle_blaze', weight: 12 },
+          { itemId: 'ak_vulcan', weight: 14 },
+          { itemId: 'glock_fade', weight: 20 },
+          { itemId: 'mp7_forest', weight: 25 },
+          { itemId: 'p250_sand', weight: 24 }
+        ]
+      }
+    ];
+
+    // ---------- СОСТОЯНИЕ ----------
+    const STORAGE_USERS = 'cs_case_users';
+    const STORAGE_CURRENT = 'cs_current_user';
+
+    let currentUser = null; // { username, balance, inventory: [] }
+
+    // Вспомогательные функции
+    function getUsers() {
+      return JSON.parse(localStorage.getItem(STORAGE_USERS) || '{}');
+    }
+    function saveUsers(users) {
+      localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
+    }
+    function getItemById(id) {
+      return ITEMS_DB.find(i => i.id === id);
+    }
+
+    // Обновить текущего пользователя в хранилище
+    function persistCurrentUser() {
+      if (!currentUser) return;
+      const users = getUsers();
+      users[currentUser.username] = {
+        balance: currentUser.balance,
+        inventory: currentUser.inventory
+      };
+      saveUsers(users);
+    }
+
+    // Загрузка пользователя
+    function loginUser(username) {
+      const users = getUsers();
+      if (!users[username]) {
+        // создаём нового
+        users[username] = { balance: 5000, inventory: [] };
+        saveUsers(users);
+      }
+      currentUser = {
+        username: username,
+        balance: users[username].balance,
+        inventory: users[username].inventory || []
+      };
+      localStorage.setItem(STORAGE_CURRENT, username);
+      renderApp();
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem(STORAGE_CURRENT);
+      renderApp();
+    }
+
+    // Открытие кейса
+    function openCase(caseData) {
+      if (!currentUser) return alert('Войдите в аккаунт');
+      if (currentUser.balance < caseData.price) return alert('Недостаточно средств');
+      
+      // Списываем
+      currentUser.balance -= caseData.price;
+      
+      // Выбор предмета по весам
+      const totalWeight = caseData.items.reduce((sum, it) => sum + it.weight, 0);
+      let random = Math.random() * totalWeight;
+      let chosenItemId = null;
+      for (let entry of caseData.items) {
+        random -= entry.weight;
+        if (random <= 0) {
+          chosenItemId = entry.itemId;
+          break;
+        }
+      }
+      const item = getItemById(chosenItemId);
+      if (!item) return;
+      
+      // Добавляем в инвентарь
+      currentUser.inventory.push({
+        uid: Date.now() + Math.random().toString(36),
+        itemId: item.id,
+        acquired: new Date().toISOString()
+      });
+      
+      persistCurrentUser();
+      renderApp();
+      alert(`🎉 Выпало: ${item.emoji} ${item.name} (${item.price} ₽)`);
+    }
+
+    // Продажа предмета
+    function sellItem(inventoryUid) {
+      if (!currentUser) return;
+      const index = currentUser.inventory.findIndex(i => i.uid === inventoryUid);
+      if (index === -1) return;
+      const invEntry = currentUser.inventory[index];
+      const item = getItemById(invEntry.itemId);
+      if (!item) return;
+      
+      currentUser.balance += item.price;
+      currentUser.inventory.splice(index, 1);
+      persistCurrentUser();
+      renderApp();
+    }
+
+    // Рендер всего интерфейса
+    function renderApp() {
+      const authArea = document.getElementById('authArea');
+      const loginPanel = document.getElementById('loginPanel');
+      const appMain = document.getElementById('appMain');
+      
+      if (currentUser) {
+        // Пользователь вошёл
+        authArea.innerHTML = `
+          <span style="color:#f0b90b; font-weight:bold;">👤 ${currentUser.username}</span>
+          <span class="profile-stat">💰 ${currentUser.balance} ₽</span>
+          <button class="danger" onclick="window.siteLogout()">Выйти</button>
+        `;
+        loginPanel.style.display = 'none';
+        appMain.style.display = 'block';
+        
+        document.getElementById('balanceDisplay').innerText = currentUser.balance;
+        renderCases();
+        renderInventory();
+      } else {
+        // Не вошёл
+        authArea.innerHTML = `<span style="color:#aaa;">🔒 Не авторизован</span>`;
+        loginPanel.style.display = 'block';
+        appMain.style.display = 'none';
+        
+        loginPanel.innerHTML = `
+          <div style="background:#1b1f2b; border-radius:20px; padding:20px; margin:10px 0;">
+            <h3 style="margin-bottom:15px;">🔐 Вход или регистрация</h3>
+            <div class="auth-form">
+              <input type="text" id="usernameInput" placeholder="Введите никнейм" maxlength="16">
+              <button class="primary" onclick="window.siteLogin()">Войти / Создать</button>
+            </div>
+            <p style="margin-top:12px; font-size:13px; color:#888;">Новый аккаунт получит 5000 ₽</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderCases() {
+      const container = document.getElementById('casesContainer');
+      container.innerHTML = CASES.map(c => {
+        const itemList = c.items.slice(0,4).map(e => getItemById(e.itemId)?.name).join(', ');
+        return `
+          <div class="case-card">
+            <div class="case-img">${c.image}</div>
+            <h3>${c.name}</h3>
+            <div class="items-preview">${itemList}...</div>
+            <div style="font-weight:bold; margin:5px 0;">Цена: ${c.price} ₽</div>
+            <button class="primary" onclick="window.siteOpenCase('${c.id}')">🔓 Открыть</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderInventory() {
+      const invGrid = document.getElementById('inventoryItems');
+      const totalVal = document.getElementById('totalValue');
+      if (!currentUser || currentUser.inventory.length === 0) {
+        invGrid.innerHTML = '<p style="color:#666;">🎒 Инвентарь пуст. Откройте кейсы!</p>';
+        totalVal.innerText = '0 ₽';
+        return;
+      }
+      let total = 0;
+      invGrid.innerHTML = currentUser.inventory.map(inv => {
+        const item = getItemById(inv.itemId);
+        if (!item) return '';
+        total += item.price;
+        return `
+          <div class="item-card rarity-${item.rarity}">
+            <span style="font-size:28px;">${item.emoji}</span>
+            <div>
+              <strong>${item.name}</strong>
+              <div style="font-size:13px; color:#f0b90b;">${item.price} ₽</div>
+            </div>
+            <button style="margin-left:auto; padding:5px 12px;" onclick="window.siteSellItem('${inv.uid}')">Продать</button>
+          </div>
+        `;
+      }).join('');
+      totalVal.innerText = `Общая стоимость: ${total} ₽`;
+    }
+
+    // Глобальные обработчики
+    window.siteLogin = function() {
+      const username = document.getElementById('usernameInput')?.value.trim();
+      if (!username || username.length < 2) return alert('Введите ник (мин. 2 символа)');
+      loginUser(username);
+    };
+    window.siteLogout = function() { logout(); };
+    window.siteOpenCase = function(caseId) {
+      const caseObj = CASES.find(c => c.id === caseId);
+      if (caseObj) openCase(caseObj);
+    };
+    window.siteSellItem = function(uid) { sellItem(uid); };
+
+    // Инициализация при загрузке
+    const savedUsername = localStorage.getItem(STORAGE_CURRENT);
+    if (savedUsername) {
+      const users = getUsers();
+      if (users[savedUsername]) {
+        currentUser = {
+          username: savedUsername,
+          balance: users[savedUsername].balance,
+          inventory: users[savedUsername].inventory || []
+        };
+      } else {
+        localStorage.removeItem(STORAGE_CURRENT);
+      }
+    }
+    renderApp();
+  })();
+</script>
+</body>
+</html>
