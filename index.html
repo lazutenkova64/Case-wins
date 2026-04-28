@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CS2 Case Opening — Реалистичная анимация</title>
+  <title>CS2 Case Opening — Бесконечная лента</title>
   <style>
     * {
       margin: 0;
@@ -178,7 +178,7 @@
     }
     .roulette-area {
       position: relative;
-      height: 130px;
+      height: 140px;
       background: #0a0d14;
       border-radius: 24px;
       margin: 25px 0 15px;
@@ -192,7 +192,7 @@
       bottom: 0;
       width: 3px;
       background: #f0b90b;
-      box-shadow: 0 0 25px #f0b90b, 0 0 8px #fff;
+      box-shadow: 0 0 30px #f0b90b, 0 0 10px #fff;
       z-index: 20;
       transform: translateX(-50%);
       border-radius: 3px;
@@ -213,13 +213,13 @@
       padding: 8px 4px;
       color: #ddd;
       font-weight: 600;
-      background: rgba(30,35,48,0.7);
+      background: rgba(30,35,48,0.8);
       margin: 0 4px;
       border-radius: 18px;
       border: 1px solid #3e4657;
     }
     .roulette-item .emoji {
-      font-size: 42px;
+      font-size: 45px;
       display: block;
       line-height: 1;
     }
@@ -322,6 +322,11 @@
     let isSpinning = false;
     let spinTimer = null;
 
+    // Конфигурация ленты
+    const ITEM_WIDTH = 158; // 150px + 4px margin с каждой стороны
+    const COPIES = 60; // количество полных копий набора предметов в ленте
+    const SAFE_MARGIN_COPIES = 8; // запас слева/справа от выбранного индекса
+
     function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }
     function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
     function getItem(id) { return ITEMS.find(i => i.id === id); }
@@ -361,21 +366,49 @@
 
     function buildRouletteTrack(caseData) {
       const track = document.getElementById('rouletteTrack');
+      const itemsList = caseData.items.map(e => getItem(e.itemId)).filter(Boolean);
       let html = '';
-      // Строим ~50 копий элементов для плавной длинной ленты
-      for (let i = 0; i < 45; i++) {
-        caseData.items.forEach(entry => {
-          const item = getItem(entry.itemId);
-          if (item) {
-            html += `<div class="roulette-item"><span class="emoji">${item.emoji}</span><span>${item.name.split('|')[0].trim()}</span></div>`;
-          }
+      for (let i = 0; i < COPIES; i++) {
+        itemsList.forEach(item => {
+          html += `<div class="roulette-item"><span class="emoji">${item.emoji}</span><span>${item.name.split('|')[0].trim()}</span></div>`;
         });
       }
       track.innerHTML = html;
       track.style.transition = 'none';
       track.style.transform = 'translateX(0)';
-      // Принудительный reflow
+      // reflow
       track.offsetHeight;
+    }
+
+    function getRandomWinItemAndIndex(caseData) {
+      const totalWeight = caseData.items.reduce((s, it) => s + it.weight, 0);
+      let rand = Math.random() * totalWeight;
+      let winEntry = null;
+      for (let e of caseData.items) {
+        rand -= e.weight;
+        if (rand <= 0) { winEntry = e; break; }
+      }
+      const winItem = getItem(winEntry.itemId);
+      // Выбираем безопасный индекс в середине ленты
+      const itemsCount = caseData.items.length;
+      const totalElements = COPIES * itemsCount;
+      const minIndex = SAFE_MARGIN_COPIES * itemsCount;
+      const maxIndex = totalElements - SAFE_MARGIN_COPIES * itemsCount;
+      // Находим все индексы, где элемент совпадает с winItem
+      const trackItems = document.querySelectorAll('#rouletteTrack .roulette-item');
+      const searchText = winItem.name.split('|')[0].trim();
+      const possibleIndices = [];
+      for (let i = minIndex; i < maxIndex; i++) {
+        if (trackItems[i] && trackItems[i].textContent.includes(searchText)) {
+          possibleIndices.push(i);
+        }
+      }
+      if (possibleIndices.length === 0) {
+        // fallback: случайный индекс в безопасном диапазоне
+        return { winItem, targetIndex: Math.floor(Math.random() * (maxIndex - minIndex)) + minIndex };
+      }
+      const targetIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
+      return { winItem, targetIndex };
     }
 
     function spin(durationSec) {
@@ -395,46 +428,33 @@
       persistUser();
       updateBalance();
 
-      // Определяем победителя
-      const totalWeight = activeCase.items.reduce((s, it) => s + it.weight, 0);
-      let rand = Math.random() * totalWeight;
-      let winEntry = null;
-      for (let e of activeCase.items) {
-        rand -= e.weight;
-        if (rand <= 0) { winEntry = e; break; }
-      }
-      const winItem = getItem(winEntry.itemId);
+      const { winItem, targetIndex } = getRandomWinItemAndIndex(activeCase);
 
-      // Ищем индекс в треке (первое совпадение по тексту)
-      const trackItems = document.querySelectorAll('#rouletteTrack .roulette-item');
-      let targetIndex = -1;
-      const searchText = winItem.name.split('|')[0].trim();
-      for (let i = 0; i < trackItems.length; i++) {
-        if (trackItems[i].textContent.includes(searchText)) {
-          targetIndex = i;
-          break;
-        }
-      }
-      if (targetIndex === -1) targetIndex = Math.floor(Math.random() * trackItems.length);
+      const container = document.getElementById('rouletteContainer');
+      const containerWidth = container.clientWidth;
+      const centerOffset = (containerWidth / 2) - (ITEM_WIDTH / 2);
 
-      const itemWidth = 158; // flex-basis 150 + margin 8
-      const containerWidth = document.getElementById('rouletteContainer').clientWidth;
-      const centerOffset = (containerWidth / 2) - (itemWidth / 2);
-      // Финальная позиция: элемент под стрелкой
-      let targetPos = -(targetIndex * itemWidth) + centerOffset;
-      // Добавляем несколько полных прокруток ленты для эффекта
-      const totalTrackWidth = trackItems.length * itemWidth;
-      const extraTurns = 3; // минимум 3 полных оборота
-      targetPos -= extraTurns * totalTrackWidth;
+      // Базовая позиция, чтобы элемент targetIndex оказался по центру
+      let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
+
+      // Добавляем несколько полных оборотов для эффекта (2-3 оборота = itemsCount * ITEM_WIDTH)
+      const oneFullSetWidth = activeCase.items.length * ITEM_WIDTH;
+      const extraTurns = 2 + Math.floor(Math.random() * 2); // 2-3 оборота
+      targetPos -= extraTurns * oneFullSetWidth;
+
+      // Гарантируем, что targetPos не слишком мал (чтобы лента не ушла левее возможного)
+      const totalTrackWidth = COPIES * activeCase.items.length * ITEM_WIDTH;
+      if (targetPos < -(totalTrackWidth - containerWidth)) {
+        targetPos = -(totalTrackWidth - containerWidth);
+      }
 
       const track = document.getElementById('rouletteTrack');
       track.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.78, 0.22, 1)`;
       track.style.transform = `translateX(${targetPos}px)`;
 
-      // По окончании анимации
       if (spinTimer) clearTimeout(spinTimer);
       spinTimer = setTimeout(() => {
-        // Добавляем предмет
+        // Добавляем предмет в инвентарь
         currentUser.inventory.push({
           uid: Date.now() + Math.random().toString(36),
           itemId: winItem.id,
@@ -448,11 +468,11 @@
         updateBalance();
         renderInventoryView();
         spinTimer = null;
-      }, durationSec * 1000 + 100);
+      }, durationSec * 1000 + 150);
     }
 
     function closeModal() {
-      if (isSpinning) return; // запрет закрытия во время вращения
+      if (isSpinning) return;
       document.getElementById('caseModal').style.display = 'none';
       activeCase = null;
       if (spinTimer) clearTimeout(spinTimer);
