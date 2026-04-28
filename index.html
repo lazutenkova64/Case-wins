@@ -2,364 +2,447 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>case-wins · Классический раунд & 1 на 1</title>
   <style>
+    :root {
+      --bg: #0a0d12;
+      --panel: #131720;
+      --card: #1a1f2b;
+      --gold: #f0b34b;
+      --accent: #2a3040;
+      --text: #cfd4dc;
+    }
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
     body {
-      background: #0b0d13;
+      background: var(--bg);
       font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+      color: var(--text);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 0.8rem;
-      color: #ddd;
     }
-    .app-layout {
-      display: grid;
-      grid-template-columns: 220px 1fr 260px;
-      gap: 1rem;
+    .app {
+      display: flex;
       width: 100%;
-      max-width: 1400px;
-      height: 95vh;
-      background: #12151c;
-      border-radius: 2rem;
-      padding: 1.2rem;
-      box-shadow: 0 20px 45px rgba(0,0,0,0.7);
-      border: 1px solid #2b2f3a;
+      height: 100%;
+      gap: 8px;
+      padding: 8px;
     }
-    /* Левая панель */
-    .left-panel {
-      background: #1a1e27;
-      border-radius: 1.8rem;
-      padding: 1.5rem 1rem;
+    /* Левая панель навигации */
+    .sidebar {
+      width: 210px;
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 16px 12px;
       display: flex;
       flex-direction: column;
-      gap: 1.8rem;
-      border: 1px solid #303541;
+      gap: 14px;
+      border: 1px solid #2c3140;
+      flex-shrink: 0;
     }
-    .profile-block {
+    .profile {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
-      background: #242935;
-      padding: 0.8rem;
-      border-radius: 2.5rem;
+      gap: 10px;
+      background: #1e2330;
+      padding: 10px;
+      border-radius: 30px;
     }
-    .profile-avatar {
-      width: 42px;
-      height: 42px;
-      background: #f0b34b;
+    .avatar-big {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
+      background: var(--gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 22px;
     }
-    .online-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
+    .online-dot {
       color: #3acf6e;
+      font-size: 12px;
+    }
+    .nav-btn {
+      background: #1e2330;
+      border: none;
+      color: var(--text);
+      padding: 11px 16px;
+      border-radius: 25px;
       font-weight: 600;
-    }
-    .nav-menu {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .nav-item {
-      background: #242935;
-      padding: 0.8rem 1.2rem;
-      border-radius: 2rem;
       cursor: pointer;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      text-align: left;
       transition: 0.2s;
-      border: 1px solid transparent;
+      font-size: 14px;
     }
-    .nav-item.active {
-      background: #f0b34b;
-      color: #0b0d13;
-      border-color: #f0b34b;
+    .nav-btn.active {
+      background: var(--gold);
+      color: #000;
+      font-weight: 700;
     }
     .sub-menu {
-      margin-left: 1.5rem;
+      margin-left: 16px;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      font-size: 0.85rem;
+      gap: 4px;
     }
     .sub-item {
+      background: transparent;
+      border: none;
+      color: #a0a6b5;
+      padding: 6px 12px;
+      border-radius: 15px;
       cursor: pointer;
-      padding: 0.3rem 0.8rem;
-      border-radius: 1rem;
+      text-align: left;
     }
-    .sub-item:hover {
-      background: #2e3545;
+    /* Центральная зона: классический + 1 на 1 */
+    .main-area {
+      flex: 1;
+      display: flex;
+      gap: 12px;
+      min-width: 0;
     }
-    /* Центр */
-    .center-panel {
+    /* Классический раунд слева */
+    .classic-section {
+      flex: 1;
+      background: var(--card);
+      border-radius: 24px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 1.2rem;
-      overflow-y: auto;
-      padding-right: 0.3rem;
+      gap: 12px;
+      border: 1px solid #2f3645;
     }
-    .classic-card {
-      background: linear-gradient(145deg, #1e222b, #171a22);
-      border-radius: 2rem;
-      padding: 1.2rem;
-      border: 1px solid #3a4050;
-    }
-    .wheel-box {
-      background: #0c0f17;
-      border-radius: 1.8rem;
-      padding: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-    .avatar-track {
+    .classic-wheel {
+      flex: 1;
+      background: #0b0f17;
+      border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2rem;
-      font-size: 2.8rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 200px;
     }
-    .avatar-circle {
-      width: 80px;
-      height: 80px;
-      background: #2a3040;
+    .rolling-track {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      transition: transform 0.05s linear;
+      will-change: transform;
+    }
+    .rolling-avatar {
+      width: 90px;
+      height: 90px;
+      background: #232838;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       border: 3px solid #f0b34b;
-      transition: 0.1s;
+      box-shadow: 0 0 18px rgba(240,179,75,0.5);
+      flex-shrink: 0;
     }
-    .timer-box {
-      background: #f5a623;
-      color: #0b0d13;
-      font-weight: 800;
-      padding: 0.3rem 1.5rem;
-      border-radius: 2rem;
+    .vs-divider {
+      font-weight: 900;
+      font-size: 28px;
+      color: #f0b34b;
+      margin: 0 8px;
     }
-    .bet-row {
+    .classic-info {
       display: flex;
-      gap: 1rem;
+      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-    }
-    .bet-input {
-      background: #2c3140;
-      border: none;
-      padding: 0.7rem 1rem;
-      border-radius: 2rem;
-      color: white;
-      width: 100px;
-      text-align: center;
       font-weight: bold;
     }
-    .btn {
-      background: #f5a623;
-      border: none;
-      color: #0a0c12;
+    .timer-countdown {
+      background: #f0b34b;
+      color: #000;
+      padding: 6px 18px;
+      border-radius: 25px;
       font-weight: 800;
-      padding: 0.65rem 1.5rem;
-      border-radius: 2.5rem;
-      cursor: pointer;
     }
-    .btn:disabled {
-      background: #5a5f6b;
-      color: #2a2a2a;
-    }
-    .games-list {
+    /* 1 на 1 справа */
+    .onevsone-section {
+      flex: 1;
+      background: var(--card);
+      border-radius: 24px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 0.7rem;
+      gap: 10px;
+      border: 1px solid #2f3645;
     }
-    .room-row {
-      background: #1e222b;
-      border-radius: 2rem;
-      padding: 0.7rem 1.2rem;
+    .rooms-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .room-card {
+      background: #1e2330;
+      border-radius: 18px;
+      padding: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border: 1px solid #343a48;
+      border: 1px solid #353d4e;
     }
-    /* Правая панель */
-    .right-panel {
-      background: #1a1e27;
-      border-radius: 1.8rem;
-      padding: 1.5rem 1rem;
+    .room-players {
       display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-      border: 1px solid #303541;
+      align-items: center;
+      gap: 8px;
     }
-    .inventory-grid {
-      display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 0.6rem;
-    }
-    .inv-slot {
-      background: #242935;
-      aspect-ratio: 1/1;
-      border-radius: 1rem;
+    .mini-avatar {
+      width: 32px;
+      height: 32px;
+      background: #3f4758;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      border: 1px solid #3d4352;
     }
-    .total-value {
-      background: #2c3140;
-      padding: 0.6rem;
-      border-radius: 2rem;
+    .btn {
+      background: #f0b34b;
+      border: none;
+      color: #000;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:disabled {
+      background: #5c6170;
+      color: #222;
+    }
+    .inventory-panel {
+      width: 220px;
+      background: var(--panel);
+      border-radius: 20px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid #2c3140;
+      flex-shrink: 0;
+    }
+    .inv-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 8px;
+    }
+    .inv-slot {
+      aspect-ratio: 1;
+      background: #1e2330;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 1px solid #3a4050;
+    }
+    input {
+      background: #1e2330;
+      border: 1px solid #3d4455;
+      padding: 10px;
+      border-radius: 25px;
+      color: white;
       text-align: center;
-    }
-    .hidden {
-      display: none;
+      width: 80px;
     }
   </style>
 </head>
 <body>
-<div class="app-layout" id="appLayout">
-  <!-- Левая панель -->
-  <div class="left-panel">
-    <div class="profile-block" id="profileWidget">
-      <span class="profile-avatar" id="profileEmoji">🐺</span>
+<div class="app" id="appRoot">
+  <!-- Левая навигация -->
+  <div class="sidebar">
+    <div class="profile">
+      <span class="avatar-big" id="profileAvatar">🐺</span>
       <div>
         <div id="profileName">PlayerOne</div>
-        <div class="online-indicator"><span>●</span> Онлайн</div>
+        <div class="online-dot">● Онлайн 1082</div>
       </div>
     </div>
-    <div class="nav-menu">
-      <div class="nav-item active" data-view="main">🏠 Главная</div>
-      <div class="nav-item" id="historyToggle">📜 История игр</div>
-      <div class="sub-menu" id="historySub" style="display: none;">
-        <div class="sub-item" data-history="classic">Классические</div>
-        <div class="sub-item" data-history="myClassic">Мои классические</div>
-        <div class="sub-item" data-history="oneVsOne">1 на 1 (участвовал)</div>
-      </div>
-      <div class="nav-item">❓ FAQ</div>
+    <button class="nav-btn active">🏠 Главная</button>
+    <button class="nav-btn" id="historyBtn">📜 История игр</button>
+    <div class="sub-menu" id="historySub" style="display:none;">
+      <button class="sub-item">Классические игры</button>
+      <button class="sub-item">Мои классические</button>
+      <button class="sub-item">1 на 1 (участвовал)</button>
     </div>
-    <div style="margin-top: auto; color: #7f8690;">case-wins</div>
+    <button class="nav-btn">❓ FAQ</button>
   </div>
 
-  <!-- Центральная часть -->
-  <div class="center-panel" id="centerPanel">
+  <!-- Центр: классический раунд + 1 на 1 -->
+  <div class="main-area">
     <!-- Классический раунд -->
-    <div class="classic-card" id="classicSection">
-      <div style="display: flex; justify-content: space-between; font-weight: bold;">
+    <div class="classic-section" id="classicBlock">
+      <div class="classic-info">
         <span>🏆 КЛАССИЧЕСКИЙ РАУНД</span>
-        <span>Банк: <span id="classicBank">0.00</span>$</span>
+        <span>Банк: <span id="classicBankDisplay">0</span>$</span>
       </div>
-      <div class="wheel-box" id="classicWheelBox">
-        <div class="avatar-track" id="classicAvatarTrack">
-          <div class="avatar-circle" id="classicLeft">❓</div>
-          <span style="font-weight:800;">VS</span>
-          <div class="avatar-circle" id="classicRight">❓</div>
+      <div class="classic-wheel" id="classicWheelContainer">
+        <div class="rolling-track" id="classicRollingTrack">
+          <div class="rolling-avatar">❓</div>
+          <span class="vs-divider">VS</span>
+          <div class="rolling-avatar">❓</div>
         </div>
-        <div class="timer-box" id="classicTimerLabel">⏳ 30</div>
-        <div id="classicResultMsg"></div>
       </div>
-      <div class="bet-row">
-        <input type="number" id="classicBetInput" class="bet-input" value="5" min="1">
-        <button id="placeClassicBetBtn" class="btn">🎯 Поставить</button>
-        <button id="resetClassicBtn" class="btn" style="background:#3e4455;">Сброс</button>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="timer-countdown" id="classicTimerText">⏳ 3</span>
+        <span id="classicResultMessage" style="color:#f0b34b;"></span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="number" id="classicBetInput" value="5" min="1">
+        <button class="btn" id="placeClassicBetBtn">Поставить</button>
+        <button class="btn" id="resetClassicBtn" style="background:#3e4455;">Сброс</button>
       </div>
     </div>
-    <!-- Игры 1 на 1 -->
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h3>🎲 ИГРА 1 НА 1</h3>
-      <button id="createRoomBtn" class="btn">➕ Создать</button>
+
+    <!-- 1 на 1 -->
+    <div class="onevsone-section">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>🎲 ИГРА 1 НА 1</h3>
+        <button class="btn" id="createRoomBtn">➕ Создать</button>
+      </div>
+      <div class="rooms-scroll" id="roomsList"></div>
     </div>
-    <div class="games-list" id="roomsContainer"></div>
   </div>
 
-  <!-- Правая панель: инвентарь -->
-  <div class="right-panel" id="inventoryPanel">
+  <!-- Инвентарь -->
+  <div class="inventory-panel">
     <h3>🎒 Инвентарь</h3>
-    <div class="inventory-grid" id="inventoryGrid">
+    <div class="inv-grid">
       <div class="inv-slot">🔹</div><div class="inv-slot">🔹</div>
       <div class="inv-slot">🔹</div><div class="inv-slot">🔹</div>
     </div>
-    <div class="total-value">💰 Скины: <span id="skinTotal">0</span>$</div>
-    <button class="btn" style="width:100%;">🛒 Купить скины</button>
-    <button class="btn" style="background:#3e4455; width:100%;">💸 Продать скины</button>
+    <div>💰 Скины: <span id="skinValue">0</span>$</div>
+    <button class="btn">Купить скины</button>
+    <button class="btn" style="background:#3e4455;">Продать</button>
   </div>
 </div>
 
 <script>
   (() => {
-    // Состояние
+    const avatars = ['🐺','🦊','🐸','🐷','🐙','🐲','🦅','🐼','🐨','🐯','🐮','🐭'];
+    function randAvatar() { return avatars[Math.floor(Math.random()*avatars.length)]; }
+
     const state = {
-      user: { name: 'PlayerOne', balance: 200, avatar: '🐺' },
+      user: { name: 'PlayerOne', balance: 500, avatar: '🐺' },
       classicBets: [],
-      classicTimer: 30,
+      classicTimer: 3,
       classicInterval: null,
       classicSpinning: false,
       rooms: [],
       nextRoomId: 1,
-      currentView: 'main', // main / spectatorRoomId
-      historyLog: { classic: [], myClassic: [], oneVsOne: [] }
+      history: { classic: [], myClassic: [], oneVsOne: [] }
     };
 
-    // DOM ссылки
-    const profileEmoji = document.getElementById('profileEmoji');
+    // DOM
+    const profileAvatar = document.getElementById('profileAvatar');
     const profileName = document.getElementById('profileName');
-    const classicBank = document.getElementById('classicBank');
-    const classicLeft = document.getElementById('classicLeft');
-    const classicRight = document.getElementById('classicRight');
-    const classicTimerLabel = document.getElementById('classicTimerLabel');
-    const classicResultMsg = document.getElementById('classicResultMsg');
+    const classicBankDisplay = document.getElementById('classicBankDisplay');
+    const classicRollingTrack = document.getElementById('classicRollingTrack');
+    const classicTimerText = document.getElementById('classicTimerText');
+    const classicResultMessage = document.getElementById('classicResultMessage');
     const classicBetInput = document.getElementById('classicBetInput');
-    const placeClassicBetBtn = document.getElementById('placeClassicBetBtn');
-    const resetClassicBtn = document.getElementById('resetClassicBtn');
-    const roomsContainer = document.getElementById('roomsContainer');
-    const createRoomBtn = document.getElementById('createRoomBtn');
-    const inventoryGrid = document.getElementById('inventoryGrid');
-    const skinTotalSpan = document.getElementById('skinTotal');
-    const historyToggle = document.getElementById('historyToggle');
+    const roomsList = document.getElementById('roomsList');
+    const historyBtn = document.getElementById('historyBtn');
     const historySub = document.getElementById('historySub');
-    const centerPanel = document.getElementById('centerPanel');
-
-    // Аватарки
-    const avatars = ['🐺','🦊','🐸','🐷','🐙','🐲','🦅','🐼','🐨','🐯'];
-
-    function randomAvatar() { return avatars[Math.floor(Math.random()*avatars.length)]; }
 
     function updateUI() {
-      profileEmoji.textContent = state.user.avatar;
+      profileAvatar.textContent = state.user.avatar;
       profileName.textContent = state.user.name;
-      renderClassic();
+      const bank = state.classicBets.reduce((s,b)=>s+b.amount,0);
+      classicBankDisplay.textContent = bank.toFixed(0);
       renderRooms();
-      skinTotalSpan.textContent = '0';
     }
 
-    // Классический раунд
-    function renderClassic() {
-      const total = state.classicBets.reduce((s,b)=>s+b.amount,0);
-      classicBank.textContent = total.toFixed(2);
-      if (!state.classicSpinning && state.classicBets.length===0) {
-        classicLeft.textContent = '❓'; classicRight.textContent = '❓';
-      }
+    // Анимация рулетки (как кейсы)
+    function animateClassicRoll(winnerAvatar, callback) {
+      const track = classicRollingTrack;
+      let steps = 0;
+      const maxSteps = 28; // ~4-5 секунд
+      const interval = setInterval(() => {
+        const leftAv = randAvatar();
+        const rightAv = randAvatar();
+        track.innerHTML = `
+          <div class="rolling-avatar">${leftAv}</div>
+          <span class="vs-divider">VS</span>
+          <div class="rolling-avatar">${rightAv}</div>
+        `;
+        steps++;
+        if (steps >= maxSteps) {
+          clearInterval(interval);
+          // Финальная остановка на победителе
+          track.innerHTML = `
+            <div class="rolling-avatar">${winnerAvatar}</div>
+            <span class="vs-divider">VS</span>
+            <div class="rolling-avatar">${winnerAvatar}</div>
+          `;
+          setTimeout(() => {
+            if (callback) callback();
+          }, 3000);
+        }
+      }, 140);
     }
 
-    function addClassicBet() {
-      if (!state.user) return alert('Нет профиля');
+    function startClassicCountdown() {
+      if (state.classicBets.length < 2) return;
+      clearClassicInterval();
+      state.classicTimer = 3;
+      classicTimerText.textContent = `⏳ ${state.classicTimer}`;
+      state.classicInterval = setInterval(() => {
+        state.classicTimer--;
+        classicTimerText.textContent = `⏳ ${state.classicTimer}`;
+        if (state.classicTimer <= 0) {
+          clearClassicInterval();
+          runClassicGame();
+        }
+      }, 1000);
+    }
+
+    function runClassicGame() {
+      if (state.classicSpinning) return;
+      state.classicSpinning = true;
+      const tickets = [];
+      state.classicBets.forEach(b => { for(let i=0;i<b.amount;i++) tickets.push(b.user); });
+      const winner = tickets.length ? tickets[Math.floor(Math.random()*tickets.length)] : null;
+      const totalBank = state.classicBets.reduce((s,b)=>s+b.amount,0);
+      animateClassicRoll(winner?.avatar || '❓', () => {
+        if (winner) {
+          winner.balance += totalBank;
+          if (winner.name === state.user.name) state.user.balance = winner.balance;
+          classicResultMessage.textContent = `${winner.name} выиграл ${totalBank}$`;
+          state.history.classic.push({winner:winner.name, bank:totalBank});
+          state.history.myClassic.push({winner:winner.name, bank:totalBank});
+        }
+        state.classicBets = [];
+        state.classicSpinning = false;
+        classicTimerText.textContent = '⏳ 3';
+        updateUI();
+        setTimeout(()=>{ classicResultMessage.textContent = ''; }, 3000);
+      });
+    }
+
+    function clearClassicInterval() {
+      if (state.classicInterval) { clearInterval(state.classicInterval); state.classicInterval = null; }
+    }
+
+    document.getElementById('placeClassicBetBtn').addEventListener('click', ()=>{
+      if (!state.user) return;
       const amt = parseInt(classicBetInput.value,10);
-      if (isNaN(amt) || amt<=0) return;
+      if (isNaN(amt)||amt<=0) return;
       if (state.user.balance < amt) return alert('Недостаточно монет');
       state.user.balance -= amt;
       state.classicBets.push({ user: {...state.user}, amount: amt });
@@ -367,84 +450,29 @@
       if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
         startClassicCountdown();
       }
-    }
-
-    function startClassicCountdown() {
-      clearClassicInterval();
-      state.classicTimer = 30;
-      state.classicInterval = setInterval(() => {
-        state.classicTimer--;
-        classicTimerLabel.textContent = `⏳ ${state.classicTimer}`;
-        if (state.classicTimer <= 0) {
-          clearClassicInterval();
-          runClassicSpin();
-        }
-      }, 1000);
-    }
-
-    function runClassicSpin() {
+    });
+    document.getElementById('resetClassicBtn').addEventListener('click', ()=>{
       if (state.classicSpinning) return;
-      state.classicSpinning = true;
       clearClassicInterval();
-      // Анимация 4-5 сек
-      const participants = [...new Set(state.classicBets.map(b=>b.user.name))];
-      let tick = 0;
-      const spinInterval = setInterval(() => {
-        const r1 = avatars[Math.floor(Math.random()*avatars.length)];
-        const r2 = avatars[Math.floor(Math.random()*avatars.length)];
-        classicLeft.textContent = r1;
-        classicRight.textContent = r2;
-        tick++;
-        if (tick >= 15) { // ~4-5 сек
-          clearInterval(spinInterval);
-          finalizeClassic();
-        }
-      }, 280);
-    }
-
-    function finalizeClassic() {
-      const tickets = [];
-      state.classicBets.forEach(b=>{ for(let i=0;i<b.amount;i++) tickets.push(b.user); });
-      const winner = tickets.length ? tickets[Math.floor(Math.random()*tickets.length)] : null;
-      if (winner) {
-        const totalBank = state.classicBets.reduce((s,b)=>s+b.amount,0);
-        winner.balance = (winner.balance||0) + totalBank;
-        if (winner.name === state.user.name) state.user.balance = winner.balance;
-        classicLeft.textContent = winner.avatar; classicRight.textContent = winner.avatar;
-        classicResultMsg.textContent = `Победитель: ${winner.name} +${totalBank}$`;
-        state.historyLog.classic.push({ winner: winner.name, bank: totalBank, time: Date.now() });
-        state.historyLog.myClassic.push({ winner: winner.name, bank: totalBank });
-      }
-      setTimeout(() => {
-        state.classicBets = [];
-        state.classicSpinning = false;
-        classicResultMsg.textContent = '';
-        classicLeft.textContent = '❓'; classicRight.textContent = '❓';
-        classicTimerLabel.textContent = '⏳ 30';
-        updateUI();
-      }, 3000);
-    }
-
-    function clearClassicInterval() {
-      if (state.classicInterval) { clearInterval(state.classicInterval); state.classicInterval = null; }
-    }
+      state.classicBets = [];
+      classicTimerText.textContent = '⏳ 3';
+      updateUI();
+    });
 
     // Комнаты 1 на 1
     function createRoom() {
-      const bet = parseInt(prompt('Ставка (монеты):','10'),10);
+      const bet = parseInt(prompt('Ставка монет:','15'),10);
       if (!bet || bet<=0 || state.user.balance < bet) return alert('Недостаточно средств');
       state.user.balance -= bet;
-      const room = {
+      state.rooms.push({
         id: state.nextRoomId++,
         creator: {...state.user},
         bet,
         opponent: null,
         status: 'waiting',
-        timer: 10,
-        intervalId: null,
-        winner: null
-      };
-      state.rooms.push(room);
+        timer: 3,
+        intervalId: null
+      });
       updateUI();
     }
 
@@ -455,7 +483,7 @@
       state.user.balance -= room.bet;
       room.opponent = {...state.user};
       room.status = 'countdown';
-      room.timer = 10;
+      room.timer = 3;
       startRoomCountdown(room);
       updateUI();
     }
@@ -467,23 +495,23 @@
         updateUI();
         if (room.timer <= 0) {
           clearRoomInterval(room);
-          finishRoomGame(room);
+          finishRoom(room);
         }
       }, 1000);
     }
 
-    function finishRoomGame(room) {
+    function finishRoom(room) {
       const tickets = [];
       for(let i=0;i<room.bet;i++) tickets.push(room.creator);
       for(let i=0;i<room.bet;i++) tickets.push(room.opponent);
       const winner = tickets[Math.floor(Math.random()*tickets.length)];
-      room.winner = winner;
       room.status = 'finished';
+      room.winner = winner;
       const prize = room.bet*2;
       if (winner.name === state.user.name) state.user.balance += prize;
-      state.historyLog.oneVsOne.push({ vs: `${room.creator.name} vs ${room.opponent.name}`, winner: winner.name });
+      state.history.oneVsOne.push({vs:`${room.creator.name} vs ${room.opponent.name}`, winner:winner.name});
       updateUI();
-      setTimeout(() => {
+      setTimeout(()=>{
         state.rooms = state.rooms.filter(r=>r.id!==room.id);
         updateUI();
       }, 5000);
@@ -494,78 +522,40 @@
     }
 
     function renderRooms() {
-      roomsContainer.innerHTML = '';
+      roomsList.innerHTML = '';
       if (!state.rooms.length) {
-        roomsContainer.innerHTML = '<div style="color:#7f8690;">Нет активных комнат</div>';
+        roomsList.innerHTML = '<div style="color:#7f8690; padding:12px;">Нет активных комнат</div>';
         return;
       }
       state.rooms.forEach(room => {
         const div = document.createElement('div');
-        div.className = 'room-row';
-        const statusText = room.status==='waiting'?'Ожидание':(room.status==='countdown'?`Идет... ${room.timer}s`:'Завершено');
+        div.className = 'room-card';
+        const status = room.status==='waiting'?'Ожидание':(room.status==='countdown'?`Идет... ${room.timer}с`:'Завершено');
         div.innerHTML = `
-          <div><strong>${room.creator.name}</strong> ставка ${room.bet}$</div>
-          <div style="display:flex; gap:0.5rem; align-items:center;">
-            <span>${statusText}</span>
+          <div class="room-players">
+            <span class="mini-avatar">${room.creator.avatar}</span>
+            <span>${room.creator.name} (${room.bet}$)</span>
+            ${room.opponent ? `<span>VS ${room.opponent.avatar} ${room.opponent.name}</span>` : ''}
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span>${status}</span>
             <button class="btn join-btn" data-id="${room.id}" ${room.status!=='waiting'?'disabled':''}>Играть</button>
-            <button class="btn spectate-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
+            <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
           </div>
         `;
-        roomsContainer.appendChild(div);
+        roomsList.appendChild(div);
       });
       document.querySelectorAll('.join-btn').forEach(b=>b.addEventListener('click',e=>joinRoom(parseInt(e.target.dataset.id))));
-      document.querySelectorAll('.spectate-btn').forEach(b=>b.addEventListener('click',e=>{
-        const id = parseInt(e.target.dataset.id);
-        enterSpectatorMode(id);
+      document.querySelectorAll('.watch-btn').forEach(b=>b.addEventListener('click',e=>{
+        alert('Режим наблюдения: смотрите за комнатой #'+e.target.dataset.id);
       }));
     }
 
-    function enterSpectatorMode(roomId) {
-      state.currentView = 'spectator';
-      document.querySelector('.nav-item.active')?.classList.remove('active');
-      // Скрываем список комнат, показываем только выбранную
-      renderSpectatorRoom(roomId);
-    }
-
-    function renderSpectatorRoom(roomId) {
-      const room = state.rooms.find(r=>r.id===roomId);
-      if (!room) return;
-      centerPanel.innerHTML = `
-        <div class="classic-card">
-          <h3>👁 Наблюдение за комнатой #${room.id}</h3>
-          <p>${room.creator.name} vs ${room.opponent?.name||'???'} | Ставка ${room.bet}$</p>
-          <button id="exitSpectateBtn" class="btn">Выйти из просмотра</button>
-        </div>
-      `;
-      document.getElementById('exitSpectateBtn').addEventListener('click', ()=>{
-        state.currentView = 'main';
-        location.reload();
-      });
-    }
-
-    // История
-    historyToggle.addEventListener('click', ()=>{
-      historySub.style.display = historySub.style.display==='none' ? 'flex' : 'none';
-    });
-    document.querySelectorAll('.sub-item').forEach(el=>{
-      el.addEventListener('click', (e)=>{
-        const type = e.target.dataset.history;
-        alert(`История (${type}): ${JSON.stringify(state.historyLog[type]?.slice(-3) || [])}`);
-      });
+    document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+    historyBtn.addEventListener('click', ()=>{
+      historySub.style.display = historySub.style.display==='none'?'flex':'none';
     });
 
-    // Обработчики
-    placeClassicBetBtn.addEventListener('click', addClassicBet);
-    resetClassicBtn.addEventListener('click', ()=>{
-      if (state.classicSpinning) return;
-      clearClassicInterval();
-      state.classicBets = [];
-      classicTimerLabel.textContent = '⏳ 30';
-      updateUI();
-    });
-    createRoomBtn.addEventListener('click', createRoom);
-
-    // Инициализация
     updateUI();
   })();
 </script>
