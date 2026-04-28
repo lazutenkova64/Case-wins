@@ -3,32 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CS2 Case Opening — Мульти-открытие</title>
+  <title>CS2 Case Opening — Multi‑open + Upgrade</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: radial-gradient(circle at 20% 20%, #1a1f2b, #0a0d14);
       min-height: 100vh;
       color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      padding: 30px 15px;
+      padding: 20px 15px;
     }
     .app {
-      max-width: 1050px;
+      max-width: 1100px;
       width: 100%;
       background: rgba(14, 17, 23, 0.85);
-      backdrop-filter: blur(30px);
+      backdrop-filter: blur(25px);
       border-radius: 40px;
       padding: 24px 22px 30px;
       box-shadow: 0 30px 45px rgba(0,0,0,0.8);
-      border: 1px solid rgba(220, 180, 40, 0.2);
+      border: 1px solid rgba(220,180,40,0.2);
     }
     .top-bar {
       display: flex;
@@ -44,227 +39,74 @@
       background: linear-gradient(180deg, #f9e076, #c5921a);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-weight: 900;
-      font-size: 2.2rem;
-      letter-spacing: 1px;
+      font-weight: 900; font-size: 2.2rem; letter-spacing: 1px;
     }
-    .nav {
-      display: flex;
-      gap: 8px;
-      background: #151a24;
-      border-radius: 50px;
-      padding: 5px;
-    }
+    .nav { display: flex; gap: 8px; background: #151a24; border-radius: 50px; padding: 5px; }
     .nav-btn {
-      background: transparent;
-      border: none;
-      color: #aaa;
-      font-weight: 700;
-      padding: 13px 26px;
-      border-radius: 40px;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 15px;
+      background: transparent; border: none; color: #aaa; font-weight: 700;
+      padding: 13px 26px; border-radius: 40px; cursor: pointer; transition: 0.2s; font-size: 15px;
     }
-    .nav-btn.active {
-      background: #f0b90b;
-      color: #0a0a0a;
-      box-shadow: 0 0 20px rgba(240,185,11,0.5);
-    }
+    .nav-btn.active { background: #f0b90b; color: #0a0a0a; box-shadow: 0 0 20px rgba(240,185,11,0.5); }
     button {
-      background: #232b38;
-      border: none;
-      color: #eee;
-      padding: 11px 21px;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: #232b38; border: none; color: #eee; padding: 11px 21px;
+      border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s;
     }
-    button:hover {
-      filter: brightness(1.3);
-    }
-    button.primary {
-      background: linear-gradient(180deg, #f5cb42, #c5851b);
-      color: #111;
-      font-weight: 800;
-    }
-    button.danger {
-      background: #4a2e2e;
-      color: #faa;
-    }
+    button:hover { filter: brightness(1.3); }
+    button.primary { background: linear-gradient(180deg, #f5cb42, #c5851b); color: #111; font-weight: 800; }
+    button.danger { background: #4a2e2e; color: #faa; }
     input {
-      background: #151b25;
-      border: 1px solid #3f4858;
-      padding: 12px 18px;
-      border-radius: 30px;
-      color: white;
-      margin-right: 8px;
-      outline: none;
+      background: #151b25; border: 1px solid #3f4858; padding: 12px 18px;
+      border-radius: 30px; color: white; margin-right: 8px; outline: none;
     }
-    .balance {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #f0b90b;
-      background: #0f1219;
-      padding: 8px 22px;
-      border-radius: 30px;
-    }
-    .cases-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 25px;
-    }
+    .balance { font-size: 1.3rem; font-weight: bold; color: #f0b90b; background: #0f1219; padding: 8px 22px; border-radius: 30px; }
+    .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 25px; }
     .case-card {
-      background: #181e29;
-      border-radius: 28px;
-      padding: 22px 12px;
-      text-align: center;
-      border: 1px solid #303a4c;
-      cursor: pointer;
-      transition: 0.25s;
+      background: #181e29; border-radius: 28px; padding: 22px 12px; text-align: center;
+      border: 1px solid #303a4c; cursor: pointer; transition: 0.25s;
     }
-    .case-card:hover {
-      border-color: #f0b90b;
-      transform: translateY(-6px);
-      box-shadow: 0 18px 30px rgba(0,0,0,0.6);
-    }
-    .case-img {
-      font-size: 68px;
-      margin-bottom: 6px;
-    }
-    .inventory-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 15px;
-    }
+    .case-card:hover { border-color: #f0b90b; transform: translateY(-6px); }
+    .case-img { font-size: 68px; margin-bottom: 6px; }
+    .inventory-grid, .upgrade-select { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 15px; }
     .item-card {
-      background: #1b2130;
-      border-radius: 18px;
-      padding: 12px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-left: 6px solid;
+      background: #1b2130; border-radius: 18px; padding: 12px 18px; display: flex;
+      align-items: center; gap: 12px; border-left: 6px solid;
     }
-    .rarity-common { border-left-color: #9e9e9e; }
-    .rarity-mil { border-left-color: #4b69ff; }
-    .rarity-restricted { border-left-color: #8845ff; }
-    .rarity-classified { border-left-color: #d32ce6; }
-    .rarity-covert { border-left-color: #eb4b4b; }
-    .rarity-gold { border-left-color: #f3b23f; }
+    .rarity-common { border-left-color: #9e9e9e; } .rarity-mil { border-left-color: #4b69ff; }
+    .rarity-restricted { border-left-color: #8845ff; } .rarity-classified { border-left-color: #d32ce6; }
+    .rarity-covert { border-left-color: #eb4b4b; } .rarity-gold { border-left-color: #f3b23f; }
 
-    /* Модалка */
     .modal {
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.9);
-      backdrop-filter: blur(12px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+      position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
     .modal-box {
-      background: #111520;
-      border: 2px solid #f0b90b;
-      border-radius: 36px;
-      padding: 24px 28px;
-      max-width: 780px;
-      width: 95%;
-      text-align: center;
-      box-shadow: 0 0 60px rgba(240,185,11,0.3);
+      background: #111520; border: 2px solid #f0b90b; border-radius: 36px;
+      padding: 24px 28px; width: 95%; max-width: 800px; text-align: center;
+      box-shadow: 0 0 60px rgba(240,185,11,0.3); max-height: 90vh; overflow-y: auto;
     }
     .roulette-area {
-      position: relative;
-      height: 140px;
-      background: #0a0d14;
-      border-radius: 24px;
-      margin: 25px 0 15px;
-      overflow: hidden;
-      border: 1px solid #2f3745;
+      position: relative; height: 130px; background: #0a0d14; border-radius: 24px;
+      margin: 15px 0; overflow: hidden; border: 1px solid #2f3745;
     }
     .pointer {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #f0b90b;
-      box-shadow: 0 0 30px #f0b90b, 0 0 10px #fff;
-      z-index: 20;
-      transform: translateX(-50%);
-      border-radius: 3px;
+      position: absolute; left: 50%; top:0; bottom:0; width: 3px;
+      background: #f0b90b; box-shadow: 0 0 30px #f0b90b; z-index: 20; transform: translateX(-50%);
     }
     .items-track {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      transition: transform 0.8s cubic-bezier(0.15, 0.8, 0.2, 1);
-      will-change: transform;
+      display: flex; align-items: center; height: 100%; will-change: transform;
     }
     .roulette-item {
-      flex: 0 0 150px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 4px;
-      color: #ddd;
-      font-weight: 600;
-      background: rgba(30,35,48,0.8);
-      margin: 0 4px;
-      border-radius: 18px;
-      border: 1px solid #3e4657;
+      flex: 0 0 150px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 8px 4px; color: #ddd; font-weight: 600;
+      background: rgba(30,35,48,0.8); margin: 0 4px; border-radius: 18px; border: 1px solid #3e4657;
     }
-    .roulette-item .emoji {
-      font-size: 45px;
-      display: block;
-      line-height: 1;
-    }
-    .controls {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .result-text {
-      font-size: 1.2rem;
-      margin-top: 12px;
-      font-weight: bold;
-      min-height: 30px;
-    }
-    .quantity-selector {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin: 15px 0;
-      font-size: 1.2rem;
-    }
-    .quantity-selector button {
-      font-size: 1.5rem;
-      width: 45px;
-      height: 45px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .quantity-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #f0b90b;
-      min-width: 50px;
-    }
-    .total-price {
-      font-size: 1.4rem;
-      color: #f0b90b;
-      margin: 10px 0;
-    }
+    .roulette-item .emoji { font-size: 40px; display: block; }
+    .controls { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
+    .quantity-selector { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0; }
+    .quantity-btn { font-size: 1.5rem; width: 45px; height: 45px; padding: 0; }
+    .quantity-value { font-size: 2rem; font-weight: 800; color: #f0b90b; min-width: 50px; }
+    .result-text { font-size: 1.2rem; margin-top: 12px; font-weight: bold; min-height: 30px; }
+    .upgrade-chance { font-size: 1.4rem; color: #f0b90b; margin: 15px 0; }
   </style>
 </head>
 <body>
@@ -273,489 +115,521 @@
     <h1>🔫 CASE OPENER</h1>
     <div id="authBlock" style="display: flex; gap: 10px; align-items: center;"></div>
   </div>
-
-  <div id="loginPanel" style="display: none; margin-bottom: 25px; background:#151b26; border-radius: 24px; padding: 20px;"></div>
-
-  <div id="mainUI" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:15px;">
+  <div id="loginPanel" style="display:none; margin-bottom:25px; background:#151b26; border-radius:24px; padding:20px;"></div>
+  <div id="mainUI" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
       <div class="nav">
         <button class="nav-btn active" id="tabCases">📦 Кейсы</button>
         <button class="nav-btn" id="tabInventory">🎒 Инвентарь</button>
+        <button class="nav-btn" id="tabUpgrade">⚡ Upgrade</button>
       </div>
       <div class="balance">💰 <span id="balanceValue">0</span> ₽</div>
     </div>
-
-    <div id="casesView" style="margin-top: 25px;"></div>
-    <div id="inventoryView" style="display: none; margin-top: 25px;"></div>
+    <div id="casesView" style="margin-top:25px;"></div>
+    <div id="inventoryView" style="display:none; margin-top:25px;"></div>
+    <div id="upgradeView" style="display:none; margin-top:25px;"></div>
   </div>
 </div>
 
-<!-- Модальное окно открытия кейса -->
-<div class="modal" id="caseModal" style="display: none;">
+<!-- Модалка открытия кейса -->
+<div class="modal" id="caseModal" style="display:none;">
   <div class="modal-box">
     <h2 id="modalTitle" style="color:#f0b90b;"></h2>
-    <div class="roulette-area" id="rouletteContainer">
-      <div class="pointer"></div>
-      <div class="items-track" id="rouletteTrack"></div>
-    </div>
-
+    <div id="multiRouletteContainer"></div>
     <div class="quantity-selector">
-      <button id="qtyMinus">−</button>
+      <button class="quantity-btn" id="qtyMinus">−</button>
       <span class="quantity-value" id="qtyValue">1</span>
-      <button id="qtyPlus">+</button>
+      <button class="quantity-btn" id="qtyPlus">+</button>
     </div>
-    <div class="total-price" id="totalPriceDisplay">Общая стоимость: 0 ₽</div>
-
+    <div style="font-size:1.2rem; color:#f0b90b;" id="totalPriceDisplay">0 ₽</div>
     <div class="controls">
-      <button class="primary" id="btnOpenNormal" style="font-size:18px; padding:14px 32px;">🔓 Открыть (6 сек)</button>
-      <button id="btnOpenFast" style="font-size:16px; padding:12px 25px; background:#3a4050;">⚡ Fast (3.5 сек)</button>
-      <button id="btnCloseModal" style="background:#2a2f3c;">Закрыть</button>
+      <button class="primary" id="btnOpenNormal">🔓 Открыть (6 сек)</button>
+      <button id="btnOpenFast" style="background:#3a4050;">⚡ Fast (2 сек)</button>
+      <button id="btnCloseModal">Закрыть</button>
     </div>
     <div class="result-text" id="resultMessage"></div>
   </div>
 </div>
 
+<!-- Модалка апгрейда -->
+<div class="modal" id="upgradeModal" style="display:none;">
+  <div class="modal-box">
+    <h2 style="color:#f0b90b;">⚡ Upgrade предмета</h2>
+    <div class="roulette-area" id="upgradeRouletteContainer">
+      <div class="pointer"></div>
+      <div class="items-track" id="upgradeRouletteTrack"></div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="btnUpgradeNormal">🔄 Upgrade (3.5 сек)</button>
+      <button id="btnUpgradeFast" style="background:#3a4050;">⚡ Fast (1 сек)</button>
+      <button id="btnCloseUpgradeModal">Закрыть</button>
+    </div>
+    <div class="result-text" id="upgradeResultMessage"></div>
+  </div>
+</div>
+
 <script>
-  (() => {
-    // Расширенная база предметов
-    const ITEMS = [
-      // Старые
-      { id:'awp_dragon', name:'AWP | Dragon Lore', rarity:'covert', price:13500, emoji:'🐉' },
-      { id:'ak_fire', name:'AK-47 | Fire Serpent', rarity:'covert', price:10200, emoji:'🔥' },
-      { id:'m4_howl', name:'M4A4 | Howl', rarity:'covert', price:15800, emoji:'🐺' },
-      { id:'knife_karambit', name:'Karambit | Doppler', rarity:'gold', price:47000, emoji:'🔪' },
-      { id:'glock_fade', name:'Glock-18 | Fade', rarity:'restricted', price:3400, emoji:'🌈' },
-      { id:'deagle_blaze', name:'Desert Eagle | Blaze', rarity:'mil', price:5300, emoji:'🔥' },
-      { id:'usp_kill', name:'USP-S | Kill Confirmed', rarity:'covert', price:8200, emoji:'💀' },
-      { id:'ak_vulcan', name:'AK-47 | Vulcan', rarity:'classified', price:6700, emoji:'🌋' },
-      { id:'m4_neo', name:'M4A1-S | Hyper Beast', rarity:'classified', price:4500, emoji:'👾' },
-      { id:'awp_asiimov', name:'AWP | Asiimov', rarity:'classified', price:5800, emoji:'⬜' },
-      { id:'p250_sand', name:'P250 | Sand Dune', rarity:'common', price:20, emoji:'🏜️' },
-      { id:'mp7_forest', name:'MP7 | Forest DDPAT', rarity:'common', price:40, emoji:'🌿' },
-      { id:'nova_walnut', name:'Nova | Walnut', rarity:'common', price:50, emoji:'🪵' },
-      { id:'five_seven', name:'Five-SeveN | Case Hardened', rarity:'mil', price:2700, emoji:'🔫' },
-      { id:'tec9_toxic', name:'Tec-9 | Toxic', rarity:'restricted', price:1300, emoji:'☣️' },
-      // Новые дорогие и редкие
-      { id:'awp_medusa', name:'AWP | Medusa', rarity:'covert', price:28000, emoji:'🐍' },
-      { id:'m4_poseidon', name:'M4A4 | Poseidon', rarity:'covert', price:32000, emoji:'🌊' },
-      { id:'knife_crimson', name:'Karambit | Crimson Web', rarity:'gold', price:55000, emoji:'🩸' },
-      { id:'ak_hydroponic', name:'AK-47 | Hydroponic', rarity:'classified', price:11000, emoji:'🌿' },
-      { id:'deagle_printstream', name:'Desert Eagle | Printstream', rarity:'classified', price:12500, emoji:'🦈' },
-      { id:'glock_royal', name:'Glock-18 | Royal Legion', rarity:'restricted', price:2100, emoji:'👑' },
-      { id:'usp_road', name:'USP-S | Road Rash', rarity:'mil', price:1800, emoji:'🏍️' },
-      { id:'p250_see', name:'P250 | See Ya Later', rarity:'restricted', price:950, emoji:'🐊' },
-      { id:'mp9_bull', name:'MP9 | Bulldozer', rarity:'classified', price:8900, emoji:'🚜' },
-      { id:'mag7_bulldog', name:'MAG-7 | Bulldog', rarity:'mil', price:420, emoji:'🐶' }
-    ];
+(() => {
+  // База предметов
+  const ITEMS = [
+    { id:'awp_dragon', name:'AWP | Dragon Lore', rarity:'covert', price:13500, emoji:'🐉' },
+    { id:'ak_fire', name:'AK-47 | Fire Serpent', rarity:'covert', price:10200, emoji:'🔥' },
+    { id:'m4_howl', name:'M4A4 | Howl', rarity:'covert', price:15800, emoji:'🐺' },
+    { id:'knife_karambit', name:'Karambit | Doppler', rarity:'gold', price:47000, emoji:'🔪' },
+    { id:'glock_fade', name:'Glock-18 | Fade', rarity:'restricted', price:3400, emoji:'🌈' },
+    { id:'deagle_blaze', name:'Desert Eagle | Blaze', rarity:'mil', price:5300, emoji:'🔥' },
+    { id:'usp_kill', name:'USP-S | Kill Confirmed', rarity:'covert', price:8200, emoji:'💀' },
+    { id:'ak_vulcan', name:'AK-47 | Vulcan', rarity:'classified', price:6700, emoji:'🌋' },
+    { id:'m4_neo', name:'M4A1-S | Hyper Beast', rarity:'classified', price:4500, emoji:'👾' },
+    { id:'awp_asiimov', name:'AWP | Asiimov', rarity:'classified', price:5800, emoji:'⬜' },
+    { id:'p250_sand', name:'P250 | Sand Dune', rarity:'common', price:20, emoji:'🏜️' },
+    { id:'mp7_forest', name:'MP7 | Forest DDPAT', rarity:'common', price:40, emoji:'🌿' },
+    { id:'nova_walnut', name:'Nova | Walnut', rarity:'common', price:50, emoji:'🪵' },
+    { id:'five_seven', name:'Five-SeveN | Case Hardened', rarity:'mil', price:2700, emoji:'🔫' },
+    { id:'tec9_toxic', name:'Tec-9 | Toxic', rarity:'restricted', price:1300, emoji:'☣️' },
+    { id:'awp_medusa', name:'AWP | Medusa', rarity:'covert', price:28000, emoji:'🐍' },
+    { id:'m4_poseidon', name:'M4A4 | Poseidon', rarity:'covert', price:32000, emoji:'🌊' },
+    { id:'knife_crimson', name:'Karambit | Crimson Web', rarity:'gold', price:55000, emoji:'🩸' },
+    { id:'ak_hydroponic', name:'AK-47 | Hydroponic', rarity:'classified', price:11000, emoji:'🌿' },
+    { id:'deagle_printstream', name:'Desert Eagle | Printstream', rarity:'classified', price:12500, emoji:'🦈' }
+  ];
 
-    // 23 кейса (старые 3 + 20 новых)
-    const CASES = [
-      // Старые
-      { id:'gamma', name:'Gamma Case', price:350, image:'📦', items:[
-        {itemId:'glock_fade',weight:8},{itemId:'awp_asiimov',weight:5},{itemId:'ak_vulcan',weight:5},
-        {itemId:'deagle_blaze',weight:9},{itemId:'five_seven',weight:17},{itemId:'p250_sand',weight:28},{itemId:'mp7_forest',weight:28}
-      ]},
-      { id:'legend', name:'Legend Case', price:650, image:'🧰', items:[
-        {itemId:'awp_dragon',weight:2},{itemId:'ak_fire',weight:3},{itemId:'m4_howl',weight:3},
-        {itemId:'usp_kill',weight:8},{itemId:'m4_neo',weight:10},{itemId:'tec9_toxic',weight:17},
-        {itemId:'nova_walnut',weight:27},{itemId:'p250_sand',weight:30}
-      ]},
-      { id:'knife', name:'Knife Dream', price:1300, image:'💎', items:[
-        {itemId:'knife_karambit',weight:1},{itemId:'awp_dragon',weight:4},{itemId:'deagle_blaze',weight:10},
-        {itemId:'ak_vulcan',weight:14},{itemId:'glock_fade',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:26}
-      ]},
-      // 20 новых кейсов
-      { id:'alpha', name:'Alpha Case', price:200, image:'🔹', items:[
-        {itemId:'p250_sand',weight:40},{itemId:'mp7_forest',weight:30},{itemId:'nova_walnut',weight:20},{itemId:'five_seven',weight:10}
-      ]},
-      { id:'omega', name:'Omega Case', price:400, image:'🔸', items:[
-        {itemId:'mp7_forest',weight:25},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:20},{itemId:'glock_fade',weight:15},{itemId:'p250_sand',weight:20}
-      ]},
-      { id:'phoenix', name:'Phoenix Case', price:700, image:'🔥', items:[
-        {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
-      ]},
-      { id:'shadow', name:'Shadow Case', price:1000, image:'🌑', items:[
-        {itemId:'usp_kill',weight:8},{itemId:'glock_fade',weight:12},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:25},{itemId:'mp7_forest',weight:35}
-      ]},
-      { id:'frostbite', name:'Frostbite Case', price:1500, image:'❄️', items:[
-        {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'p250_see',weight:30},{itemId:'nova_walnut',weight:30}
-      ]},
-      { id:'inferno', name:'Inferno Case', price:2000, image:'🌋', items:[
-        {itemId:'ak_fire',weight:5},{itemId:'deagle_blaze',weight:15},{itemId:'glock_fade',weight:15},{itemId:'usp_kill',weight:10},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:25}
-      ]},
-      { id:'thunder', name:'Thunder Case', price:3000, image:'⚡', items:[
-        {itemId:'awp_dragon',weight:3},{itemId:'m4_howl',weight:3},{itemId:'ak_vulcan',weight:12},{itemId:'m4_neo',weight:12},{itemId:'deagle_blaze',weight:20},{itemId:'p250_sand',weight:25},{itemId:'mp7_forest',weight:25}
-      ]},
-      { id:'elite', name:'Elite Case', price:4000, image:'💠', items:[
-        {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'glock_royal',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
-      ]},
-      { id:'predator', name:'Predator Case', price:5000, image:'🦅', items:[
-        {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'mp9_bull',weight:15},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
-      ]},
-      { id:'cyber', name:'Cyber Case', price:7000, image:'🤖', items:[
-        {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
-      ]},
-      { id:'royal', name:'Royal Case', price:9000, image:'👑', items:[
-        {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'glock_royal',weight:18},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
-      ]},
-      { id:'golden', name:'Golden Case', price:12000, image:'🥇', items:[
-        {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:27}
-      ]},
-      { id:'diamond', name:'Diamond Case', price:15000, image:'💎', items:[
-        {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:5},{itemId:'awp_medusa',weight:5},{itemId:'ak_fire',weight:10},{itemId:'deagle_blaze',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
-      ]},
-      { id:'mythic', name:'Mythic Case', price:18000, image:'🌀', items:[
-        {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'mp9_bull',weight:20},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
-      ]},
-      { id:'legendary', name:'Legendary Case', price:22000, image:'🌟', items:[
-        {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'glock_royal',weight:25},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
-      ]},
-      { id:'ancient', name:'Ancient Case', price:28000, image:'🏺', items:[
-        {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:26}
-      ]},
-      { id:'future', name:'Future Case', price:35000, image:'🚀', items:[
-        {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'mp9_bull',weight:25},{itemId:'p250_sand',weight:25}
-      ]},
-      { id:'titan', name:'Titan Case', price:42000, image:'⚔️', items:[
-        {itemId:'knife_karambit',weight:4},{itemId:'knife_crimson',weight:2},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_blaze',weight:25},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:20}
-      ]},
-      { id:'divine', name:'Divine Case', price:48000, image:'✨', items:[
-        {itemId:'knife_crimson',weight:5},{itemId:'m4_poseidon',weight:10},{itemId:'awp_medusa',weight:10},{itemId:'ak_fire',weight:15},{itemId:'usp_kill',weight:25},{itemId:'mp7_forest',weight:20},{itemId:'p250_sand',weight:15}
-      ]},
-      { id:'ultimate', name:'Ultimate Case', price:50000, image:'🔮', items:[
-        {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'mp9_bull',weight:22},{itemId:'p250_sand',weight:25}
-      ]}
-    ];
+  const CASES = [
+    { id:'gamma', name:'Gamma Case', price:350, image:'📦', items:[
+      {itemId:'glock_fade',weight:8},{itemId:'awp_asiimov',weight:5},{itemId:'ak_vulcan',weight:5},
+      {itemId:'deagle_blaze',weight:9},{itemId:'five_seven',weight:17},{itemId:'p250_sand',weight:28},{itemId:'mp7_forest',weight:28}
+    ]},
+    { id:'legend', name:'Legend Case', price:650, image:'🧰', items:[
+      {itemId:'awp_dragon',weight:2},{itemId:'ak_fire',weight:3},{itemId:'m4_howl',weight:3},
+      {itemId:'usp_kill',weight:8},{itemId:'m4_neo',weight:10},{itemId:'tec9_toxic',weight:17},
+      {itemId:'nova_walnut',weight:27},{itemId:'p250_sand',weight:30}
+    ]},
+    { id:'knife', name:'Knife Dream', price:1300, image:'💎', items:[
+      {itemId:'knife_karambit',weight:1},{itemId:'awp_dragon',weight:4},{itemId:'deagle_blaze',weight:10},
+      {itemId:'ak_vulcan',weight:14},{itemId:'glock_fade',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:26}
+    ]},
+    { id:'alpha', name:'Alpha Case', price:200, image:'🔹', items:[
+      {itemId:'p250_sand',weight:40},{itemId:'mp7_forest',weight:30},{itemId:'nova_walnut',weight:20},{itemId:'five_seven',weight:10}
+    ]},
+    { id:'omega', name:'Omega Case', price:400, image:'🔸', items:[
+      {itemId:'mp7_forest',weight:25},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:20},{itemId:'glock_fade',weight:15},{itemId:'p250_sand',weight:20}
+    ]},
+    { id:'phoenix', name:'Phoenix Case', price:700, image:'🔥', items:[
+      {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+    ]},
+    { id:'shadow', name:'Shadow Case', price:1000, image:'🌑', items:[
+      {itemId:'usp_kill',weight:8},{itemId:'glock_fade',weight:12},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:25},{itemId:'mp7_forest',weight:35}
+    ]},
+    { id:'frostbite', name:'Frostbite Case', price:1500, image:'❄️', items:[
+      {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'p250_see',weight:30},{itemId:'nova_walnut',weight:30}
+    ]},
+    { id:'inferno', name:'Inferno Case', price:2000, image:'🌋', items:[
+      {itemId:'ak_fire',weight:5},{itemId:'deagle_blaze',weight:15},{itemId:'glock_fade',weight:15},{itemId:'usp_kill',weight:10},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:25}
+    ]},
+    { id:'thunder', name:'Thunder Case', price:3000, image:'⚡', items:[
+      {itemId:'awp_dragon',weight:3},{itemId:'m4_howl',weight:3},{itemId:'ak_vulcan',weight:12},{itemId:'m4_neo',weight:12},{itemId:'deagle_blaze',weight:20},{itemId:'p250_sand',weight:25},{itemId:'mp7_forest',weight:25}
+    ]},
+    { id:'elite', name:'Elite Case', price:4000, image:'💠', items:[
+      {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'glock_royal',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
+    ]},
+    { id:'predator', name:'Predator Case', price:5000, image:'🦅', items:[
+      {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'mp9_bull',weight:15},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
+    ]},
+    { id:'cyber', name:'Cyber Case', price:7000, image:'🤖', items:[
+      {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
+    ]},
+    { id:'royal', name:'Royal Case', price:9000, image:'👑', items:[
+      {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'glock_royal',weight:18},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
+    ]},
+    { id:'golden', name:'Golden Case', price:12000, image:'🥇', items:[
+      {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:27}
+    ]},
+    { id:'diamond', name:'Diamond Case', price:15000, image:'💎', items:[
+      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:5},{itemId:'awp_medusa',weight:5},{itemId:'ak_fire',weight:10},{itemId:'deagle_blaze',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
+    ]},
+    { id:'mythic', name:'Mythic Case', price:18000, image:'🌀', items:[
+      {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'mp9_bull',weight:20},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
+    ]},
+    { id:'legendary', name:'Legendary Case', price:22000, image:'🌟', items:[
+      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'glock_royal',weight:25},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+    ]},
+    { id:'ancient', name:'Ancient Case', price:28000, image:'🏺', items:[
+      {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:26}
+    ]},
+    { id:'future', name:'Future Case', price:35000, image:'🚀', items:[
+      {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'mp9_bull',weight:25},{itemId:'p250_sand',weight:25}
+    ]},
+    { id:'titan', name:'Titan Case', price:42000, image:'⚔️', items:[
+      {itemId:'knife_karambit',weight:4},{itemId:'knife_crimson',weight:2},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_blaze',weight:25},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:20}
+    ]},
+    { id:'divine', name:'Divine Case', price:48000, image:'✨', items:[
+      {itemId:'knife_crimson',weight:5},{itemId:'m4_poseidon',weight:10},{itemId:'awp_medusa',weight:10},{itemId:'ak_fire',weight:15},{itemId:'usp_kill',weight:25},{itemId:'mp7_forest',weight:20},{itemId:'p250_sand',weight:15}
+    ]},
+    { id:'ultimate', name:'Ultimate Case', price:50000, image:'🔮', items:[
+      {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'mp9_bull',weight:22},{itemId:'p250_sand',weight:25}
+    ]}
+  ];
 
-    const USERS_KEY = 'cs2_users_multiopener';
-    const CURRENT_KEY = 'cs2_current_multiopener';
-    let currentUser = null;
-    let activeCase = null;
-    let isSpinning = false;
-    let spinTimer = null;
-    let selectedQuantity = 1;
-    let quantityMax = 9;
+  const USERS_KEY = 'cs2_users_multifinal';
+  const CURRENT_KEY = 'cs2_current_multifinal';
+  let currentUser = null;
+  let activeCase = null;
+  let isSpinning = false;
+  let spinTimers = [];
+  let upgradeActive = false;
+  const ITEM_WIDTH = 158;
+  const COPIES = 60;
+  const SAFE_MARGIN = 8;
 
-    const ITEM_WIDTH = 158;
-    const COPIES = 60;
-    const SAFE_MARGIN_COPIES = 8;
+  function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); }
+  function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+  function getItem(id) { return ITEMS.find(i=>i.id===id); }
 
-    function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }
-    function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-    function getItem(id) { return ITEMS.find(i => i.id === id); }
+  function login(u) {
+    const users = getUsers();
+    if (!users[u]) users[u] = { balance:5000, inventory:[] };
+    saveUsers(users);
+    currentUser = { username:u, balance:users[u].balance, inventory:users[u].inventory||[] };
+    localStorage.setItem(CURRENT_KEY, u);
+    refreshAll();
+  }
+  function logout() { currentUser=null; localStorage.removeItem(CURRENT_KEY); refreshAll(); }
+  function persist() {
+    if(!currentUser) return;
+    const users=getUsers();
+    users[currentUser.username]={balance:currentUser.balance, inventory:currentUser.inventory};
+    saveUsers(users);
+  }
 
-    function login(username) {
-      const users = getUsers();
-      if (!users[username]) users[username] = { balance: 5000, inventory: [] };
-      saveUsers(users);
-      currentUser = { username, balance: users[username].balance, inventory: users[username].inventory || [] };
-      localStorage.setItem(CURRENT_KEY, username);
-      refreshUI();
-    }
-    function logout() {
-      currentUser = null;
-      localStorage.removeItem(CURRENT_KEY);
-      refreshUI();
-    }
-    function persistUser() {
-      if (!currentUser) return;
-      const users = getUsers();
-      users[currentUser.username] = { balance: currentUser.balance, inventory: currentUser.inventory };
-      saveUsers(users);
-    }
-
-    function openCaseModal(caseData) {
-      if (!currentUser) return alert('Войдите в аккаунт');
-      if (isSpinning) return;
-      activeCase = caseData;
-      selectedQuantity = 1;
-      updateQuantityDisplay();
-      document.getElementById('modalTitle').textContent = caseData.name;
-      document.getElementById('resultMessage').textContent = '';
-      buildRouletteTrack(caseData);
-      document.getElementById('caseModal').style.display = 'flex';
-      document.getElementById('btnOpenNormal').disabled = false;
-      document.getElementById('btnOpenFast').disabled = false;
-      document.getElementById('qtyMinus').disabled = false;
-      document.getElementById('qtyPlus').disabled = false;
-    }
-
-    function buildRouletteTrack(caseData) {
-      const track = document.getElementById('rouletteTrack');
-      const itemsList = caseData.items.map(e => getItem(e.itemId)).filter(Boolean);
-      let html = '';
-      for (let i = 0; i < COPIES; i++) {
-        itemsList.forEach(item => {
-          html += `<div class="roulette-item"><span class="emoji">${item.emoji}</span><span>${item.name.split('|')[0].trim()}</span></div>`;
-        });
-      }
-      track.innerHTML = html;
-      track.style.transition = 'none';
-      track.style.transform = 'translateX(0)';
-      track.offsetHeight;
-    }
-
-    function getRandomWinItemAndIndex(caseData) {
-      const totalWeight = caseData.items.reduce((s, it) => s + it.weight, 0);
-      let rand = Math.random() * totalWeight;
-      let winEntry = null;
-      for (let e of caseData.items) {
-        rand -= e.weight;
-        if (rand <= 0) { winEntry = e; break; }
-      }
-      const winItem = getItem(winEntry.itemId);
-      const itemsCount = caseData.items.length;
-      const totalElements = COPIES * itemsCount;
-      const minIndex = SAFE_MARGIN_COPIES * itemsCount;
-      const maxIndex = totalElements - SAFE_MARGIN_COPIES * itemsCount;
-      const trackItems = document.querySelectorAll('#rouletteTrack .roulette-item');
-      const searchText = winItem.name.split('|')[0].trim();
-      const possibleIndices = [];
-      for (let i = minIndex; i < maxIndex; i++) {
-        if (trackItems[i] && trackItems[i].textContent.includes(searchText)) {
-          possibleIndices.push(i);
-        }
-      }
-      if (possibleIndices.length === 0) {
-        return { winItem, targetIndex: Math.floor(Math.random() * (maxIndex - minIndex)) + minIndex };
-      }
-      const targetIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
-      return { winItem, targetIndex };
-    }
-
-    function singleSpin(durationSec) {
-      return new Promise((resolve) => {
-        if (!activeCase) return resolve(null);
-        const { winItem, targetIndex } = getRandomWinItemAndIndex(activeCase);
-        const container = document.getElementById('rouletteContainer');
-        const containerWidth = container.clientWidth;
-        const centerOffset = (containerWidth / 2) - (ITEM_WIDTH / 2);
-        let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
-        const oneFullSetWidth = activeCase.items.length * ITEM_WIDTH;
-        const extraTurns = 2 + Math.floor(Math.random() * 2);
-        targetPos -= extraTurns * oneFullSetWidth;
-        const totalTrackWidth = COPIES * activeCase.items.length * ITEM_WIDTH;
-        if (targetPos < -(totalTrackWidth - containerWidth)) {
-          targetPos = -(totalTrackWidth - containerWidth);
-        }
-        const track = document.getElementById('rouletteTrack');
-        track.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.78, 0.22, 1)`;
-        track.style.transform = `translateX(${targetPos}px)`;
-
-        spinTimer = setTimeout(() => {
-          resolve(winItem);
-          spinTimer = null;
-        }, durationSec * 1000 + 150);
+  // Построение ленты (общая функция)
+  function buildTrack(container, itemsArray) {
+    container.innerHTML = '';
+    const track = document.createElement('div');
+    track.className = 'items-track';
+    let html = '';
+    for (let i=0; i<COPIES; i++) {
+      itemsArray.forEach(obj => {
+        html += `<div class="roulette-item"><span class="emoji">${obj.emoji}</span>${obj.name.split('|')[0]}</div>`;
       });
     }
+    track.innerHTML = html;
+    container.appendChild(track);
+    return track;
+  }
 
-    async function openMultiple(durationSec) {
-      if (!activeCase || isSpinning || !currentUser) return;
-      const totalCost = activeCase.price * selectedQuantity;
-      if (currentUser.balance < totalCost) {
-        alert(`Недостаточно средств. Нужно ${totalCost} ₽, у вас ${currentUser.balance} ₽`);
-        return;
-      }
+  function animateTrack(track, targetIndex, itemsCount, durationSec, containerWidth) {
+    const centerOffset = (containerWidth/2) - (ITEM_WIDTH/2);
+    let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
+    const oneSetWidth = itemsCount * ITEM_WIDTH;
+    const extraTurns = 2 + Math.floor(Math.random()*2);
+    let startPos = targetPos - extraTurns * oneSetWidth;
+    const totalWidth = COPIES * itemsCount * ITEM_WIDTH;
+    if (startPos < -(totalWidth - containerWidth)) startPos = -(totalWidth - containerWidth);
+    track.style.transition = 'none';
+    track.style.transform = `translateX(${startPos}px)`;
+    track.offsetHeight;
+    track.style.transition = `transform ${durationSec}s cubic-bezier(0.12,0.78,0.22,1)`;
+    track.style.transform = `translateX(${targetPos}px)`;
+  }
 
-      isSpinning = true;
-      document.getElementById('btnOpenNormal').disabled = true;
-      document.getElementById('btnOpenFast').disabled = true;
-      document.getElementById('qtyMinus').disabled = true;
-      document.getElementById('qtyPlus').disabled = true;
-      document.getElementById('resultMessage').textContent = `Открываем ${selectedQuantity} кейс(ов)...`;
+  // Мульти-открытие
+  function openCaseModal(caseData) {
+    if(!currentUser) return alert('Войдите');
+    if(isSpinning) return;
+    activeCase = caseData;
+    document.getElementById('modalTitle').textContent = caseData.name;
+    document.getElementById('multiRouletteContainer').innerHTML = '';
+    document.getElementById('resultMessage').textContent = '';
+    selectedQuantity = 1;
+    updateQuantityDisplay();
+    document.getElementById('caseModal').style.display = 'flex';
+    enableButtons(true);
+  }
 
-      // Списываем всё сразу
-      currentUser.balance -= totalCost;
-      persistUser();
-      updateBalance();
+  let selectedQuantity = 1;
+  function updateQuantityDisplay() {
+    document.getElementById('qtyValue').textContent = selectedQuantity;
+    const total = activeCase ? activeCase.price * selectedQuantity : 0;
+    document.getElementById('totalPriceDisplay').textContent = `Общая стоимость: ${total.toLocaleString()} ₽`;
+  }
 
-      const results = [];
-      for (let i = 0; i < selectedQuantity; i++) {
-        document.getElementById('resultMessage').textContent = `⏳ Кейс ${i+1} из ${selectedQuantity}...`;
-        const winItem = await singleSpin(durationSec);
-        if (winItem) {
-          currentUser.inventory.push({
-            uid: Date.now() + Math.random().toString(36),
-            itemId: winItem.id,
-            acquired: new Date().toISOString()
-          });
-          results.push(winItem);
-          persistUser();
-          renderInventoryView();
-          updateBalance();
-        }
-        // Небольшая пауза между кейсами, чтобы пользователь увидел результат
-        if (i < selectedQuantity - 1) {
-          await new Promise(res => setTimeout(res, 400));
-        }
-      }
+  async function openMultiple(durationSec) {
+    if(!activeCase || isSpinning || !currentUser) return;
+    const totalCost = activeCase.price * selectedQuantity;
+    if(currentUser.balance < totalCost) return alert('Недостаточно средств');
+    isSpinning = true;
+    enableButtons(false);
+    document.getElementById('resultMessage').textContent = `Открываем ${selectedQuantity} кейс(ов)...`;
+    currentUser.balance -= totalCost;
+    persist();
+    updateBalance();
 
-      // Финальный результат
-      const totalWorth = results.reduce((sum, item) => sum + item.price, 0);
-      document.getElementById('resultMessage').innerHTML = `✅ Открыто ${selectedQuantity} кейс(ов). Общая стоимость дропа: <strong>${totalWorth} ₽</strong>`;
-      isSpinning = false;
-      document.getElementById('btnOpenNormal').disabled = false;
-      document.getElementById('btnOpenFast').disabled = false;
-      document.getElementById('qtyMinus').disabled = false;
-      document.getElementById('qtyPlus').disabled = false;
+    const container = document.getElementById('multiRouletteContainer');
+    container.innerHTML = '';
+    const tracks = [];
+    const winData = [];
+
+    for (let i=0; i<selectedQuantity; i++) {
+      const area = document.createElement('div');
+      area.className = 'roulette-area';
+      area.style.margin = '8px 0';
+      area.innerHTML = '<div class="pointer"></div>';
+      container.appendChild(area);
+      const items = activeCase.items.map(e => getItem(e.itemId)).filter(Boolean);
+      const track = buildTrack(area, items);
+      tracks.push({ track, area, items });
+      const { winItem, targetIndex } = getRandomWin(activeCase);
+      winData.push({ winItem, targetIndex });
     }
 
-    function closeModal() {
-      if (isSpinning) return;
-      document.getElementById('caseModal').style.display = 'none';
-      activeCase = null;
-      if (spinTimer) clearTimeout(spinTimer);
-      renderCasesView();
-    }
-
-    function updateQuantityDisplay() {
-      document.getElementById('qtyValue').textContent = selectedQuantity;
-      const total = activeCase ? activeCase.price * selectedQuantity : 0;
-      document.getElementById('totalPriceDisplay').textContent = `Общая стоимость: ${total} ₽`;
-    }
-
-    function sellItem(uid) {
-      if (!currentUser) return;
-      const idx = currentUser.inventory.findIndex(i => i.uid === uid);
-      if (idx === -1) return;
-      const invEntry = currentUser.inventory[idx];
-      const item = getItem(invEntry.itemId);
-      if (!item) return;
-      currentUser.balance += item.price;
-      currentUser.inventory.splice(idx, 1);
-      persistUser();
-      updateBalance();
-      renderInventoryView();
-    }
-
-    function renderCasesView() {
-      const container = document.getElementById('casesView');
-      container.innerHTML = '<div class="cases-grid">' + CASES.map(c => `
-        <div class="case-card" onclick="window.siteOpenCase('${c.id}')">
-          <div class="case-img">${c.image}</div>
-          <h3>${c.name}</h3>
-          <p style="margin:5px 0;">Цена: <strong>${c.price.toLocaleString()} ₽</strong></p>
-        </div>
-      `).join('') + '</div>';
-    }
-
-    function renderInventoryView() {
-      const invDiv = document.getElementById('inventoryView');
-      if (!currentUser || currentUser.inventory.length === 0) {
-        invDiv.innerHTML = '<p style="color:#888; padding:20px;">🎒 Инвентарь пуст. Откройте кейсы!</p>';
-        return;
-      }
-      let html = '<div class="inventory-grid">';
-      currentUser.inventory.forEach(inv => {
-        const item = getItem(inv.itemId);
-        if (!item) return;
-        html += `
-          <div class="item-card rarity-${item.rarity}">
-            <span style="font-size:36px;">${item.emoji}</span>
-            <div style="flex:1;">
-              <strong>${item.name}</strong>
-              <div style="color:#f0b90b; font-weight:bold;">${item.price.toLocaleString()} ₽</div>
-            </div>
-            <button onclick="window.siteSellItem('${inv.uid}')">Продать</button>
-          </div>`;
+    const containerWidth = container.clientWidth || 700;
+    const startTransitions = () => {
+      tracks.forEach((t, idx) => {
+        const { targetIndex } = winData[idx];
+        animateTrack(t.track, targetIndex, activeCase.items.length, durationSec, containerWidth);
       });
-      html += '</div>';
-      invDiv.innerHTML = html;
+    };
+    requestAnimationFrame(() => { requestAnimationFrame(startTransitions); });
+
+    const timeoutMs = durationSec * 1000 + 300;
+    await new Promise(res => spinTimers.push(setTimeout(res, timeoutMs)));
+    spinTimers = [];
+
+    winData.forEach(d => {
+      currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: d.winItem.id, acquired: new Date().toISOString() });
+    });
+    persist();
+    document.getElementById('resultMessage').innerHTML = `✅ Открыто ${selectedQuantity} кейсов!`;
+    isSpinning = false;
+    enableButtons(true);
+    updateBalance();
+    renderInventoryView();
+  }
+
+  function getRandomWin(caseData) {
+    const totalW = caseData.items.reduce((s,it)=>s+it.weight,0);
+    let r = Math.random()*totalW;
+    let entry = null;
+    for(let e of caseData.items) { r-=e.weight; if(r<=0) { entry=e; break; } }
+    const winItem = getItem(entry.itemId);
+    const itemsCount = caseData.items.length;
+    const totalElements = COPIES * itemsCount;
+    const minIdx = SAFE_MARGIN * itemsCount;
+    const maxIdx = totalElements - SAFE_MARGIN * itemsCount;
+    const search = winItem.name.split('|')[0];
+    const possible = [];
+    for(let i=minIdx; i<maxIdx; i++) {
+      const el = document.querySelectorAll('#multiRouletteContainer .items-track')?.[0]?.children?.[i];
+      if(el && el.textContent.includes(search)) possible.push(i);
     }
+    const targetIndex = possible.length ? possible[Math.floor(Math.random()*possible.length)] : Math.floor(Math.random()*(maxIdx-minIdx))+minIdx;
+    return { winItem, targetIndex };
+  }
 
-    function updateBalance() {
-      document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance.toLocaleString() : 0;
+  function enableButtons(enable) {
+    document.getElementById('btnOpenNormal').disabled = !enable;
+    document.getElementById('btnOpenFast').disabled = !enable;
+    document.getElementById('qtyMinus').disabled = !enable;
+    document.getElementById('qtyPlus').disabled = !enable;
+  }
+
+  // Upgrade
+  let upgradeSelectedItem = null;
+  let upgradeTargetItem = null;
+
+  function renderUpgradeView() {
+    const view = document.getElementById('upgradeView');
+    if(!currentUser || currentUser.inventory.length===0) {
+      view.innerHTML = '<p>Инвентарь пуст</p>'; return;
     }
+    let html = '<h3>Выберите предмет для апгрейда</h3><div class="upgrade-select">';
+    currentUser.inventory.forEach(inv => {
+      const item = getItem(inv.itemId);
+      html += `<div class="item-card rarity-${item.rarity}" onclick="window.selectUpgradeItem('${inv.uid}')" style="cursor:pointer;">
+        <span style="font-size:30px;">${item.emoji}</span> ${item.name} (${item.price} ₽)
+      </div>`;
+    });
+    html += '</div><div id="targetSelection" style="margin-top:20px;"></div>';
+    html += '<div id="upgradeChanceDisplay" class="upgrade-chance"></div>';
+    html += '<div class="controls"><button class="primary" id="startUpgradeNormal">🔄 Upgrade (3.5 сек)</button><button id="startUpgradeFast" style="background:#3a4050;">⚡ Fast (1 сек)</button></div>';
+    view.innerHTML = html;
+    if(upgradeSelectedItem) highlightSelected();
+  }
 
-    function refreshUI() {
-      const authBlock = document.getElementById('authBlock');
-      const loginPanel = document.getElementById('loginPanel');
-      const mainUI = document.getElementById('mainUI');
+  function selectUpgradeItem(uid) {
+    upgradeSelectedItem = currentUser.inventory.find(i=>i.uid===uid);
+    if(!upgradeSelectedItem) return;
+    const currentItem = getItem(upgradeSelectedItem.itemId);
+    const targets = ITEMS.filter(it => it.price > currentItem.price);
+    const targetDiv = document.getElementById('targetSelection');
+    targetDiv.innerHTML = '<h3>Выберите цель</h3><div class="upgrade-select">' + targets.map(t => `
+      <div class="item-card rarity-${t.rarity}" onclick="window.selectUpgradeTarget('${t.id}')" style="cursor:pointer;">
+        <span style="font-size:30px;">${t.emoji}</span> ${t.name} (${t.price} ₽)
+      </div>
+    `).join('') + '</div>';
+    upgradeTargetItem = null;
+    updateChanceDisplay();
+  }
 
-      if (currentUser) {
-        authBlock.innerHTML = `
-          <span style="font-weight:bold;">👤 ${currentUser.username}</span>
-          <button class="danger" onclick="window.siteLogout()">Выйти</button>
-        `;
-        loginPanel.style.display = 'none';
-        mainUI.style.display = 'block';
-        updateBalance();
-        renderCasesView();
-        renderInventoryView();
+  function selectUpgradeTarget(itemId) {
+    upgradeTargetItem = ITEMS.find(i=>i.id===itemId);
+    updateChanceDisplay();
+  }
+
+  function updateChanceDisplay() {
+    const display = document.getElementById('upgradeChanceDisplay');
+    if(!upgradeSelectedItem || !upgradeTargetItem) { display.textContent = ''; return; }
+    const cur = getItem(upgradeSelectedItem.itemId);
+    const chance = Math.min(100, Math.round((cur.price / upgradeTargetItem.price)*100));
+    display.textContent = `Шанс успеха: ${chance}%`;
+  }
+
+  function startUpgrade(durationSec) {
+    if(!upgradeSelectedItem || !upgradeTargetItem || upgradeActive) return;
+    const curItem = getItem(upgradeSelectedItem.itemId);
+    const ratio = curItem.price / upgradeTargetItem.price;
+    const chance = Math.min(1, ratio);
+    const successCount = Math.round(chance * 100);
+    const failCount = 100 - successCount;
+    const template = [];
+    for(let i=0; i<successCount; i++) template.push({ emoji: upgradeTargetItem.emoji, name: 'WIN', id: upgradeTargetItem.id });
+    for(let i=0; i<failCount; i++) template.push({ emoji: '💔', name: 'LOSE', id: null });
+
+    document.getElementById('upgradeModal').style.display = 'flex';
+    const container = document.getElementById('upgradeRouletteContainer');
+    container.innerHTML = '<div class="pointer"></div>';
+    const track = buildTrack(container, template);
+    const containerWidth = container.clientWidth;
+    const totalElements = COPIES * 100;
+    const targetIndex = Math.floor(Math.random() * totalElements);
+    animateTrack(track, targetIndex, 100, durationSec, containerWidth);
+    upgradeActive = true;
+
+    setTimeout(() => {
+      const win = template[targetIndex % 100].id !== null;
+      if(win) {
+        currentUser.inventory = currentUser.inventory.filter(i=>i.uid!==upgradeSelectedItem.uid);
+        currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: upgradeTargetItem.id, acquired: new Date().toISOString() });
+        document.getElementById('upgradeResultMessage').innerHTML = `✅ Успех! Получен ${upgradeTargetItem.emoji} ${upgradeTargetItem.name}`;
       } else {
-        authBlock.innerHTML = '';
-        loginPanel.style.display = 'block';
-        mainUI.style.display = 'none';
-        loginPanel.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <input type="text" id="usernameInput" placeholder="Введите никнейм" maxlength="14">
-            <button class="primary" onclick="window.siteLogin()">Войти / Создать</button>
-          </div>
-          <p style="color:#aaa; margin-top:8px;">Новый аккаунт получит 5 000 ₽</p>
-        `;
+        currentUser.inventory = currentUser.inventory.filter(i=>i.uid!==upgradeSelectedItem.uid);
+        document.getElementById('upgradeResultMessage').innerHTML = '💔 Неудача. Предмет потерян.';
       }
-    }
-
-    // Переключение вкладок
-    document.getElementById('tabCases').addEventListener('click', () => {
-      document.getElementById('casesView').style.display = 'block';
-      document.getElementById('inventoryView').style.display = 'none';
-      document.getElementById('tabCases').classList.add('active');
-      document.getElementById('tabInventory').classList.remove('active');
-    });
-    document.getElementById('tabInventory').addEventListener('click', () => {
-      document.getElementById('casesView').style.display = 'none';
-      document.getElementById('inventoryView').style.display = 'block';
-      document.getElementById('tabInventory').classList.add('active');
-      document.getElementById('tabCases').classList.remove('active');
+      persist();
+      updateBalance();
       renderInventoryView();
-    });
+      renderUpgradeView();
+      upgradeActive = false;
+      upgradeSelectedItem = null;
+      upgradeTargetItem = null;
+    }, durationSec*1000+300);
+  }
 
-    // Модальное окно: кнопки количества
-    document.getElementById('qtyMinus').addEventListener('click', () => {
-      if (isSpinning) return;
-      if (selectedQuantity > 1) {
-        selectedQuantity--;
-        updateQuantityDisplay();
-      }
-    });
-    document.getElementById('qtyPlus').addEventListener('click', () => {
-      if (isSpinning) return;
-      if (selectedQuantity < quantityMax) {
-        selectedQuantity++;
-        updateQuantityDisplay();
-      }
-    });
+  function closeUpgradeModal() {
+    if(upgradeActive) return;
+    document.getElementById('upgradeModal').style.display = 'none';
+  }
 
-    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
-    document.getElementById('btnOpenNormal').addEventListener('click', () => openMultiple(6));
-    document.getElementById('btnOpenFast').addEventListener('click', () => openMultiple(3.5));
+  window.selectUpgradeItem = selectUpgradeItem;
+  window.selectUpgradeTarget = selectUpgradeTarget;
 
-    window.siteLogin = () => {
-      const input = document.getElementById('usernameInput');
-      if (input && input.value.trim().length >= 2) login(input.value.trim());
-    };
-    window.siteLogout = () => logout();
-    window.siteOpenCase = (caseId) => {
-      const c = CASES.find(c => c.id === caseId);
-      if (c) openCaseModal(c);
-    };
-    window.siteSellItem = (uid) => sellItem(uid);
+  // Общие функции
+  function sellItem(uid) {
+    if(!currentUser) return;
+    const idx = currentUser.inventory.findIndex(i=>i.uid===uid);
+    if(idx===-1) return;
+    const item = getItem(currentUser.inventory[idx].itemId);
+    currentUser.balance += item.price;
+    currentUser.inventory.splice(idx,1);
+    persist();
+    updateBalance();
+    renderInventoryView();
+    renderUpgradeView();
+  }
+  window.sellItem = sellItem;
 
-    // Восстановление сессии
-    const savedUser = localStorage.getItem(CURRENT_KEY);
-    if (savedUser) {
-      const users = getUsers();
-      if (users[savedUser]) {
-        currentUser = {
-          username: savedUser,
-          balance: users[savedUser].balance,
-          inventory: users[savedUser].inventory || []
-        };
-      }
+  function renderCasesView() {
+    document.getElementById('casesView').innerHTML = '<div class="cases-grid">' + CASES.map(c=>`
+      <div class="case-card" onclick="window.openCaseModal('${c.id}')">
+        <div class="case-img">${c.image}</div><h3>${c.name}</h3><p>Цена: <strong>${c.price.toLocaleString()} ₽</strong></p>
+      </div>
+    `).join('') + '</div>';
+  }
+
+  function renderInventoryView() {
+    const inv = document.getElementById('inventoryView');
+    if(!currentUser || currentUser.inventory.length===0) { inv.innerHTML='<p>🎒 Инвентарь пуст</p>'; return; }
+    inv.innerHTML = '<div class="inventory-grid">' + currentUser.inventory.map(inv=>{
+      const item = getItem(inv.itemId);
+      return `<div class="item-card rarity-${item.rarity}">
+        <span style="font-size:30px;">${item.emoji}</span> ${item.name} (${item.price} ₽)
+        <button onclick="window.sellItem('${inv.uid}')">Продать</button>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  function updateBalance() {
+    document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance.toLocaleString() : 0;
+  }
+
+  function refreshAll() {
+    document.getElementById('authBlock').innerHTML = currentUser ? `<span>👤 ${currentUser.username}</span> <button class="danger" onclick="logout()">Выйти</button>` : '';
+    document.getElementById('loginPanel').style.display = currentUser ? 'none' : 'block';
+    document.getElementById('mainUI').style.display = currentUser ? 'block' : 'none';
+    if(!currentUser) {
+      document.getElementById('loginPanel').innerHTML = `<input id="usernameInput" placeholder="Никнейм"><button class="primary" onclick="login(document.getElementById('usernameInput').value.trim())">Войти</button>`;
+      return;
     }
-    refreshUI();
-  })();
+    updateBalance();
+    renderCasesView();
+    renderInventoryView();
+    renderUpgradeView();
+  }
+
+  document.getElementById('tabCases').addEventListener('click', ()=>{
+    document.getElementById('casesView').style.display='block';
+    document.getElementById('inventoryView').style.display='none';
+    document.getElementById('upgradeView').style.display='none';
+    document.getElementById('tabCases').classList.add('active');
+    document.getElementById('tabInventory').classList.remove('active');
+    document.getElementById('tabUpgrade').classList.remove('active');
+  });
+  document.getElementById('tabInventory').addEventListener('click', ()=>{
+    document.getElementById('casesView').style.display='none';
+    document.getElementById('inventoryView').style.display='block';
+    document.getElementById('upgradeView').style.display='none';
+    document.getElementById('tabInventory').classList.add('active');
+    document.getElementById('tabCases').classList.remove('active');
+    document.getElementById('tabUpgrade').classList.remove('active');
+    renderInventoryView();
+  });
+  document.getElementById('tabUpgrade').addEventListener('click', ()=>{
+    document.getElementById('casesView').style.display='none';
+    document.getElementById('inventoryView').style.display='none';
+    document.getElementById('upgradeView').style.display='block';
+    document.getElementById('tabUpgrade').classList.add('active');
+    document.getElementById('tabCases').classList.remove('active');
+    document.getElementById('tabInventory').classList.remove('active');
+    renderUpgradeView();
+  });
+
+  document.getElementById('qtyMinus').addEventListener('click', ()=>{ if(selectedQuantity>1) selectedQuantity--; updateQuantityDisplay(); });
+  document.getElementById('qtyPlus').addEventListener('click', ()=>{ if(selectedQuantity<9) selectedQuantity++; updateQuantityDisplay(); });
+  document.getElementById('btnOpenNormal').addEventListener('click', ()=> openMultiple(6));
+  document.getElementById('btnOpenFast').addEventListener('click', ()=> openMultiple(2));
+  document.getElementById('btnCloseModal').addEventListener('click', ()=>{ if(!isSpinning) document.getElementById('caseModal').style.display='none'; });
+  document.getElementById('btnCloseUpgradeModal').addEventListener('click', closeUpgradeModal);
+  document.addEventListener('click', e => {
+    if(e.target.id === 'startUpgradeNormal') startUpgrade(3.5);
+    if(e.target.id === 'startUpgradeFast') startUpgrade(1);
+  });
+
+  window.openCaseModal = (id) => { const c = CASES.find(c=>c.id===id); if(c) openCaseModal(c); };
+
+  const saved = localStorage.getItem(CURRENT_KEY);
+  if(saved) { const users = getUsers(); if(users[saved]) currentUser = { username:saved, balance:users[saved].balance, inventory:users[saved].inventory||[] }; }
+  refreshAll();
+})();
 </script>
 </body>
 </html>
