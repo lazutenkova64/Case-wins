@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CS2 Case Opening — Бесконечная лента</title>
+  <title>CS2 Case Opening — Мульти-открытие</title>
   <style>
     * {
       margin: 0;
@@ -155,7 +155,7 @@
     .rarity-covert { border-left-color: #eb4b4b; }
     .rarity-gold { border-left-color: #f3b23f; }
 
-    /* Модалка кейса */
+    /* Модалка */
     .modal {
       position: fixed;
       top:0; left:0; right:0; bottom:0;
@@ -235,6 +235,35 @@
       font-size: 1.2rem;
       margin-top: 12px;
       font-weight: bold;
+      min-height: 30px;
+    }
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px 0;
+      font-size: 1.2rem;
+    }
+    .quantity-selector button {
+      font-size: 1.5rem;
+      width: 45px;
+      height: 45px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quantity-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #f0b90b;
+      min-width: 50px;
+    }
+    .total-price {
+      font-size: 1.4rem;
+      color: #f0b90b;
+      margin: 10px 0;
     }
   </style>
 </head>
@@ -269,6 +298,14 @@
       <div class="pointer"></div>
       <div class="items-track" id="rouletteTrack"></div>
     </div>
+
+    <div class="quantity-selector">
+      <button id="qtyMinus">−</button>
+      <span class="quantity-value" id="qtyValue">1</span>
+      <button id="qtyPlus">+</button>
+    </div>
+    <div class="total-price" id="totalPriceDisplay">Общая стоимость: 0 ₽</div>
+
     <div class="controls">
       <button class="primary" id="btnOpenNormal" style="font-size:18px; padding:14px 32px;">🔓 Открыть (6 сек)</button>
       <button id="btnOpenFast" style="font-size:16px; padding:12px 25px; background:#3a4050;">⚡ Fast (3.5 сек)</button>
@@ -280,8 +317,9 @@
 
 <script>
   (() => {
-    // База предметов
+    // Расширенная база предметов
     const ITEMS = [
+      // Старые
       { id:'awp_dragon', name:'AWP | Dragon Lore', rarity:'covert', price:13500, emoji:'🐉' },
       { id:'ak_fire', name:'AK-47 | Fire Serpent', rarity:'covert', price:10200, emoji:'🔥' },
       { id:'m4_howl', name:'M4A4 | Howl', rarity:'covert', price:15800, emoji:'🐺' },
@@ -296,10 +334,23 @@
       { id:'mp7_forest', name:'MP7 | Forest DDPAT', rarity:'common', price:40, emoji:'🌿' },
       { id:'nova_walnut', name:'Nova | Walnut', rarity:'common', price:50, emoji:'🪵' },
       { id:'five_seven', name:'Five-SeveN | Case Hardened', rarity:'mil', price:2700, emoji:'🔫' },
-      { id:'tec9_toxic', name:'Tec-9 | Toxic', rarity:'restricted', price:1300, emoji:'☣️' }
+      { id:'tec9_toxic', name:'Tec-9 | Toxic', rarity:'restricted', price:1300, emoji:'☣️' },
+      // Новые дорогие и редкие
+      { id:'awp_medusa', name:'AWP | Medusa', rarity:'covert', price:28000, emoji:'🐍' },
+      { id:'m4_poseidon', name:'M4A4 | Poseidon', rarity:'covert', price:32000, emoji:'🌊' },
+      { id:'knife_crimson', name:'Karambit | Crimson Web', rarity:'gold', price:55000, emoji:'🩸' },
+      { id:'ak_hydroponic', name:'AK-47 | Hydroponic', rarity:'classified', price:11000, emoji:'🌿' },
+      { id:'deagle_printstream', name:'Desert Eagle | Printstream', rarity:'classified', price:12500, emoji:'🦈' },
+      { id:'glock_royal', name:'Glock-18 | Royal Legion', rarity:'restricted', price:2100, emoji:'👑' },
+      { id:'usp_road', name:'USP-S | Road Rash', rarity:'mil', price:1800, emoji:'🏍️' },
+      { id:'p250_see', name:'P250 | See Ya Later', rarity:'restricted', price:950, emoji:'🐊' },
+      { id:'mp9_bull', name:'MP9 | Bulldozer', rarity:'classified', price:8900, emoji:'🚜' },
+      { id:'mag7_bulldog', name:'MAG-7 | Bulldog', rarity:'mil', price:420, emoji:'🐶' }
     ];
 
+    // 23 кейса (старые 3 + 20 новых)
     const CASES = [
+      // Старые
       { id:'gamma', name:'Gamma Case', price:350, image:'📦', items:[
         {itemId:'glock_fade',weight:8},{itemId:'awp_asiimov',weight:5},{itemId:'ak_vulcan',weight:5},
         {itemId:'deagle_blaze',weight:9},{itemId:'five_seven',weight:17},{itemId:'p250_sand',weight:28},{itemId:'mp7_forest',weight:28}
@@ -312,20 +363,82 @@
       { id:'knife', name:'Knife Dream', price:1300, image:'💎', items:[
         {itemId:'knife_karambit',weight:1},{itemId:'awp_dragon',weight:4},{itemId:'deagle_blaze',weight:10},
         {itemId:'ak_vulcan',weight:14},{itemId:'glock_fade',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:26}
+      ]},
+      // 20 новых кейсов
+      { id:'alpha', name:'Alpha Case', price:200, image:'🔹', items:[
+        {itemId:'p250_sand',weight:40},{itemId:'mp7_forest',weight:30},{itemId:'nova_walnut',weight:20},{itemId:'five_seven',weight:10}
+      ]},
+      { id:'omega', name:'Omega Case', price:400, image:'🔸', items:[
+        {itemId:'mp7_forest',weight:25},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:20},{itemId:'glock_fade',weight:15},{itemId:'p250_sand',weight:20}
+      ]},
+      { id:'phoenix', name:'Phoenix Case', price:700, image:'🔥', items:[
+        {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+      ]},
+      { id:'shadow', name:'Shadow Case', price:1000, image:'🌑', items:[
+        {itemId:'usp_kill',weight:8},{itemId:'glock_fade',weight:12},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:25},{itemId:'mp7_forest',weight:35}
+      ]},
+      { id:'frostbite', name:'Frostbite Case', price:1500, image:'❄️', items:[
+        {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'p250_see',weight:30},{itemId:'nova_walnut',weight:30}
+      ]},
+      { id:'inferno', name:'Inferno Case', price:2000, image:'🌋', items:[
+        {itemId:'ak_fire',weight:5},{itemId:'deagle_blaze',weight:15},{itemId:'glock_fade',weight:15},{itemId:'usp_kill',weight:10},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:25}
+      ]},
+      { id:'thunder', name:'Thunder Case', price:3000, image:'⚡', items:[
+        {itemId:'awp_dragon',weight:3},{itemId:'m4_howl',weight:3},{itemId:'ak_vulcan',weight:12},{itemId:'m4_neo',weight:12},{itemId:'deagle_blaze',weight:20},{itemId:'p250_sand',weight:25},{itemId:'mp7_forest',weight:25}
+      ]},
+      { id:'elite', name:'Elite Case', price:4000, image:'💠', items:[
+        {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'glock_royal',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
+      ]},
+      { id:'predator', name:'Predator Case', price:5000, image:'🦅', items:[
+        {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'mp9_bull',weight:15},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
+      ]},
+      { id:'cyber', name:'Cyber Case', price:7000, image:'🤖', items:[
+        {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
+      ]},
+      { id:'royal', name:'Royal Case', price:9000, image:'👑', items:[
+        {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'glock_royal',weight:18},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
+      ]},
+      { id:'golden', name:'Golden Case', price:12000, image:'🥇', items:[
+        {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:27}
+      ]},
+      { id:'diamond', name:'Diamond Case', price:15000, image:'💎', items:[
+        {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:5},{itemId:'awp_medusa',weight:5},{itemId:'ak_fire',weight:10},{itemId:'deagle_blaze',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
+      ]},
+      { id:'mythic', name:'Mythic Case', price:18000, image:'🌀', items:[
+        {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'mp9_bull',weight:20},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
+      ]},
+      { id:'legendary', name:'Legendary Case', price:22000, image:'🌟', items:[
+        {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'glock_royal',weight:25},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+      ]},
+      { id:'ancient', name:'Ancient Case', price:28000, image:'🏺', items:[
+        {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:26}
+      ]},
+      { id:'future', name:'Future Case', price:35000, image:'🚀', items:[
+        {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'mp9_bull',weight:25},{itemId:'p250_sand',weight:25}
+      ]},
+      { id:'titan', name:'Titan Case', price:42000, image:'⚔️', items:[
+        {itemId:'knife_karambit',weight:4},{itemId:'knife_crimson',weight:2},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_blaze',weight:25},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:20}
+      ]},
+      { id:'divine', name:'Divine Case', price:48000, image:'✨', items:[
+        {itemId:'knife_crimson',weight:5},{itemId:'m4_poseidon',weight:10},{itemId:'awp_medusa',weight:10},{itemId:'ak_fire',weight:15},{itemId:'usp_kill',weight:25},{itemId:'mp7_forest',weight:20},{itemId:'p250_sand',weight:15}
+      ]},
+      { id:'ultimate', name:'Ultimate Case', price:50000, image:'🔮', items:[
+        {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'mp9_bull',weight:22},{itemId:'p250_sand',weight:25}
       ]}
     ];
 
-    const USERS_KEY = 'cs2_users_final';
-    const CURRENT_KEY = 'cs2_current_final';
+    const USERS_KEY = 'cs2_users_multiopener';
+    const CURRENT_KEY = 'cs2_current_multiopener';
     let currentUser = null;
     let activeCase = null;
     let isSpinning = false;
     let spinTimer = null;
+    let selectedQuantity = 1;
+    let quantityMax = 9;
 
-    // Конфигурация ленты
-    const ITEM_WIDTH = 158; // 150px + 4px margin с каждой стороны
-    const COPIES = 60; // количество полных копий набора предметов в ленте
-    const SAFE_MARGIN_COPIES = 8; // запас слева/справа от выбранного индекса
+    const ITEM_WIDTH = 158;
+    const COPIES = 60;
+    const SAFE_MARGIN_COPIES = 8;
 
     function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }
     function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
@@ -353,15 +466,18 @@
 
     function openCaseModal(caseData) {
       if (!currentUser) return alert('Войдите в аккаунт');
-      if (currentUser.balance < caseData.price) return alert('Недостаточно средств');
       if (isSpinning) return;
       activeCase = caseData;
+      selectedQuantity = 1;
+      updateQuantityDisplay();
       document.getElementById('modalTitle').textContent = caseData.name;
       document.getElementById('resultMessage').textContent = '';
       buildRouletteTrack(caseData);
       document.getElementById('caseModal').style.display = 'flex';
       document.getElementById('btnOpenNormal').disabled = false;
       document.getElementById('btnOpenFast').disabled = false;
+      document.getElementById('qtyMinus').disabled = false;
+      document.getElementById('qtyPlus').disabled = false;
     }
 
     function buildRouletteTrack(caseData) {
@@ -376,7 +492,6 @@
       track.innerHTML = html;
       track.style.transition = 'none';
       track.style.transform = 'translateX(0)';
-      // reflow
       track.offsetHeight;
     }
 
@@ -389,12 +504,10 @@
         if (rand <= 0) { winEntry = e; break; }
       }
       const winItem = getItem(winEntry.itemId);
-      // Выбираем безопасный индекс в середине ленты
       const itemsCount = caseData.items.length;
       const totalElements = COPIES * itemsCount;
       const minIndex = SAFE_MARGIN_COPIES * itemsCount;
       const maxIndex = totalElements - SAFE_MARGIN_COPIES * itemsCount;
-      // Находим все индексы, где элемент совпадает с winItem
       const trackItems = document.querySelectorAll('#rouletteTrack .roulette-item');
       const searchText = winItem.name.split('|')[0].trim();
       const possibleIndices = [];
@@ -404,71 +517,87 @@
         }
       }
       if (possibleIndices.length === 0) {
-        // fallback: случайный индекс в безопасном диапазоне
         return { winItem, targetIndex: Math.floor(Math.random() * (maxIndex - minIndex)) + minIndex };
       }
       const targetIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)];
       return { winItem, targetIndex };
     }
 
-    function spin(durationSec) {
+    function singleSpin(durationSec) {
+      return new Promise((resolve) => {
+        if (!activeCase) return resolve(null);
+        const { winItem, targetIndex } = getRandomWinItemAndIndex(activeCase);
+        const container = document.getElementById('rouletteContainer');
+        const containerWidth = container.clientWidth;
+        const centerOffset = (containerWidth / 2) - (ITEM_WIDTH / 2);
+        let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
+        const oneFullSetWidth = activeCase.items.length * ITEM_WIDTH;
+        const extraTurns = 2 + Math.floor(Math.random() * 2);
+        targetPos -= extraTurns * oneFullSetWidth;
+        const totalTrackWidth = COPIES * activeCase.items.length * ITEM_WIDTH;
+        if (targetPos < -(totalTrackWidth - containerWidth)) {
+          targetPos = -(totalTrackWidth - containerWidth);
+        }
+        const track = document.getElementById('rouletteTrack');
+        track.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.78, 0.22, 1)`;
+        track.style.transform = `translateX(${targetPos}px)`;
+
+        spinTimer = setTimeout(() => {
+          resolve(winItem);
+          spinTimer = null;
+        }, durationSec * 1000 + 150);
+      });
+    }
+
+    async function openMultiple(durationSec) {
       if (!activeCase || isSpinning || !currentUser) return;
-      if (currentUser.balance < activeCase.price) {
-        alert('Недостаточно средств');
+      const totalCost = activeCase.price * selectedQuantity;
+      if (currentUser.balance < totalCost) {
+        alert(`Недостаточно средств. Нужно ${totalCost} ₽, у вас ${currentUser.balance} ₽`);
         return;
       }
 
       isSpinning = true;
       document.getElementById('btnOpenNormal').disabled = true;
       document.getElementById('btnOpenFast').disabled = true;
-      document.getElementById('resultMessage').textContent = '⏳ Крутим...';
+      document.getElementById('qtyMinus').disabled = true;
+      document.getElementById('qtyPlus').disabled = true;
+      document.getElementById('resultMessage').textContent = `Открываем ${selectedQuantity} кейс(ов)...`;
 
-      // Списание
-      currentUser.balance -= activeCase.price;
+      // Списываем всё сразу
+      currentUser.balance -= totalCost;
       persistUser();
       updateBalance();
 
-      const { winItem, targetIndex } = getRandomWinItemAndIndex(activeCase);
-
-      const container = document.getElementById('rouletteContainer');
-      const containerWidth = container.clientWidth;
-      const centerOffset = (containerWidth / 2) - (ITEM_WIDTH / 2);
-
-      // Базовая позиция, чтобы элемент targetIndex оказался по центру
-      let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
-
-      // Добавляем несколько полных оборотов для эффекта (2-3 оборота = itemsCount * ITEM_WIDTH)
-      const oneFullSetWidth = activeCase.items.length * ITEM_WIDTH;
-      const extraTurns = 2 + Math.floor(Math.random() * 2); // 2-3 оборота
-      targetPos -= extraTurns * oneFullSetWidth;
-
-      // Гарантируем, что targetPos не слишком мал (чтобы лента не ушла левее возможного)
-      const totalTrackWidth = COPIES * activeCase.items.length * ITEM_WIDTH;
-      if (targetPos < -(totalTrackWidth - containerWidth)) {
-        targetPos = -(totalTrackWidth - containerWidth);
+      const results = [];
+      for (let i = 0; i < selectedQuantity; i++) {
+        document.getElementById('resultMessage').textContent = `⏳ Кейс ${i+1} из ${selectedQuantity}...`;
+        const winItem = await singleSpin(durationSec);
+        if (winItem) {
+          currentUser.inventory.push({
+            uid: Date.now() + Math.random().toString(36),
+            itemId: winItem.id,
+            acquired: new Date().toISOString()
+          });
+          results.push(winItem);
+          persistUser();
+          renderInventoryView();
+          updateBalance();
+        }
+        // Небольшая пауза между кейсами, чтобы пользователь увидел результат
+        if (i < selectedQuantity - 1) {
+          await new Promise(res => setTimeout(res, 400));
+        }
       }
 
-      const track = document.getElementById('rouletteTrack');
-      track.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.78, 0.22, 1)`;
-      track.style.transform = `translateX(${targetPos}px)`;
-
-      if (spinTimer) clearTimeout(spinTimer);
-      spinTimer = setTimeout(() => {
-        // Добавляем предмет в инвентарь
-        currentUser.inventory.push({
-          uid: Date.now() + Math.random().toString(36),
-          itemId: winItem.id,
-          acquired: new Date().toISOString()
-        });
-        persistUser();
-        document.getElementById('resultMessage').innerHTML = `🎉 Выпало: ${winItem.emoji} <strong>${winItem.name}</strong> (${winItem.price} ₽)`;
-        isSpinning = false;
-        document.getElementById('btnOpenNormal').disabled = false;
-        document.getElementById('btnOpenFast').disabled = false;
-        updateBalance();
-        renderInventoryView();
-        spinTimer = null;
-      }, durationSec * 1000 + 150);
+      // Финальный результат
+      const totalWorth = results.reduce((sum, item) => sum + item.price, 0);
+      document.getElementById('resultMessage').innerHTML = `✅ Открыто ${selectedQuantity} кейс(ов). Общая стоимость дропа: <strong>${totalWorth} ₽</strong>`;
+      isSpinning = false;
+      document.getElementById('btnOpenNormal').disabled = false;
+      document.getElementById('btnOpenFast').disabled = false;
+      document.getElementById('qtyMinus').disabled = false;
+      document.getElementById('qtyPlus').disabled = false;
     }
 
     function closeModal() {
@@ -477,6 +606,12 @@
       activeCase = null;
       if (spinTimer) clearTimeout(spinTimer);
       renderCasesView();
+    }
+
+    function updateQuantityDisplay() {
+      document.getElementById('qtyValue').textContent = selectedQuantity;
+      const total = activeCase ? activeCase.price * selectedQuantity : 0;
+      document.getElementById('totalPriceDisplay').textContent = `Общая стоимость: ${total} ₽`;
     }
 
     function sellItem(uid) {
@@ -499,7 +634,7 @@
         <div class="case-card" onclick="window.siteOpenCase('${c.id}')">
           <div class="case-img">${c.image}</div>
           <h3>${c.name}</h3>
-          <p style="margin:5px 0;">Цена: <strong>${c.price} ₽</strong></p>
+          <p style="margin:5px 0;">Цена: <strong>${c.price.toLocaleString()} ₽</strong></p>
         </div>
       `).join('') + '</div>';
     }
@@ -519,7 +654,7 @@
             <span style="font-size:36px;">${item.emoji}</span>
             <div style="flex:1;">
               <strong>${item.name}</strong>
-              <div style="color:#f0b90b; font-weight:bold;">${item.price} ₽</div>
+              <div style="color:#f0b90b; font-weight:bold;">${item.price.toLocaleString()} ₽</div>
             </div>
             <button onclick="window.siteSellItem('${inv.uid}')">Продать</button>
           </div>`;
@@ -529,7 +664,7 @@
     }
 
     function updateBalance() {
-      document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance : 0;
+      document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance.toLocaleString() : 0;
     }
 
     function refreshUI() {
@@ -576,9 +711,25 @@
       renderInventoryView();
     });
 
+    // Модальное окно: кнопки количества
+    document.getElementById('qtyMinus').addEventListener('click', () => {
+      if (isSpinning) return;
+      if (selectedQuantity > 1) {
+        selectedQuantity--;
+        updateQuantityDisplay();
+      }
+    });
+    document.getElementById('qtyPlus').addEventListener('click', () => {
+      if (isSpinning) return;
+      if (selectedQuantity < quantityMax) {
+        selectedQuantity++;
+        updateQuantityDisplay();
+      }
+    });
+
     document.getElementById('btnCloseModal').addEventListener('click', closeModal);
-    document.getElementById('btnOpenNormal').addEventListener('click', () => spin(6));
-    document.getElementById('btnOpenFast').addEventListener('click', () => spin(3.5));
+    document.getElementById('btnOpenNormal').addEventListener('click', () => openMultiple(6));
+    document.getElementById('btnOpenFast').addEventListener('click', () => openMultiple(3.5));
 
     window.siteLogin = () => {
       const input = document.getElementById('usernameInput');
