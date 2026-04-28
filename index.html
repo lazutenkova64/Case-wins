@@ -69,8 +69,10 @@
     .inventory-grid, .upgrade-select { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 15px; }
     .item-card {
       background: #1b2130; border-radius: 18px; padding: 12px 18px; display: flex;
-      align-items: center; gap: 12px; border-left: 6px solid;
+      align-items: center; gap: 12px; border-left: 6px solid; cursor: default;
     }
+    .item-card.selectable { cursor: pointer; }
+    .item-card.selectable:hover { border-color: #f0b90b; }
     .rarity-common { border-left-color: #9e9e9e; } .rarity-mil { border-left-color: #4b69ff; }
     .rarity-restricted { border-left-color: #8845ff; } .rarity-classified { border-left-color: #d32ce6; }
     .rarity-covert { border-left-color: #eb4b4b; } .rarity-gold { border-left-color: #f3b23f; }
@@ -215,13 +217,13 @@
       {itemId:'mp7_forest',weight:25},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:20},{itemId:'glock_fade',weight:15},{itemId:'p250_sand',weight:20}
     ]},
     { id:'phoenix', name:'Phoenix Case', price:700, image:'🔥', items:[
-      {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+      {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'p250_sand',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'five_seven',weight:20}
     ]},
     { id:'shadow', name:'Shadow Case', price:1000, image:'🌑', items:[
       {itemId:'usp_kill',weight:8},{itemId:'glock_fade',weight:12},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:25},{itemId:'mp7_forest',weight:35}
     ]},
     { id:'frostbite', name:'Frostbite Case', price:1500, image:'❄️', items:[
-      {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'p250_see',weight:30},{itemId:'nova_walnut',weight:30}
+      {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
     ]},
     { id:'inferno', name:'Inferno Case', price:2000, image:'🌋', items:[
       {itemId:'ak_fire',weight:5},{itemId:'deagle_blaze',weight:15},{itemId:'glock_fade',weight:15},{itemId:'usp_kill',weight:10},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:25}
@@ -230,34 +232,34 @@
       {itemId:'awp_dragon',weight:3},{itemId:'m4_howl',weight:3},{itemId:'ak_vulcan',weight:12},{itemId:'m4_neo',weight:12},{itemId:'deagle_blaze',weight:20},{itemId:'p250_sand',weight:25},{itemId:'mp7_forest',weight:25}
     ]},
     { id:'elite', name:'Elite Case', price:4000, image:'💠', items:[
-      {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'glock_royal',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
+      {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
     ]},
     { id:'predator', name:'Predator Case', price:5000, image:'🦅', items:[
-      {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'mp9_bull',weight:15},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
+      {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
     ]},
     { id:'cyber', name:'Cyber Case', price:7000, image:'🤖', items:[
-      {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'usp_road',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
+      {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
     ]},
     { id:'royal', name:'Royal Case', price:9000, image:'👑', items:[
-      {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'glock_royal',weight:18},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
+      {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
     ]},
     { id:'golden', name:'Golden Case', price:12000, image:'🥇', items:[
-      {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:27}
+      {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'mp7_forest',weight:27},{itemId:'p250_sand',weight:30}
     ]},
     { id:'diamond', name:'Diamond Case', price:15000, image:'💎', items:[
       {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:5},{itemId:'awp_medusa',weight:5},{itemId:'ak_fire',weight:10},{itemId:'deagle_blaze',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
     ]},
     { id:'mythic', name:'Mythic Case', price:18000, image:'🌀', items:[
-      {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'mp9_bull',weight:20},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
+      {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
     ]},
     { id:'legendary', name:'Legendary Case', price:22000, image:'🌟', items:[
-      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'glock_royal',weight:25},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
+      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
     ]},
     { id:'ancient', name:'Ancient Case', price:28000, image:'🏺', items:[
-      {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'p250_see',weight:30},{itemId:'mp7_forest',weight:26}
+      {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'mp7_forest',weight:26},{itemId:'p250_sand',weight:30}
     ]},
     { id:'future', name:'Future Case', price:35000, image:'🚀', items:[
-      {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'mp9_bull',weight:25},{itemId:'p250_sand',weight:25}
+      {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'p250_sand',weight:25}
     ]},
     { id:'titan', name:'Titan Case', price:42000, image:'⚔️', items:[
       {itemId:'knife_karambit',weight:4},{itemId:'knife_crimson',weight:2},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_blaze',weight:25},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:20}
@@ -266,17 +268,19 @@
       {itemId:'knife_crimson',weight:5},{itemId:'m4_poseidon',weight:10},{itemId:'awp_medusa',weight:10},{itemId:'ak_fire',weight:15},{itemId:'usp_kill',weight:25},{itemId:'mp7_forest',weight:20},{itemId:'p250_sand',weight:15}
     ]},
     { id:'ultimate', name:'Ultimate Case', price:50000, image:'🔮', items:[
-      {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'mp9_bull',weight:22},{itemId:'p250_sand',weight:25}
+      {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'p250_sand',weight:25}
     ]}
   ];
 
-  const USERS_KEY = 'cs2_users_multifinal';
-  const CURRENT_KEY = 'cs2_current_multifinal';
+  const USERS_KEY = 'cs2_users_final_v2';
+  const CURRENT_KEY = 'cs2_current_final_v2';
   let currentUser = null;
   let activeCase = null;
   let isSpinning = false;
   let spinTimers = [];
   let upgradeActive = false;
+  let upgradeSelectedItem = null;
+  let upgradeTargetItem = null;
   const ITEM_WIDTH = 158;
   const COPIES = 60;
   const SAFE_MARGIN = 8;
@@ -285,23 +289,28 @@
   function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
   function getItem(id) { return ITEMS.find(i=>i.id===id); }
 
-  function login(u) {
+  function login(username) {
+    if (!username || username.length < 2) return alert('Введите никнейм (минимум 2 символа)');
     const users = getUsers();
-    if (!users[u]) users[u] = { balance:5000, inventory:[] };
+    if (!users[username]) users[username] = { balance:5000, inventory:[] };
     saveUsers(users);
-    currentUser = { username:u, balance:users[u].balance, inventory:users[u].inventory||[] };
-    localStorage.setItem(CURRENT_KEY, u);
+    currentUser = { username, balance:users[username].balance, inventory:users[username].inventory||[] };
+    localStorage.setItem(CURRENT_KEY, username);
     refreshAll();
   }
-  function logout() { currentUser=null; localStorage.removeItem(CURRENT_KEY); refreshAll(); }
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem(CURRENT_KEY);
+    refreshAll();
+  }
   function persist() {
     if(!currentUser) return;
-    const users=getUsers();
-    users[currentUser.username]={balance:currentUser.balance, inventory:currentUser.inventory};
+    const users = getUsers();
+    users[currentUser.username] = { balance:currentUser.balance, inventory:currentUser.inventory };
     saveUsers(users);
   }
 
-  // Построение ленты (общая функция)
+  // Построение ленты
   function buildTrack(container, itemsArray) {
     container.innerHTML = '';
     const track = document.createElement('div');
@@ -343,7 +352,7 @@
     selectedQuantity = 1;
     updateQuantityDisplay();
     document.getElementById('caseModal').style.display = 'flex';
-    enableButtons(true);
+    enableCaseButtons(true);
   }
 
   let selectedQuantity = 1;
@@ -358,7 +367,7 @@
     const totalCost = activeCase.price * selectedQuantity;
     if(currentUser.balance < totalCost) return alert('Недостаточно средств');
     isSpinning = true;
-    enableButtons(false);
+    enableCaseButtons(false);
     document.getElementById('resultMessage').textContent = `Открываем ${selectedQuantity} кейс(ов)...`;
     currentUser.balance -= totalCost;
     persist();
@@ -377,23 +386,22 @@
       container.appendChild(area);
       const items = activeCase.items.map(e => getItem(e.itemId)).filter(Boolean);
       const track = buildTrack(area, items);
-      tracks.push({ track, area, items });
-      const { winItem, targetIndex } = getRandomWin(activeCase);
-      winData.push({ winItem, targetIndex });
+      const win = getRandomWin(activeCase, track);
+      tracks.push({ track, area, items: activeCase.items });
+      winData.push(win);
     }
 
     const containerWidth = container.clientWidth || 700;
-    const startTransitions = () => {
-      tracks.forEach((t, idx) => {
-        const { targetIndex } = winData[idx];
-        animateTrack(t.track, targetIndex, activeCase.items.length, durationSec, containerWidth);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        tracks.forEach((t, idx) => {
+          animateTrack(t.track, winData[idx].targetIndex, activeCase.items.length, durationSec, containerWidth);
+        });
       });
-    };
-    requestAnimationFrame(() => { requestAnimationFrame(startTransitions); });
+    });
 
     const timeoutMs = durationSec * 1000 + 300;
-    await new Promise(res => spinTimers.push(setTimeout(res, timeoutMs)));
-    spinTimers = [];
+    await new Promise(res => { const t = setTimeout(() => { res(); spinTimers = spinTimers.filter(x=>x!==t); }, timeoutMs); spinTimers.push(t); });
 
     winData.forEach(d => {
       currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: d.winItem.id, acquired: new Date().toISOString() });
@@ -401,12 +409,12 @@
     persist();
     document.getElementById('resultMessage').innerHTML = `✅ Открыто ${selectedQuantity} кейсов!`;
     isSpinning = false;
-    enableButtons(true);
+    enableCaseButtons(true);
     updateBalance();
     renderInventoryView();
   }
 
-  function getRandomWin(caseData) {
+  function getRandomWin(caseData, trackElement) {
     const totalW = caseData.items.reduce((s,it)=>s+it.weight,0);
     let r = Math.random()*totalW;
     let entry = null;
@@ -416,17 +424,17 @@
     const totalElements = COPIES * itemsCount;
     const minIdx = SAFE_MARGIN * itemsCount;
     const maxIdx = totalElements - SAFE_MARGIN * itemsCount;
-    const search = winItem.name.split('|')[0];
+    const search = winItem.name.split('|')[0].trim();
+    const children = trackElement ? trackElement.children : [];
     const possible = [];
     for(let i=minIdx; i<maxIdx; i++) {
-      const el = document.querySelectorAll('#multiRouletteContainer .items-track')?.[0]?.children?.[i];
-      if(el && el.textContent.includes(search)) possible.push(i);
+      if(children[i] && children[i].textContent.includes(search)) possible.push(i);
     }
     const targetIndex = possible.length ? possible[Math.floor(Math.random()*possible.length)] : Math.floor(Math.random()*(maxIdx-minIdx))+minIdx;
     return { winItem, targetIndex };
   }
 
-  function enableButtons(enable) {
+  function enableCaseButtons(enable) {
     document.getElementById('btnOpenNormal').disabled = !enable;
     document.getElementById('btnOpenFast').disabled = !enable;
     document.getElementById('qtyMinus').disabled = !enable;
@@ -434,46 +442,65 @@
   }
 
   // Upgrade
-  let upgradeSelectedItem = null;
-  let upgradeTargetItem = null;
-
   function renderUpgradeView() {
     const view = document.getElementById('upgradeView');
     if(!currentUser || currentUser.inventory.length===0) {
-      view.innerHTML = '<p>Инвентарь пуст</p>'; return;
+      view.innerHTML = '<p style="color:#888; padding:20px;">Инвентарь пуст. Откройте кейсы, чтобы получить предметы для апгрейда.</p>';
+      return;
     }
-    let html = '<h3>Выберите предмет для апгрейда</h3><div class="upgrade-select">';
+    let html = '<h3 style="margin-bottom:10px;">Выберите предмет для апгрейда</h3><div class="upgrade-select">';
     currentUser.inventory.forEach(inv => {
       const item = getItem(inv.itemId);
-      html += `<div class="item-card rarity-${item.rarity}" onclick="window.selectUpgradeItem('${inv.uid}')" style="cursor:pointer;">
-        <span style="font-size:30px;">${item.emoji}</span> ${item.name} (${item.price} ₽)
+      html += `<div class="item-card rarity-${item.rarity} selectable" data-uid="${inv.uid}">
+        <span style="font-size:30px;">${item.emoji}</span> <strong>${item.name}</strong> (${item.price.toLocaleString()} ₽)
       </div>`;
     });
     html += '</div><div id="targetSelection" style="margin-top:20px;"></div>';
     html += '<div id="upgradeChanceDisplay" class="upgrade-chance"></div>';
     html += '<div class="controls"><button class="primary" id="startUpgradeNormal">🔄 Upgrade (3.5 сек)</button><button id="startUpgradeFast" style="background:#3a4050;">⚡ Fast (1 сек)</button></div>';
     view.innerHTML = html;
+
+    document.querySelectorAll('#upgradeView .selectable').forEach(el => {
+      el.addEventListener('click', function() { selectUpgradeItem(this.dataset.uid); });
+    });
     if(upgradeSelectedItem) highlightSelected();
   }
 
   function selectUpgradeItem(uid) {
     upgradeSelectedItem = currentUser.inventory.find(i=>i.uid===uid);
     if(!upgradeSelectedItem) return;
+    upgradeTargetItem = null;
+    highlightSelected();
     const currentItem = getItem(upgradeSelectedItem.itemId);
     const targets = ITEMS.filter(it => it.price > currentItem.price);
     const targetDiv = document.getElementById('targetSelection');
+    if(targets.length === 0) {
+      targetDiv.innerHTML = '<p style="color:#888;">Нет более дорогих предметов для апгрейда.</p>';
+      document.getElementById('upgradeChanceDisplay').textContent = '';
+      return;
+    }
     targetDiv.innerHTML = '<h3>Выберите цель</h3><div class="upgrade-select">' + targets.map(t => `
-      <div class="item-card rarity-${t.rarity}" onclick="window.selectUpgradeTarget('${t.id}')" style="cursor:pointer;">
-        <span style="font-size:30px;">${t.emoji}</span> ${t.name} (${t.price} ₽)
+      <div class="item-card rarity-${t.rarity} selectable" data-targetid="${t.id}">
+        <span style="font-size:30px;">${t.emoji}</span> <strong>${t.name}</strong> (${t.price.toLocaleString()} ₽)
       </div>
     `).join('') + '</div>';
-    upgradeTargetItem = null;
-    updateChanceDisplay();
+    document.querySelectorAll('#targetSelection .selectable').forEach(el => {
+      el.addEventListener('click', function() { selectUpgradeTarget(this.dataset.targetid); });
+    });
+    document.getElementById('upgradeChanceDisplay').textContent = '';
   }
 
   function selectUpgradeTarget(itemId) {
     upgradeTargetItem = ITEMS.find(i=>i.id===itemId);
+    document.querySelectorAll('#targetSelection .selectable').forEach(el => el.style.borderColor = '');
+    document.querySelector(`#targetSelection [data-targetid="${itemId}"]`).style.borderColor = '#f0b90b';
     updateChanceDisplay();
+  }
+
+  function highlightSelected() {
+    document.querySelectorAll('#upgradeView .selectable[data-uid]').forEach(el => {
+      el.style.borderColor = el.dataset.uid === upgradeSelectedItem.uid ? '#f0b90b' : '';
+    });
   }
 
   function updateChanceDisplay() {
@@ -485,7 +512,7 @@
   }
 
   function startUpgrade(durationSec) {
-    if(!upgradeSelectedItem || !upgradeTargetItem || upgradeActive) return;
+    if(!upgradeSelectedItem || !upgradeTargetItem || upgradeActive || isSpinning) return;
     const curItem = getItem(upgradeSelectedItem.itemId);
     const ratio = curItem.price / upgradeTargetItem.price;
     const chance = Math.min(1, ratio);
@@ -496,17 +523,20 @@
     for(let i=0; i<failCount; i++) template.push({ emoji: '💔', name: 'LOSE', id: null });
 
     document.getElementById('upgradeModal').style.display = 'flex';
+    document.getElementById('upgradeResultMessage').textContent = '';
     const container = document.getElementById('upgradeRouletteContainer');
     container.innerHTML = '<div class="pointer"></div>';
     const track = buildTrack(container, template);
     const containerWidth = container.clientWidth;
     const totalElements = COPIES * 100;
     const targetIndex = Math.floor(Math.random() * totalElements);
-    animateTrack(track, targetIndex, 100, durationSec, containerWidth);
     upgradeActive = true;
 
+    animateTrack(track, targetIndex, 100, durationSec, containerWidth);
+
     setTimeout(() => {
-      const win = template[targetIndex % 100].id !== null;
+      const element = track.children[targetIndex % 100];
+      const win = element && element.textContent.includes('WIN');
       if(win) {
         currentUser.inventory = currentUser.inventory.filter(i=>i.uid!==upgradeSelectedItem.uid);
         currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: upgradeTargetItem.id, acquired: new Date().toISOString() });
@@ -530,12 +560,8 @@
     document.getElementById('upgradeModal').style.display = 'none';
   }
 
-  window.selectUpgradeItem = selectUpgradeItem;
-  window.selectUpgradeTarget = selectUpgradeTarget;
-
-  // Общие функции
   function sellItem(uid) {
-    if(!currentUser) return;
+    if(!currentUser || isSpinning || upgradeActive) return;
     const idx = currentUser.inventory.findIndex(i=>i.uid===uid);
     if(idx===-1) return;
     const item = getItem(currentUser.inventory[idx].itemId);
@@ -546,26 +572,34 @@
     renderInventoryView();
     renderUpgradeView();
   }
-  window.sellItem = sellItem;
 
   function renderCasesView() {
     document.getElementById('casesView').innerHTML = '<div class="cases-grid">' + CASES.map(c=>`
-      <div class="case-card" onclick="window.openCaseModal('${c.id}')">
+      <div class="case-card" data-caseid="${c.id}">
         <div class="case-img">${c.image}</div><h3>${c.name}</h3><p>Цена: <strong>${c.price.toLocaleString()} ₽</strong></p>
       </div>
     `).join('') + '</div>';
+    document.querySelectorAll('.case-card').forEach(el => {
+      el.addEventListener('click', function() {
+        const c = CASES.find(c=>c.id===this.dataset.caseid);
+        if(c) openCaseModal(c);
+      });
+    });
   }
 
   function renderInventoryView() {
     const inv = document.getElementById('inventoryView');
-    if(!currentUser || currentUser.inventory.length===0) { inv.innerHTML='<p>🎒 Инвентарь пуст</p>'; return; }
+    if(!currentUser || currentUser.inventory.length===0) { inv.innerHTML='<p style="color:#888; padding:20px;">🎒 Инвентарь пуст. Откройте кейсы!</p>'; return; }
     inv.innerHTML = '<div class="inventory-grid">' + currentUser.inventory.map(inv=>{
       const item = getItem(inv.itemId);
       return `<div class="item-card rarity-${item.rarity}">
-        <span style="font-size:30px;">${item.emoji}</span> ${item.name} (${item.price} ₽)
-        <button onclick="window.sellItem('${inv.uid}')">Продать</button>
+        <span style="font-size:30px;">${item.emoji}</span> <strong>${item.name}</strong> (${item.price.toLocaleString()} ₽)
+        <button class="sell-btn" data-uid="${inv.uid}">Продать</button>
       </div>`;
     }).join('') + '</div>';
+    document.querySelectorAll('#inventoryView .sell-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) { e.stopPropagation(); sellItem(this.dataset.uid); });
+    });
   }
 
   function updateBalance() {
@@ -573,19 +607,31 @@
   }
 
   function refreshAll() {
-    document.getElementById('authBlock').innerHTML = currentUser ? `<span>👤 ${currentUser.username}</span> <button class="danger" onclick="logout()">Выйти</button>` : '';
+    document.getElementById('authBlock').innerHTML = currentUser ? `<span style="font-weight:bold;">👤 ${currentUser.username}</span> <button class="danger" id="logoutBtn">Выйти</button>` : '';
     document.getElementById('loginPanel').style.display = currentUser ? 'none' : 'block';
     document.getElementById('mainUI').style.display = currentUser ? 'block' : 'none';
     if(!currentUser) {
-      document.getElementById('loginPanel').innerHTML = `<input id="usernameInput" placeholder="Никнейм"><button class="primary" onclick="login(document.getElementById('usernameInput').value.trim())">Войти</button>`;
-      return;
+      document.getElementById('loginPanel').innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <input type="text" id="usernameInput" placeholder="Введите никнейм" maxlength="14">
+          <button class="primary" id="loginBtn">Войти / Создать</button>
+        </div>
+        <p style="color:#aaa; margin-top:8px;">Новый аккаунт получит 5 000 ₽</p>
+      `;
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        const input = document.getElementById('usernameInput');
+        if(input) login(input.value.trim());
+      });
+    } else {
+      document.getElementById('logoutBtn').addEventListener('click', logout);
+      updateBalance();
+      renderCasesView();
+      renderInventoryView();
+      renderUpgradeView();
     }
-    updateBalance();
-    renderCasesView();
-    renderInventoryView();
-    renderUpgradeView();
   }
 
+  // Вкладки
   document.getElementById('tabCases').addEventListener('click', ()=>{
     document.getElementById('casesView').style.display='block';
     document.getElementById('inventoryView').style.display='none';
@@ -613,21 +659,26 @@
     renderUpgradeView();
   });
 
-  document.getElementById('qtyMinus').addEventListener('click', ()=>{ if(selectedQuantity>1) selectedQuantity--; updateQuantityDisplay(); });
-  document.getElementById('qtyPlus').addEventListener('click', ()=>{ if(selectedQuantity<9) selectedQuantity++; updateQuantityDisplay(); });
+  // Кейс модалка
+  document.getElementById('qtyMinus').addEventListener('click', ()=>{ if(selectedQuantity>1 && !isSpinning) selectedQuantity--; updateQuantityDisplay(); });
+  document.getElementById('qtyPlus').addEventListener('click', ()=>{ if(selectedQuantity<9 && !isSpinning) selectedQuantity++; updateQuantityDisplay(); });
   document.getElementById('btnOpenNormal').addEventListener('click', ()=> openMultiple(6));
   document.getElementById('btnOpenFast').addEventListener('click', ()=> openMultiple(2));
   document.getElementById('btnCloseModal').addEventListener('click', ()=>{ if(!isSpinning) document.getElementById('caseModal').style.display='none'; });
+
+  // Апгрейд модалка
   document.getElementById('btnCloseUpgradeModal').addEventListener('click', closeUpgradeModal);
   document.addEventListener('click', e => {
     if(e.target.id === 'startUpgradeNormal') startUpgrade(3.5);
     if(e.target.id === 'startUpgradeFast') startUpgrade(1);
   });
 
-  window.openCaseModal = (id) => { const c = CASES.find(c=>c.id===id); if(c) openCaseModal(c); };
-
+  // Восстановление сессии
   const saved = localStorage.getItem(CURRENT_KEY);
-  if(saved) { const users = getUsers(); if(users[saved]) currentUser = { username:saved, balance:users[saved].balance, inventory:users[saved].inventory||[] }; }
+  if(saved) {
+    const users = getUsers();
+    if(users[saved]) currentUser = { username:saved, balance:users[saved].balance, inventory:users[saved].inventory||[] };
+  }
   refreshAll();
 })();
 </script>
