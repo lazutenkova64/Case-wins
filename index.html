@@ -1,609 +1,181 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>CSG@DEP | Классический раунд</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(145deg, #0a0c12 0%, #0f111a 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px 20px;
-        }
-
-        /* главный контейнер - точная стилизация под скриншот */
-        .site-container {
-            max-width: 1400px;
-            width: 100%;
-            background: #0b0e17;
-            border-radius: 24px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            overflow: hidden;
-            padding: 18px 24px 28px 24px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        /* ========== ВЕРХНЯЯ ШАПКА ========== */
-        .header-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 1px solid #2a2e3f;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .logo-area h1 {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e6b422, #ffdd77);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: 1px;
-        }
-
-        .classic-round {
-            background: #1e212e;
-            padding: 6px 18px;
-            border-radius: 40px;
-            text-align: center;
-            border-left: 4px solid #ffb347;
-        }
-
-        .classic-round .winner {
-            font-size: 13px;
-            color: #aaaec5;
-        }
-
-        .classic-round .winner span {
-            color: #ffd966;
-            font-weight: bold;
-        }
-
-        .classic-round .bank {
-            font-size: 22px;
-            font-weight: bold;
-            color: #ffe6b3;
-            letter-spacing: 1px;
-        }
-
-        .info-panel {
-            display: flex;
-            gap: 24px;
-            background: #121520;
-            padding: 6px 20px;
-            border-radius: 28px;
-        }
-
-        .info-item {
-            text-align: center;
-        }
-
-        .info-item .label {
-            font-size: 12px;
-            color: #7f85a3;
-        }
-
-        .info-item .value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #eef2ff;
-        }
-
-        /* ========== ОСНОВНАЯ СЕТКА: 2 колонки ========== */
-        .two-columns {
-            display: flex;
-            gap: 28px;
-            flex-wrap: wrap;
-        }
-
-        .left-panel {
-            flex: 2.2;
-            min-width: 260px;
-        }
-
-        .right-panel {
-            flex: 1.3;
-            min-width: 260px;
-        }
-
-        /* карточки (блоки меню, игроки) */
-        .menu-card {
-            background: #0e111b;
-            border-radius: 20px;
-            margin-bottom: 24px;
-            border: 1px solid #252b3c;
-            overflow: hidden;
-        }
-
-        .card-header {
-            background: #181e2c;
-            padding: 12px 18px;
-            font-weight: bold;
-            color: #f0f3fa;
-            font-size: 16px;
-            border-bottom: 1px solid #2a2f42;
-            letter-spacing: 0.5px;
-        }
-
-        .menu-list {
-            padding: 10px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 18px;
-            border-bottom: 1px solid #191e2c;
-            color: #ccd3f0;
-            font-size: 14px;
-        }
-
-        .menu-item .name {
-            font-weight: 500;
-        }
-
-        .menu-item .price {
-            color: #ffcd7e;
-            font-weight: bold;
-        }
-
-        .game-mode-buttons {
-            display: flex;
-            gap: 12px;
-            padding: 15px 18px;
-        }
-
-        .mode-btn {
-            background: #262d41;
-            padding: 8px 20px;
-            border-radius: 28px;
-            font-size: 13px;
-            font-weight: bold;
-            color: white;
-            text-align: center;
-            cursor: default;
-            transition: 0.1s;
-        }
-
-        .confirm-warning {
-            background: #171c2b;
-            margin: 15px 18px 18px 18px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-left: 4px solid #ff5e5e;
-        }
-
-        .confirm-warning span {
-            color: #ffbc6e;
-            font-weight: bold;
-        }
-
-        .red-flag {
-            font-size: 20px;
-        }
-
-        .key-round-block {
-            background: #13182a;
-            margin: 20px 18px 18px 18px;
-            padding: 16px;
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .key-label {
-            font-weight: bold;
-            color: #b9c3f0;
-        }
-
-        .key-price {
-            font-size: 28px;
-            font-weight: 800;
-            color: #f3bc6c;
-        }
-
-        .place-bet {
-            background: #2f3b5c;
-            padding: 8px 22px;
-            border-radius: 32px;
-            font-weight: bold;
-            color: white;
-            cursor: default;
-        }
-
-        .create-1v1 {
-            background: #2a3149;
-            margin: 12px 18px 18px 18px;
-            padding: 12px;
-            text-align: center;
-            border-radius: 28px;
-            font-weight: bold;
-            color: #f0cd8c;
-        }
-
-        /* таблица игроков */
-        .players-list {
-            padding: 8px 0;
-        }
-
-        .player-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 18px;
-            border-bottom: 1px solid #1a1f2f;
-            transition: 0.05s linear;
-        }
-
-        .player-name {
-            font-weight: 600;
-            color: #eef3ff;
-            font-size: 14px;
-        }
-
-        .play-btn {
-            background: #292f46;
-            padding: 4px 16px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #ced6ff;
-            cursor: default;
-        }
-
-        .player-bet {
-            color: #ffcf8a;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .vodka-row {
-            background: #0f1320;
-        }
-
-        .footer-small {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 12px;
-            border-top: 1px solid #23283e;
-            font-size: 13px;
-            color: #6b729b;
-        }
-
-        .take-items {
-            background: #2f3a5c;
-            padding: 4px 16px;
-            border-radius: 20px;
-            color: #ffecb3;
-            font-weight: bold;
-        }
-
-        .total-stats {
-            background: #101424;
-            padding: 5px 12px;
-            border-radius: 28px;
-        }
-
-        /* точное подражание стилям с картинки */
-        .highlight {
-            color: #f3b759;
-        }
-
-        .faq-support {
-            display: flex;
-            gap: 24px;
-            padding: 10px 18px;
-            font-weight: 500;
-        }
-
-        .timer {
-            background: #0b0f18;
-            text-align: center;
-            font-size: 28px;
-            font-family: monospace;
-            letter-spacing: 4px;
-            padding: 8px;
-            border-radius: 18px;
-            margin: 6px 18px;
-            color: #ffe0a3;
-        }
-
-        /* адаптив */
-        @media (max-width: 900px) {
-            .site-container {
-                padding: 14px;
-            }
-            .two-columns {
-                flex-direction: column;
-            }
-            .key-round-block {
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>case-wins</title>
+<style>
+body{margin:0;font-family:Arial;background:#1b1e24;color:#fff}
+.sidebar{width:250px;background:#111;position:fixed;height:100%;padding:20px}
+.main{margin-left:250px;padding:20px}
+.btn{background:#6cff00;border:none;padding:10px 20px;color:#000;cursor:pointer}
+.btn.gray{background:#555;color:#aaa}
+.room{background:#222;padding:10px;margin:10px 0;border-radius:8px}
+input{padding:10px;margin:5px 0;width:100%}
+.hidden{display:none}
+</style>
 </head>
 <body>
-<div class="site-container">
-    <!-- Верхняя часть: CSG@DEP / классический раунд / онлайн -->
-    <div class="header-main">
-        <div class="logo-area">
-            <h1>CSG@DEP</h1>
-        </div>
-        <div class="classic-round">
-            <div class="winner">Победитель: <span>06.01.2017 csgodep.com</span></div>
-            <div class="bank">Банк: 11.06$</div>
-        </div>
-        <div class="info-panel">
-            <div class="info-item">
-                <div class="label">Онлайн</div>
-                <div class="value">1079</div>
-            </div>
-            <div class="info-item">
-                <div class="label">Статус стиля</div>
-                <div class="value">Онлайн</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="two-columns">
-        <!-- ЛЕВАЯ КОЛОНКА: меню, режимы, райунды, подтверждение -->
-        <div class="left-panel">
-            <!-- Блок МЕНЮ (Главная, The Killer Chicken, hentai emo, классический и тд) -->
-            <div class="menu-card">
-                <div class="card-header">МЕНЮ</div>
-                <div class="menu-list">
-                    <div class="menu-item"><span class="name">Главная</span></div>
-                    <div class="menu-item"><span class="name">THE KILLER CHICKEN</span><span class="price">1.06$</span></div>
-                    <div class="menu-item"><span class="name">hentai emo</span><span class="price">5.66$</span></div>
-                    <div class="menu-item"><span class="name">Классический Игр</span></div>
-                    <div class="menu-item"><span class="name">Мои Игр</span></div>
-                    <div class="menu-item"><span class="name">Игр 1 На 1</span></div>
-                </div>
-                <div class="faq-support">
-                    <span>FAQ</span>
-                    <span>Поддержка</span>
-                </div>
-            </div>
-
-            <!-- РЕЖИМ ИГРЫ + WoW Legion -->
-            <div class="menu-card">
-                <div class="card-header">РЕЖИМ ИГРЫ</div>
-                <div class="game-mode-buttons">
-                    <div class="mode-btn">Double Game</div>
-                    <div class="mode-btn">WoW Legion</div>
-                </div>
-                <!-- Кнопка подтверждения стим -->
-                <div class="confirm-warning">
-                    <div class="red-flag">🚩</div>
-                    <div>Please confirm you trade on Steam! <span>click here to go to confirm page!</span></div>
-                </div>
-                <!-- КЛЮЧЕВОЙ РАУНД -->
-                <div class="key-round-block">
-                    <span class="key-label">КЛЮЧЕВОЙ РАУНД</span>
-                    <span class="key-price">6.72$</span>
-                    <div class="place-bet">ПОСТАВИТЬ</div>
-                </div>
-                <!-- ИТКА 1 НА 1 СОЗДАТЬ -->
-                <div class="create-1v1">
-                    ИТКА 1 НА 1 &nbsp;&nbsp; СОЗДАТЬ
-                </div>
-            </div>
-
-            <!-- Таймер 00:00 (согласно скриншоту) -->
-            <div class="timer">00:00</div>
-
-            <!-- Дополнительный блок вопросов / забрать предметы как на правой части? но на левой у нас есть схожесть с оригиналом,
-                 но на скрине снизу есть блоки вопросов, 0.44$, забрать предметы, всего 1/1.02$ - разместим после таймера -->
-            <div class="menu-card" style="margin-bottom: 0;">
-                <div class="menu-list">
-                    <div class="menu-item"><span class="name">Вопросы?</span><span class="price">0.44$</span></div>
-                    <div class="menu-item"><span class="name">Забрать предметы</span><span class="price">4.48$</span></div>
-                    <div class="menu-item"><span class="name">Всего</span><span class="price">1 / 1.02$</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ПРАВАЯ КОЛОНКА: СПИСОК ИГРОКОВ 1НА1 И ДРУГИЕ ЭЛЕМЕНТЫ -->
-        <div class="right-panel">
-            <div class="menu-card">
-                <div class="card-header">ИГРОКИ 1 VS 1</div>
-                <div class="players-list">
-                    <!-- BeLoNgTo_YouTube -->
-                    <div class="player-row">
-                        <span class="player-name">BeLoNgTo_YouTube</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">581.28$</span>
-                    </div>
-                    <!-- ShiMa*HyperX csgodep.com -->
-                    <div class="player-row">
-                        <span class="player-name">ShiMa*HyperX csgodep.com</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">101.27$</span>
-                    </div>
-                    <!-- OnLegend -->
-                    <div class="player-row">
-                        <span class="player-name">OnLegend</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">98.87$</span>
-                    </div>
-                    <!-- Stirmx -->
-                    <div class="player-row">
-                        <span class="player-name">Stirmx</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">77.43$</span>
-                    </div>
-                    <!-- sefior Humber -->
-                    <div class="player-row">
-                        <span class="player-name">sefior Humber</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">14.05$</span>
-                    </div>
-                    <!-- *S^@M^uR^@I* -->
-                    <div class="player-row">
-                        <span class="player-name">*S^@M^uR^@I*</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">5.45$</span>
-                    </div>
-                    <!-- VODKA -->
-                    <div class="player-row vodka-row">
-                        <span class="player-name">VODKA</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">3.98$</span>
-                    </div>
-                    <!-- K18 csgodep.com -->
-                    <div class="player-row">
-                        <span class="player-name">K18 csgodep.com</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">2.52$</span>
-                    </div>
-                    <!-- *Kekc* -->
-                    <div class="player-row">
-                        <span class="player-name">*Kekc*</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">2.44$</span>
-                    </div>
-                    <!-- Santa Claus csgodep.com -->
-                    <div class="player-row">
-                        <span class="player-name">Santa Claus csgodep.com</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">1.34$</span>
-                    </div>
-                    <!-- Lemover. -->
-                    <div class="player-row">
-                        <span class="player-name">Lemover.</span>
-                        <span class="play-btn">Играть</span>
-                        <span class="player-bet">1.25$</span>
-                    </div>
-                </div>
-                <!-- Дополнительный блок снизу:  Вопросы? и Забрать предметы дублируются на левой панели, но на скрине в правой не было, однако чтобы избежать потери элементов,
-                     которые видны на общем скриншоте в самом низу (Вопросы? Забрать предметы Всего) мы уже добавили их на левую панель для полного совпадения.
-                     Также на картинке в правой части под списком игроков больше ничего, но расположение полное копирование -->
-            </div>
-            <!-- Небольшой блок для имитации нижней части с точными значениями с картинки: 00:00 уже есть на левой панели,
-                 но на скриншоте есть также 00:00 между блоками. У нас он уже отрисован выше, абсолютно соответствует фото -->
-        </div>
-    </div>
-    
-    <!-- Нижняя панель: аналогия последней строки с картинки "Вопросы? 0.44$ | Забрать предметы 4.48$ | Всего 1 / 1.02$" ,
-         они уже добавлены внутри левой колонки, но для абсолютной достоверности дополнительно выведем строку в footer,
-         однако чтобы точно соответствовать макету, не дублируем лишнего, так как в блоке левой панели они есть. Но для страховки сделаем маленький футер с дубликатом,
-         скриншот содержит три строчки именно внизу интерфейса, но так как они уже есть в меню снизу слева – это полностью идентично.
-         Также справа на картинке "00:00" находился над списком вопросов, у нас он расположен корректно. Добавляем чистоту кода. -->
-    
-    <!-- Дополнительная точность: добавим блок "Забрать предметы" и "Всего" еще раз в правой части? Нет необходимости,
-         потому что на левой их 3 строки полностью воссоздают оригинал. Однако замечу, что на фото в самом низу справа отображается 00:00, а также
-         блок с Вопросы/Забрать/Всего находится под 00:00, у нас именно так: таймер 00:00, затем карточка с вопросами и суммой -->
-    
-    <!-- Совсем точное соответствие: В самой правой колонке иногда на скрине есть ещё какие-то надписи? Смотрим внимательно: справа список игроков, под ним ничего.
-         Все цифры и названия идеально совпадают с предоставленным PNG -->
-    <div style="height: 6px;"></div>
-    <!-- также на изображении есть: "VODKA Играть 3.98$", "K18 csgodep.com Играть 2.52$", и т.д. – всё добавлено -->
+<div class="sidebar">
+<h2>CASE-WINS</h2>
+<div id="auth">
+<input id="login" placeholder="Логин">
+<input id="pass" type="password" placeholder="Пароль">
+<button class="btn" onclick="register()">Регистрация</button>
+<button class="btn" onclick="loginUser()">Вход</button>
+</div>
+<div id="userPanel" class="hidden">
+<p id="username"></p>
+<p>Монеты: <span id="coins">100</span></p>
+</div>
 </div>
 
-<!-- Добавление микро-стилей для hover эффектов (кликабельности нет, но стилизация как на статичной копии) -->
-<style>
-    .play-btn, .place-bet, .mode-btn, .take-items, .create-1v1 {
-        transition: 0.1s linear;
-        cursor: default;
-        opacity: 0.9;
-    }
-    .play-btn:hover, .place-bet:hover, .mode-btn:hover {
-        background: #3c456b;
-        filter: brightness(1.05);
-    }
-    .confirm-warning span {
-        cursor: default;
-        text-decoration: underline;
-        text-decoration-style: dotted;
-    }
-    .menu-item, .player-row {
-        transition: background 0.1s;
-    }
-    .player-row:hover {
-        background: #191f30;
-    }
-    .timer {
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        background: #0a0e18;
-        box-shadow: inset 0 0 6px #00000033;
-    }
-    .classic-round .bank {
-        text-shadow: 0 2px 3px black;
-    }
-    .logo-area h1 {
-        text-shadow: 0 2px 3px rgba(0,0,0,0.4);
-    }
-    /* Дополнительный блок, который повторяет точную структуру стиля "csgodep.com" */
-    .card-header {
-        font-family: inherit;
-        letter-spacing: 0.3px;
-    }
-    .key-price {
-        background: #1e233b;
-        padding: 4px 14px;
-        border-radius: 28px;
-    }
-    .place-bet {
-        background: #3c4a70;
-        box-shadow: 0 1px 2px black;
-        font-size: 14px;
-    }
-    .create-1v1 {
-        background: #232a43;
-        border: 1px solid #4c5a82;
-        font-size: 14px;
-        letter-spacing: 1px;
-    }
-    .info-panel .value {
-        background: #1a1f30;
-        padding: 2px 12px;
-        border-radius: 22px;
-        font-size: 16px;
-    }
-    .info-panel {
-        background: #0f1322;
-    }
-    .menu-item .price, .player-bet {
-        font-family monospace;
-    }
-    /* для ровного отображения строчки THE KILLER CHICKEN и hentai emo */
-    .menu-item .name:first-letter {
-        text-transform: uppercase;
-    }
-    /* точное воссоздание надписи "1. ещён стомистый" на картинке, в скриншоте есть "1. ещён стомистый 1.06$" и "1. ещён стомистый 5.66$" – мы добавили корректно */
-    /* но в моем варианте для THE KILLER CHICKEN указана цена 1.06$ и для hentai emo 5.66$, в оригинале также было "1. ещён стомистый", я сделал как на изображении именно значения */
-    /* так как на фото "THE KILLER CHICKEN 1. ещён стомистый 1.06$", я совместил название и цену, но суть полностью передана */
-    /* дополнительно добавляем блок, чтобы не было различий: в меню отображается именно пара названий с этими ценами */
-</style>
+<div class="main">
+<h2>Классический раунд</h2>
+<div id="classic">
+<p>Банк: <span id="bank">0</span></p>
+<input id="bet" placeholder="Ставка">
+<button class="btn" onclick="placeBet()">Поставить</button>
+<p id="timer">Ожидание игроков...</p>
+</div>
 
-<!-- Небольшой фикс: в самом верху находится "Победитель: 06.01.2017 csgodep.com", и банк 11.06$, все есть -->
-<!-- также "онлайн 1079, статус стиля онлайн", абсолютно скопировано -->
-<!-- значок "ПОСТАВИТЬ" для ключевого раунда 6.72$ -->
-<!-- выведен блок "ИТКА 1 НА 1 СОЗДАТЬ" -->
-<!-- строка с подтверждением трейда стим с флагом и текстом -->
-<!-- полный список игроков от BeLoNgTo_YouTube до Lemover. с точно указанными суммами -->
-<!-- также присутствует VODKA и шрифты, фоновые карточки -->
-<!-- дополнительно присутствует нижний бар с суммой вопросов, забрать предметы, всего, что в точности соответствует скриншоту -->
+<h2>Игра 1 на 1</h2>
+<div>
+<input id="roomBet" placeholder="Ставка">
+<button class="btn" onclick="createRoom()">Создать</button>
+</div>
+<div id="rooms"></div>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('users')||"[]");
+let currentUser = null;
+let classicPlayers=[];
+let classicTimer=null;
+let classicTime=30;
+
+function register(){
+let l=login.value,p=pass.value;
+users.push({l,p,coins:100});
+localStorage.setItem('users',JSON.stringify(users));
+alert('зарегистрирован');
+}
+
+function loginUser(){
+let l=login.value,p=pass.value;
+let u=users.find(x=>x.l==l&&x.p==p);
+if(u){
+currentUser=u;
+auth.classList.add('hidden');
+userPanel.classList.remove('hidden');
+username.innerText=u.l;
+coins.innerText=u.coins;
+}
+}
+
+function placeBet(){
+let amount=+bet.value;
+if(currentUser.coins<amount)return;
+currentUser.coins-=amount;
+coins.innerText=currentUser.coins;
+classicPlayers.push({user:currentUser,amount});
+bank.innerText=classicPlayers.reduce((a,b)=>a+b.amount,0);
+if(classicPlayers.length==2 && !classicTimer){
+startClassic();
+}
+}
+
+function startClassic(){
+classicTime=30;
+classicTimer=setInterval(()=>{
+classicTime--;
+timer.innerText='До конца: '+classicTime;
+if(classicTime<=0){
+clearInterval(classicTimer);
+spinClassic();
+}
+},1000);
+}
+
+function spinClassic(){
+let total=classicPlayers.reduce((a,b)=>a+b.amount,0);
+let ticket=Math.random()*total;
+let sum=0;
+let winner;
+classicPlayers.forEach(p=>{
+sum+=p.amount;
+if(ticket<=sum && !winner)winner=p;
+});
+winner.user.coins+=total;
+alert('Победил '+winner.user.l);
+classicPlayers=[];
+bank.innerText=0;
+timer.innerText='Ожидание игроков...';
+}
+
+let rooms=[];
+
+function createRoom(){
+let bet=+roomBet.value;
+if(currentUser.coins<bet)return;
+currentUser.coins-=bet;
+coins.innerText=currentUser.coins;
+rooms.push({host:currentUser,bet,guest:null,status:'wait',time:10});
+renderRooms();
+}
+
+function joinRoom(i){
+let r=rooms[i];
+if(Math.abs(r.bet-roomBet.value)>20)return;
+if(currentUser.coins<r.bet)return;
+currentUser.coins-=r.bet;
+r.guest=currentUser;
+r.status='start';
+startRoom(i);
+renderRooms();
+}
+
+function startRoom(i){
+let r=rooms[i];
+let t=setInterval(()=>{
+r.time--;
+renderRooms();
+if(r.time<=0){
+clearInterval(t);
+spinRoom(r);
+}
+},1000);
+}
+
+function spinRoom(r){
+let total=r.bet*2;
+let ticket=Math.random()*total;
+let winner = ticket<=r.bet ? r.host : r.guest;
+winner.coins+=total;
+alert('Победил '+winner.l);
+rooms=rooms.filter(x=>x!=r);
+renderRooms();
+}
+
+function renderRooms(){
+roomsDiv.innerHTML='';
+rooms.forEach((r,i)=>{
+let div=document.createElement('div');
+div.className='room';
+div.innerHTML=`
+<p>${r.host.l} vs ${r.guest?r.guest.l:'???'}</p>
+<p>Ставка:
+
+
+${r.bet}</p>
+<p>${r.status=='start'?'Идет '+r.time:'Ожидание'}</p>
+<button class="btn ${r.status=='start'?'gray':''}" onclick="joinRoom(${i})">${r.status=='start'?'Идет...':'Играть'}</button>
+`;
+roomsDiv.appendChild(div);
+});
+}
+</script>
 
 </body>
 </html>
