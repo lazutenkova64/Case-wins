@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CS2 Case Opening | Открытие кейсов с анимацией</title>
+  <title>CS2 Case Opening — Реалистичная анимация</title>
   <style>
     * {
       margin: 0;
@@ -11,179 +11,142 @@
       box-sizing: border-box;
     }
     body {
-      background: radial-gradient(circle at 20% 20%, #1e2430, #0b0e14);
+      background: radial-gradient(circle at 20% 20%, #1a1f2b, #0a0d14);
       min-height: 100vh;
       color: #e0e0e0;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 15px;
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: rgba(15, 18, 24, 0.8);
-      backdrop-filter: blur(24px);
-      border-radius: 32px;
-      padding: 24px;
-      box-shadow: 0 30px 50px rgba(0,0,0,0.7);
-      border: 1px solid rgba(230, 180, 30, 0.15);
+    .app {
+      max-width: 1050px;
+      width: 100%;
+      background: rgba(14, 17, 23, 0.85);
+      backdrop-filter: blur(30px);
+      border-radius: 40px;
+      padding: 24px 22px 30px;
+      box-shadow: 0 30px 45px rgba(0,0,0,0.8);
+      border: 1px solid rgba(220, 180, 40, 0.2);
     }
-    h1, h2 {
-      background: linear-gradient(180deg, #f7d774 0%, #c99a2b 100%);
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid rgba(255,200,0,0.15);
+      padding-bottom: 18px;
+    }
+    h1 {
+      background: linear-gradient(180deg, #f9e076, #c5921a);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-weight: 800;
+      font-weight: 900;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
     }
     .nav {
       display: flex;
-      gap: 12px;
-      margin: 20px 0;
-      flex-wrap: wrap;
+      gap: 8px;
+      background: #151a24;
+      border-radius: 50px;
+      padding: 5px;
     }
-    .nav button {
-      background: #1f2533;
-      border: 1px solid #3c4455;
-      color: #ddd;
-      padding: 12px 28px;
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-weight: 700;
+      padding: 13px 26px;
       border-radius: 40px;
-      font-weight: bold;
       cursor: pointer;
       transition: 0.2s;
+      font-size: 15px;
     }
-    .nav button.active {
-      background: #e8b530;
-      border-color: #e8b530;
+    .nav-btn.active {
+      background: #f0b90b;
       color: #0a0a0a;
-      font-weight: 800;
+      box-shadow: 0 0 20px rgba(240,185,11,0.5);
     }
     button {
-      background: #2a3140;
+      background: #232b38;
       border: none;
-      color: white;
-      padding: 12px 22px;
+      color: #eee;
+      padding: 11px 21px;
       border-radius: 30px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
     }
-    button.primary {
-      background: linear-gradient(180deg, #f5c842, #c5841a);
-      font-weight: 700;
-      color: #0f0f0f;
-    }
     button:hover {
-      filter: brightness(1.2);
+      filter: brightness(1.3);
+    }
+    button.primary {
+      background: linear-gradient(180deg, #f5cb42, #c5851b);
+      color: #111;
+      font-weight: 800;
+    }
+    button.danger {
+      background: #4a2e2e;
+      color: #faa;
     }
     input {
-      background: #1a1e28;
-      border: 1px solid #3f4657;
-      padding: 12px 20px;
+      background: #151b25;
+      border: 1px solid #3f4858;
+      padding: 12px 18px;
       border-radius: 30px;
       color: white;
-      margin-right: 10px;
+      margin-right: 8px;
+      outline: none;
     }
-    .user-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #2b3240;
-      padding-bottom: 15px;
+    .balance {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #f0b90b;
+      background: #0f1219;
+      padding: 8px 22px;
+      border-radius: 30px;
     }
     .cases-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
       gap: 25px;
     }
     .case-card {
-      background: #181d28;
-      border-radius: 24px;
-      padding: 20px;
+      background: #181e29;
+      border-radius: 28px;
+      padding: 22px 12px;
       text-align: center;
-      border: 1px solid #30384a;
+      border: 1px solid #303a4c;
       cursor: pointer;
-      transition: 0.2s;
+      transition: 0.25s;
     }
     .case-card:hover {
       border-color: #f0b90b;
-      transform: translateY(-4px);
+      transform: translateY(-6px);
+      box-shadow: 0 18px 30px rgba(0,0,0,0.6);
     }
-
-    /* Окно открытия кейса */
-    .modal {
-      position: fixed;
-      top:0; left:0; width:100%; height:100%;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(10px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+    .case-img {
+      font-size: 68px;
+      margin-bottom: 6px;
     }
-    .modal-content {
-      background: #131721;
-      border-radius: 32px;
-      padding: 25px;
-      max-width: 750px;
-      width: 90%;
-      border: 2px solid #f0b90b;
-      text-align: center;
-    }
-    .roulette-container {
-      position: relative;
-      width: 100%;
-      overflow: hidden;
-      margin: 20px 0;
-      background: #0b0e14;
-      border-radius: 20px;
-      padding: 15px 0;
-    }
-    .items-track {
-      display: flex;
-      transition: transform 0.1s cubic-bezier(0.2, 0.9, 0.4, 1);
-      will-change: transform;
-    }
-    .roulette-item {
-      flex: 0 0 130px;
-      margin: 0 4px;
-      background: #1d2330;
-      border-radius: 16px;
-      padding: 15px 5px;
-      text-align: center;
-      border: 2px solid #2e3645;
-      font-size: 14px;
-    }
-    .roulette-item .emoji {
-      font-size: 45px;
-      display: block;
-    }
-    .pointer {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: #f0b90b;
-      box-shadow: 0 0 25px #f0b90b;
-      z-index: 10;
-      transform: translateX(-50%);
-      border-radius: 4px;
-    }
-    .inventory-list {
+    .inventory-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 16px;
       margin-top: 15px;
     }
     .item-card {
-      background: #1b1f2d;
+      background: #1b2130;
       border-radius: 18px;
       padding: 12px 18px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-left: 6px solid gray;
+      border-left: 6px solid;
     }
     .rarity-common { border-left-color: #9e9e9e; }
     .rarity-mil { border-left-color: #4b69ff; }
@@ -191,40 +154,127 @@
     .rarity-classified { border-left-color: #d32ce6; }
     .rarity-covert { border-left-color: #eb4b4b; }
     .rarity-gold { border-left-color: #f3b23f; }
+
+    /* Модалка кейса */
+    .modal {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-box {
+      background: #111520;
+      border: 2px solid #f0b90b;
+      border-radius: 36px;
+      padding: 24px 28px;
+      max-width: 780px;
+      width: 95%;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(240,185,11,0.3);
+    }
+    .roulette-area {
+      position: relative;
+      height: 130px;
+      background: #0a0d14;
+      border-radius: 24px;
+      margin: 25px 0 15px;
+      overflow: hidden;
+      border: 1px solid #2f3745;
+    }
+    .pointer {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #f0b90b;
+      box-shadow: 0 0 25px #f0b90b, 0 0 8px #fff;
+      z-index: 20;
+      transform: translateX(-50%);
+      border-radius: 3px;
+    }
+    .items-track {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.15, 0.8, 0.2, 1);
+      will-change: transform;
+    }
+    .roulette-item {
+      flex: 0 0 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      color: #ddd;
+      font-weight: 600;
+      background: rgba(30,35,48,0.7);
+      margin: 0 4px;
+      border-radius: 18px;
+      border: 1px solid #3e4657;
+    }
+    .roulette-item .emoji {
+      font-size: 42px;
+      display: block;
+      line-height: 1;
+    }
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .result-text {
+      font-size: 1.2rem;
+      margin-top: 12px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="user-bar">
-    <h1 style="margin:0;">🔫 CASE OPENER</h1>
-    <div id="authBlock"></div>
+<div class="app">
+  <div class="top-bar">
+    <h1>🔫 CASE OPENER</h1>
+    <div id="authBlock" style="display: flex; gap: 10px; align-items: center;"></div>
   </div>
 
-  <div id="loginBox" style="display:none; background:#181d28; padding:20px; border-radius:20px; margin-bottom:20px;"></div>
+  <div id="loginPanel" style="display: none; margin-bottom: 25px; background:#151b26; border-radius: 24px; padding: 20px;"></div>
 
-  <div id="appContent" style="display:none;">
-    <div class="nav">
-      <button id="btnCases" class="active">📦 Кейсы</button>
-      <button id="btnInventory">🎒 Инвентарь</button>
-      <span style="margin-left:auto; font-weight:bold; font-size:18px; color:#f0b90b;">💰 <span id="balDisplay">0</span> ₽</span>
+  <div id="mainUI" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:15px;">
+      <div class="nav">
+        <button class="nav-btn active" id="tabCases">📦 Кейсы</button>
+        <button class="nav-btn" id="tabInventory">🎒 Инвентарь</button>
+      </div>
+      <div class="balance">💰 <span id="balanceValue">0</span> ₽</div>
     </div>
 
-    <div id="viewCases" style="display:block;"></div>
-    <div id="viewInventory" style="display:none;"></div>
+    <div id="casesView" style="margin-top: 25px;"></div>
+    <div id="inventoryView" style="display: none; margin-top: 25px;"></div>
   </div>
 </div>
 
-<!-- Модальное окно открытия -->
-<div id="caseModal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h2 id="modalCaseName"></h2>
-    <div class="roulette-container" id="rouletteWrapper">
+<!-- Модальное окно открытия кейса -->
+<div class="modal" id="caseModal" style="display: none;">
+  <div class="modal-box">
+    <h2 id="modalTitle" style="color:#f0b90b;"></h2>
+    <div class="roulette-area" id="rouletteContainer">
       <div class="pointer"></div>
       <div class="items-track" id="rouletteTrack"></div>
     </div>
-    <button class="primary" id="btnOpenCase" style="font-size:20px; padding:14px 40px;">🔓 Открыть кейс</button>
-    <button id="btnCloseModal" style="margin-left:15px;">Закрыть</button>
-    <p id="resultText" style="margin-top:15px; font-weight:bold;"></p>
+    <div class="controls">
+      <button class="primary" id="btnOpenNormal" style="font-size:18px; padding:14px 32px;">🔓 Открыть (6 сек)</button>
+      <button id="btnOpenFast" style="font-size:16px; padding:12px 25px; background:#3a4050;">⚡ Fast (3.5 сек)</button>
+      <button id="btnCloseModal" style="background:#2a2f3c;">Закрыть</button>
+    </div>
+    <div class="result-text" id="resultMessage"></div>
   </div>
 </div>
 
@@ -250,248 +300,290 @@
     ];
 
     const CASES = [
-      { id:'case_gamma', name:'Gamma Case', price:350, image:'📦', items:[
+      { id:'gamma', name:'Gamma Case', price:350, image:'📦', items:[
         {itemId:'glock_fade',weight:8},{itemId:'awp_asiimov',weight:5},{itemId:'ak_vulcan',weight:5},
         {itemId:'deagle_blaze',weight:9},{itemId:'five_seven',weight:17},{itemId:'p250_sand',weight:28},{itemId:'mp7_forest',weight:28}
       ]},
-      { id:'case_legend', name:'Legend Case', price:650, image:'🧰', items:[
+      { id:'legend', name:'Legend Case', price:650, image:'🧰', items:[
         {itemId:'awp_dragon',weight:2},{itemId:'ak_fire',weight:3},{itemId:'m4_howl',weight:3},
         {itemId:'usp_kill',weight:8},{itemId:'m4_neo',weight:10},{itemId:'tec9_toxic',weight:17},
         {itemId:'nova_walnut',weight:27},{itemId:'p250_sand',weight:30}
       ]},
-      { id:'case_knife', name:'Knife Dream', price:1300, image:'💎', items:[
+      { id:'knife', name:'Knife Dream', price:1300, image:'💎', items:[
         {itemId:'knife_karambit',weight:1},{itemId:'awp_dragon',weight:4},{itemId:'deagle_blaze',weight:10},
         {itemId:'ak_vulcan',weight:14},{itemId:'glock_fade',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:26}
       ]}
     ];
 
-    const STORAGE_USERS = 'cs2_users';
-    const STORAGE_CURRENT = 'cs2_current';
+    const USERS_KEY = 'cs2_users_final';
+    const CURRENT_KEY = 'cs2_current_final';
     let currentUser = null;
     let activeCase = null;
     let isSpinning = false;
-    let spinAnimation = null;
+    let spinTimer = null;
 
-    function getUsers(){ return JSON.parse(localStorage.getItem(STORAGE_USERS)||'{}'); }
-    function saveUsers(u){ localStorage.setItem(STORAGE_USERS, JSON.stringify(u)); }
-    function getItem(id){ return ITEMS.find(i=>i.id===id); }
+    function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }
+    function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+    function getItem(id) { return ITEMS.find(i => i.id === id); }
 
-    function login(username){
+    function login(username) {
       const users = getUsers();
-      if(!users[username]) users[username] = { balance:5000, inventory:[] };
+      if (!users[username]) users[username] = { balance: 5000, inventory: [] };
       saveUsers(users);
-      currentUser = { username, balance:users[username].balance, inventory:users[username].inventory||[] };
-      localStorage.setItem(STORAGE_CURRENT, username);
-      renderAll();
+      currentUser = { username, balance: users[username].balance, inventory: users[username].inventory || [] };
+      localStorage.setItem(CURRENT_KEY, username);
+      refreshUI();
     }
-    function logout(){
-      currentUser=null; localStorage.removeItem(STORAGE_CURRENT); renderAll();
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem(CURRENT_KEY);
+      refreshUI();
     }
-    function persist(){
-      if(!currentUser) return;
-      const users=getUsers();
-      users[currentUser.username]={ balance:currentUser.balance, inventory:currentUser.inventory };
+    function persistUser() {
+      if (!currentUser) return;
+      const users = getUsers();
+      users[currentUser.username] = { balance: currentUser.balance, inventory: currentUser.inventory };
       saveUsers(users);
     }
 
-    function openCaseModal(caseData){
-      if(!currentUser) return alert('Войдите');
-      if(currentUser.balance < caseData.price) return alert('Недостаточно средств');
+    function openCaseModal(caseData) {
+      if (!currentUser) return alert('Войдите в аккаунт');
+      if (currentUser.balance < caseData.price) return alert('Недостаточно средств');
+      if (isSpinning) return;
       activeCase = caseData;
-      document.getElementById('modalCaseName').innerText = caseData.name;
-      document.getElementById('resultText').innerText = '';
-      document.getElementById('btnOpenCase').disabled = false;
+      document.getElementById('modalTitle').textContent = caseData.name;
+      document.getElementById('resultMessage').textContent = '';
       buildRouletteTrack(caseData);
       document.getElementById('caseModal').style.display = 'flex';
+      document.getElementById('btnOpenNormal').disabled = false;
+      document.getElementById('btnOpenFast').disabled = false;
     }
 
-    function buildRouletteTrack(caseData){
+    function buildRouletteTrack(caseData) {
       const track = document.getElementById('rouletteTrack');
-      // Генерируем полоску из предметов (много копий для анимации)
-      let itemsHtml = '';
-      for(let i=0;i<35;i++){
-        caseData.items.forEach(entry=>{
+      let html = '';
+      // Строим ~50 копий элементов для плавной длинной ленты
+      for (let i = 0; i < 45; i++) {
+        caseData.items.forEach(entry => {
           const item = getItem(entry.itemId);
-          if(item) itemsHtml += `<div class="roulette-item"><span class="emoji">${item.emoji}</span>${item.name.split('|')[0]}</div>`;
+          if (item) {
+            html += `<div class="roulette-item"><span class="emoji">${item.emoji}</span><span>${item.name.split('|')[0].trim()}</span></div>`;
+          }
         });
       }
-      track.innerHTML = itemsHtml;
-      track.style.transform = 'translateX(0px)';
+      track.innerHTML = html;
+      track.style.transition = 'none';
+      track.style.transform = 'translateX(0)';
+      // Принудительный reflow
+      track.offsetHeight;
     }
 
-    function spinRoulette(){
-      if(!activeCase || isSpinning) return;
-      if(currentUser.balance < activeCase.price) return alert('Недостаточно средств');
+    function spin(durationSec) {
+      if (!activeCase || isSpinning || !currentUser) return;
+      if (currentUser.balance < activeCase.price) {
+        alert('Недостаточно средств');
+        return;
+      }
+
       isSpinning = true;
-      document.getElementById('btnOpenCase').disabled = true;
-      document.getElementById('resultText').innerText = '⏳ Крутим...';
+      document.getElementById('btnOpenNormal').disabled = true;
+      document.getElementById('btnOpenFast').disabled = true;
+      document.getElementById('resultMessage').textContent = '⏳ Крутим...';
 
-      // Списываем деньги
+      // Списание
       currentUser.balance -= activeCase.price;
-      persist();
-      updateBalanceDisplay();
+      persistUser();
+      updateBalance();
 
-      // Выбираем победителя по весам
-      const totalWeight = activeCase.items.reduce((s,it)=>s+it.weight,0);
-      let rand = Math.random()*totalWeight;
+      // Определяем победителя
+      const totalWeight = activeCase.items.reduce((s, it) => s + it.weight, 0);
+      let rand = Math.random() * totalWeight;
       let winEntry = null;
-      for(let e of activeCase.items){
+      for (let e of activeCase.items) {
         rand -= e.weight;
-        if(rand <= 0){ winEntry = e; break; }
+        if (rand <= 0) { winEntry = e; break; }
       }
       const winItem = getItem(winEntry.itemId);
-      
-      // Вычисляем позицию в полосе: находим индекс первого совпадения в треке
-      const trackItems = document.querySelectorAll('.roulette-item');
+
+      // Ищем индекс в треке (первое совпадение по тексту)
+      const trackItems = document.querySelectorAll('#rouletteTrack .roulette-item');
       let targetIndex = -1;
-      for(let i=0;i<trackItems.length;i++){
-        if(trackItems[i].innerText.includes(winItem.name.split('|')[0].trim())){
+      const searchText = winItem.name.split('|')[0].trim();
+      for (let i = 0; i < trackItems.length; i++) {
+        if (trackItems[i].textContent.includes(searchText)) {
           targetIndex = i;
           break;
         }
       }
-      if(targetIndex===-1) targetIndex = Math.floor(Math.random()*trackItems.length);
-      
-      const itemWidth = 138; // ширина элемента + margin
-      // Смещение чтобы выбранный элемент оказался по центру (под стрелкой)
-      const containerWidth = document.getElementById('rouletteWrapper').clientWidth;
-      const centerOffset = containerWidth/2 - itemWidth/2;
-      let targetPosition = -(targetIndex * itemWidth) + centerOffset;
-      
-      // Добавляем несколько полных прокруток для эффекта
-      const extraSpins = 3 * (trackItems.length * itemWidth);
-      targetPosition -= extraSpins;
+      if (targetIndex === -1) targetIndex = Math.floor(Math.random() * trackItems.length);
+
+      const itemWidth = 158; // flex-basis 150 + margin 8
+      const containerWidth = document.getElementById('rouletteContainer').clientWidth;
+      const centerOffset = (containerWidth / 2) - (itemWidth / 2);
+      // Финальная позиция: элемент под стрелкой
+      let targetPos = -(targetIndex * itemWidth) + centerOffset;
+      // Добавляем несколько полных прокруток ленты для эффекта
+      const totalTrackWidth = trackItems.length * itemWidth;
+      const extraTurns = 3; // минимум 3 полных оборота
+      targetPos -= extraTurns * totalTrackWidth;
 
       const track = document.getElementById('rouletteTrack');
-      track.style.transition = 'transform 4s cubic-bezier(0.12, 0.8, 0.2, 1)';
-      track.style.transform = `translateX(${targetPosition}px)`;
+      track.style.transition = `transform ${durationSec}s cubic-bezier(0.12, 0.78, 0.22, 1)`;
+      track.style.transform = `translateX(${targetPos}px)`;
 
-      setTimeout(()=>{
-        // Добавляем предмет в инвентарь
+      // По окончании анимации
+      if (spinTimer) clearTimeout(spinTimer);
+      spinTimer = setTimeout(() => {
+        // Добавляем предмет
         currentUser.inventory.push({
-          uid: Date.now()+Math.random().toString(36),
+          uid: Date.now() + Math.random().toString(36),
           itemId: winItem.id,
           acquired: new Date().toISOString()
         });
-        persist();
-        document.getElementById('resultText').innerHTML = `🎉 Вы выбили: ${winItem.emoji} <strong>${winItem.name}</strong> (${winItem.price} ₽)`;
+        persistUser();
+        document.getElementById('resultMessage').innerHTML = `🎉 Выпало: ${winItem.emoji} <strong>${winItem.name}</strong> (${winItem.price} ₽)`;
         isSpinning = false;
-        document.getElementById('btnOpenCase').disabled = false;
+        document.getElementById('btnOpenNormal').disabled = false;
+        document.getElementById('btnOpenFast').disabled = false;
+        updateBalance();
         renderInventoryView();
-        updateBalanceDisplay();
-      }, 4200);
+        spinTimer = null;
+      }, durationSec * 1000 + 100);
     }
 
-    function closeModal(){
+    function closeModal() {
+      if (isSpinning) return; // запрет закрытия во время вращения
       document.getElementById('caseModal').style.display = 'none';
       activeCase = null;
+      if (spinTimer) clearTimeout(spinTimer);
       renderCasesView();
     }
 
-    function sellItem(uid){
-      if(!currentUser) return;
-      const idx = currentUser.inventory.findIndex(i=>i.uid===uid);
-      if(idx===-1) return;
-      const inv = currentUser.inventory[idx];
-      const item = getItem(inv.itemId);
+    function sellItem(uid) {
+      if (!currentUser) return;
+      const idx = currentUser.inventory.findIndex(i => i.uid === uid);
+      if (idx === -1) return;
+      const invEntry = currentUser.inventory[idx];
+      const item = getItem(invEntry.itemId);
+      if (!item) return;
       currentUser.balance += item.price;
-      currentUser.inventory.splice(idx,1);
-      persist();
+      currentUser.inventory.splice(idx, 1);
+      persistUser();
+      updateBalance();
       renderInventoryView();
-      updateBalanceDisplay();
     }
 
-    function renderCasesView(){
-      const container = document.getElementById('viewCases');
-      container.innerHTML = `<div class="cases-grid">` + CASES.map(c=>`
-        <div class="case-card" onclick="window.siteOpenCaseModal('${c.id}')">
-          <div style="font-size:60px;">${c.image}</div>
+    function renderCasesView() {
+      const container = document.getElementById('casesView');
+      container.innerHTML = '<div class="cases-grid">' + CASES.map(c => `
+        <div class="case-card" onclick="window.siteOpenCase('${c.id}')">
+          <div class="case-img">${c.image}</div>
           <h3>${c.name}</h3>
-          <p>Цена: ${c.price} ₽</p>
+          <p style="margin:5px 0;">Цена: <strong>${c.price} ₽</strong></p>
         </div>
-      `).join('') + `</div>`;
+      `).join('') + '</div>';
     }
 
-    function renderInventoryView(){
-      const invDiv = document.getElementById('viewInventory');
-      if(!currentUser || currentUser.inventory.length===0){
-        invDiv.innerHTML = '<p style="color:#888;">Инвентарь пуст</p>'; return;
+    function renderInventoryView() {
+      const invDiv = document.getElementById('inventoryView');
+      if (!currentUser || currentUser.inventory.length === 0) {
+        invDiv.innerHTML = '<p style="color:#888; padding:20px;">🎒 Инвентарь пуст. Откройте кейсы!</p>';
+        return;
       }
-      invDiv.innerHTML = '<div class="inventory-list">' + currentUser.inventory.map(inv=>{
+      let html = '<div class="inventory-grid">';
+      currentUser.inventory.forEach(inv => {
         const item = getItem(inv.itemId);
-        return `<div class="item-card rarity-${item.rarity}">
-          <span style="font-size:32px;">${item.emoji}</span>
-          <div><strong>${item.name}</strong><br><span style="color:#f0b90b;">${item.price} ₽</span></div>
-          <button style="margin-left:auto;" onclick="window.siteSellItem('${inv.uid}')">Продать</button>
-        </div>`;
-      }).join('') + '</div>';
+        if (!item) return;
+        html += `
+          <div class="item-card rarity-${item.rarity}">
+            <span style="font-size:36px;">${item.emoji}</span>
+            <div style="flex:1;">
+              <strong>${item.name}</strong>
+              <div style="color:#f0b90b; font-weight:bold;">${item.price} ₽</div>
+            </div>
+            <button onclick="window.siteSellItem('${inv.uid}')">Продать</button>
+          </div>`;
+      });
+      html += '</div>';
+      invDiv.innerHTML = html;
     }
 
-    function updateBalanceDisplay(){
-      const el = document.getElementById('balDisplay');
-      if(el && currentUser) el.innerText = currentUser.balance;
+    function updateBalance() {
+      document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance : 0;
     }
 
-    function renderAll(){
+    function refreshUI() {
       const authBlock = document.getElementById('authBlock');
-      const loginBox = document.getElementById('loginBox');
-      const appContent = document.getElementById('appContent');
-      if(currentUser){
-        authBlock.innerHTML = `<span>👤 ${currentUser.username}</span> <button onclick="window.siteLogout()">Выйти</button>`;
-        loginBox.style.display='none';
-        appContent.style.display='block';
-        updateBalanceDisplay();
+      const loginPanel = document.getElementById('loginPanel');
+      const mainUI = document.getElementById('mainUI');
+
+      if (currentUser) {
+        authBlock.innerHTML = `
+          <span style="font-weight:bold;">👤 ${currentUser.username}</span>
+          <button class="danger" onclick="window.siteLogout()">Выйти</button>
+        `;
+        loginPanel.style.display = 'none';
+        mainUI.style.display = 'block';
+        updateBalance();
         renderCasesView();
         renderInventoryView();
       } else {
         authBlock.innerHTML = '';
-        loginBox.style.display='block';
-        appContent.style.display='none';
-        loginBox.innerHTML = `
-          <input id="usernameInput" placeholder="Никнейм" maxlength="14">
-          <button class="primary" onclick="window.siteLogin()">Войти / Регистрация</button>
-          <p style="color:#aaa; margin-top:8px;">Новый аккаунт получит 5000 ₽</p>
+        loginPanel.style.display = 'block';
+        mainUI.style.display = 'none';
+        loginPanel.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <input type="text" id="usernameInput" placeholder="Введите никнейм" maxlength="14">
+            <button class="primary" onclick="window.siteLogin()">Войти / Создать</button>
+          </div>
+          <p style="color:#aaa; margin-top:8px;">Новый аккаунт получит 5 000 ₽</p>
         `;
       }
     }
 
     // Переключение вкладок
-    document.getElementById('btnCases').addEventListener('click', ()=>{
-      document.getElementById('viewCases').style.display='block';
-      document.getElementById('viewInventory').style.display='none';
-      document.getElementById('btnCases').classList.add('active');
-      document.getElementById('btnInventory').classList.remove('active');
+    document.getElementById('tabCases').addEventListener('click', () => {
+      document.getElementById('casesView').style.display = 'block';
+      document.getElementById('inventoryView').style.display = 'none';
+      document.getElementById('tabCases').classList.add('active');
+      document.getElementById('tabInventory').classList.remove('active');
     });
-    document.getElementById('btnInventory').addEventListener('click', ()=>{
-      document.getElementById('viewCases').style.display='none';
-      document.getElementById('viewInventory').style.display='block';
-      document.getElementById('btnInventory').classList.add('active');
-      document.getElementById('btnCases').classList.remove('active');
+    document.getElementById('tabInventory').addEventListener('click', () => {
+      document.getElementById('casesView').style.display = 'none';
+      document.getElementById('inventoryView').style.display = 'block';
+      document.getElementById('tabInventory').classList.add('active');
+      document.getElementById('tabCases').classList.remove('active');
       renderInventoryView();
     });
-    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
-    document.getElementById('btnOpenCase').addEventListener('click', spinRoulette);
 
-    window.siteLogin = ()=>{
-      const name = document.getElementById('usernameInput')?.value.trim();
-      if(name && name.length>=2) login(name);
+    document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+    document.getElementById('btnOpenNormal').addEventListener('click', () => spin(6));
+    document.getElementById('btnOpenFast').addEventListener('click', () => spin(3.5));
+
+    window.siteLogin = () => {
+      const input = document.getElementById('usernameInput');
+      if (input && input.value.trim().length >= 2) login(input.value.trim());
     };
-    window.siteLogout = ()=> logout();
-    window.siteOpenCaseModal = (caseId)=>{
-      const c = CASES.find(c=>c.id===caseId);
-      if(c) openCaseModal(c);
+    window.siteLogout = () => logout();
+    window.siteOpenCase = (caseId) => {
+      const c = CASES.find(c => c.id === caseId);
+      if (c) openCaseModal(c);
     };
-    window.siteSellItem = (uid)=> sellItem(uid);
+    window.siteSellItem = (uid) => sellItem(uid);
 
     // Восстановление сессии
-    const saved = localStorage.getItem(STORAGE_CURRENT);
-    if(saved){
+    const savedUser = localStorage.getItem(CURRENT_KEY);
+    if (savedUser) {
       const users = getUsers();
-      if(users[saved]){
-        currentUser = { username:saved, balance:users[saved].balance, inventory:users[saved].inventory||[] };
+      if (users[savedUser]) {
+        currentUser = {
+          username: savedUser,
+          balance: users[savedUser].balance,
+          inventory: users[savedUser].inventory || []
+        };
       }
     }
-    renderAll();
+    refreshUI();
   })();
 </script>
 </body>
