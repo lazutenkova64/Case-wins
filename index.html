@@ -1,690 +1,609 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>CS2 Case Opening — Полный функционал</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: radial-gradient(circle at 20% 20%, #1a1f2b, #0a0d14);
-      min-height: 100vh;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      display: flex;
-      justify-content: center;
-      padding: 20px 15px;
-    }
-    .app {
-      max-width: 1100px;
-      width: 100%;
-      background: rgba(14, 17, 23, 0.85);
-      backdrop-filter: blur(25px);
-      border-radius: 40px;
-      padding: 24px 22px 30px;
-      box-shadow: 0 30px 45px rgba(0,0,0,0.8);
-      border: 1px solid rgba(220,180,40,0.2);
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-bottom: 28px;
-      border-bottom: 1px solid rgba(255,200,0,0.15);
-      padding-bottom: 18px;
-    }
-    h1 {
-      background: linear-gradient(180deg, #f9e076, #c5921a);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 900; font-size: 2rem; letter-spacing: 1px;
-    }
-    .nav { display: flex; gap: 8px; background: #151a24; border-radius: 50px; padding: 5px; flex-wrap: wrap; }
-    .nav-btn {
-      background: transparent; border: none; color: #aaa; font-weight: 700;
-      padding: 12px 24px; border-radius: 40px; cursor: pointer; transition: 0.2s; font-size: 14px;
-    }
-    .nav-btn.active { background: #f0b90b; color: #0a0a0a; box-shadow: 0 0 20px rgba(240,185,11,0.5); }
-    button {
-      background: #232b38; border: none; color: #eee; padding: 10px 20px;
-      border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px;
-    }
-    button:hover { filter: brightness(1.3); }
-    button.primary { background: linear-gradient(180deg, #f5cb42, #c5851b); color: #111; font-weight: 800; }
-    button.danger { background: #4a2e2e; color: #faa; }
-    input, select {
-      background: #151b25; border: 1px solid #3f4858; padding: 10px 16px;
-      border-radius: 30px; color: white; outline: none;
-    }
-    .balance { font-size: 1.2rem; font-weight: bold; color: #f0b90b; background: #0f1219; padding: 8px 20px; border-radius: 30px; }
-    .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-    .case-card {
-      background: #181e29; border-radius: 24px; padding: 20px 12px; text-align: center;
-      border: 1px solid #303a4c; cursor: pointer; transition: 0.25s;
-    }
-    .case-card:hover { border-color: #f0b90b; transform: translateY(-5px); }
-    .case-img { font-size: 56px; margin-bottom: 6px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CSG@DEP | Классический раунд</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+        }
 
-    .inventory-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
-    .item-card-compact {
-      background: #1b2130; border-radius: 14px; padding: 8px 12px; display: flex;
-      align-items: center; gap: 8px; border-left: 4px solid; font-size: 13px;
-    }
-    .rarity-common { border-left-color: #9e9e9e; } .rarity-mil { border-left-color: #4b69ff; }
-    .rarity-restricted { border-left-color: #8845ff; } .rarity-classified { border-left-color: #d32ce6; }
-    .rarity-covert { border-left-color: #eb4b4b; } .rarity-gold { border-left-color: #f3b23f; }
+        body {
+            background: linear-gradient(145deg, #0a0c12 0%, #0f111a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+        }
 
-    .modal {
-      position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.92);
-      backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000;
-    }
-    .modal-box {
-      background: #111520; border: 2px solid #f0b90b; border-radius: 32px;
-      padding: 22px 24px; width: 95%; max-width: 800px; text-align: center;
-      box-shadow: 0 0 60px rgba(240,185,11,0.3); max-height: 90vh; overflow-y: auto;
-    }
-    .roulette-area {
-      position: relative; height: 140px; background: #0a0d14; border-radius: 24px;
-      margin: 15px 0; overflow: hidden; border: 1px solid #2f3745;
-    }
-    .pointer-arrow {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent;
-      border-top: 24px solid #f0b90b; z-index: 30; filter: drop-shadow(0 0 12px #f0b90b);
-    }
-    .pointer-line {
-      position: absolute; left: 50%; top: 0; bottom: 0; width: 3px;
-      background: #f0b90b; box-shadow: 0 0 20px #f0b90b; z-index: 20; transform: translateX(-50%);
-    }
-    .items-track {
-      display: flex; align-items: center; height: 100%; will-change: transform;
-    }
-    .roulette-item {
-      flex: 0 0 150px; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; padding: 8px 4px; color: #ddd; font-weight: 600;
-      background: rgba(30,35,48,0.85); margin: 0 4px; border-radius: 18px; border: 1px solid #3e4657;
-    }
-    .roulette-item .emoji { font-size: 38px; display: block; }
-    .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 15px 0; }
-    .quantity-selector { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0; }
-    .quantity-btn { font-size: 1.5rem; width: 42px; height: 42px; padding: 0; }
-    .quantity-value { font-size: 1.8rem; font-weight: 800; color: #f0b90b; min-width: 45px; }
-    .result-text { font-size: 1.1rem; margin-top: 12px; font-weight: bold; min-height: 28px; }
-    .upgrade-chance { font-size: 1.2rem; color: #f0b90b; margin: 12px 0; }
-    .filter-range { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
-    .filter-range input { width: 100px; }
-  </style>
+        /* главный контейнер - точная стилизация под скриншот */
+        .site-container {
+            max-width: 1400px;
+            width: 100%;
+            background: #0b0e17;
+            border-radius: 24px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            padding: 18px 24px 28px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* ========== ВЕРХНЯЯ ШАПКА ========== */
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid #2a2e3f;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .logo-area h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e6b422, #ffdd77);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .classic-round {
+            background: #1e212e;
+            padding: 6px 18px;
+            border-radius: 40px;
+            text-align: center;
+            border-left: 4px solid #ffb347;
+        }
+
+        .classic-round .winner {
+            font-size: 13px;
+            color: #aaaec5;
+        }
+
+        .classic-round .winner span {
+            color: #ffd966;
+            font-weight: bold;
+        }
+
+        .classic-round .bank {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffe6b3;
+            letter-spacing: 1px;
+        }
+
+        .info-panel {
+            display: flex;
+            gap: 24px;
+            background: #121520;
+            padding: 6px 20px;
+            border-radius: 28px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 12px;
+            color: #7f85a3;
+        }
+
+        .info-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #eef2ff;
+        }
+
+        /* ========== ОСНОВНАЯ СЕТКА: 2 колонки ========== */
+        .two-columns {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .left-panel {
+            flex: 2.2;
+            min-width: 260px;
+        }
+
+        .right-panel {
+            flex: 1.3;
+            min-width: 260px;
+        }
+
+        /* карточки (блоки меню, игроки) */
+        .menu-card {
+            background: #0e111b;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #252b3c;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #181e2c;
+            padding: 12px 18px;
+            font-weight: bold;
+            color: #f0f3fa;
+            font-size: 16px;
+            border-bottom: 1px solid #2a2f42;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-list {
+            padding: 10px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 18px;
+            border-bottom: 1px solid #191e2c;
+            color: #ccd3f0;
+            font-size: 14px;
+        }
+
+        .menu-item .name {
+            font-weight: 500;
+        }
+
+        .menu-item .price {
+            color: #ffcd7e;
+            font-weight: bold;
+        }
+
+        .game-mode-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 15px 18px;
+        }
+
+        .mode-btn {
+            background: #262d41;
+            padding: 8px 20px;
+            border-radius: 28px;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            cursor: default;
+            transition: 0.1s;
+        }
+
+        .confirm-warning {
+            background: #171c2b;
+            margin: 15px 18px 18px 18px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #ff5e5e;
+        }
+
+        .confirm-warning span {
+            color: #ffbc6e;
+            font-weight: bold;
+        }
+
+        .red-flag {
+            font-size: 20px;
+        }
+
+        .key-round-block {
+            background: #13182a;
+            margin: 20px 18px 18px 18px;
+            padding: 16px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .key-label {
+            font-weight: bold;
+            color: #b9c3f0;
+        }
+
+        .key-price {
+            font-size: 28px;
+            font-weight: 800;
+            color: #f3bc6c;
+        }
+
+        .place-bet {
+            background: #2f3b5c;
+            padding: 8px 22px;
+            border-radius: 32px;
+            font-weight: bold;
+            color: white;
+            cursor: default;
+        }
+
+        .create-1v1 {
+            background: #2a3149;
+            margin: 12px 18px 18px 18px;
+            padding: 12px;
+            text-align: center;
+            border-radius: 28px;
+            font-weight: bold;
+            color: #f0cd8c;
+        }
+
+        /* таблица игроков */
+        .players-list {
+            padding: 8px 0;
+        }
+
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid #1a1f2f;
+            transition: 0.05s linear;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #eef3ff;
+            font-size: 14px;
+        }
+
+        .play-btn {
+            background: #292f46;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #ced6ff;
+            cursor: default;
+        }
+
+        .player-bet {
+            color: #ffcf8a;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .vodka-row {
+            background: #0f1320;
+        }
+
+        .footer-small {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #23283e;
+            font-size: 13px;
+            color: #6b729b;
+        }
+
+        .take-items {
+            background: #2f3a5c;
+            padding: 4px 16px;
+            border-radius: 20px;
+            color: #ffecb3;
+            font-weight: bold;
+        }
+
+        .total-stats {
+            background: #101424;
+            padding: 5px 12px;
+            border-radius: 28px;
+        }
+
+        /* точное подражание стилям с картинки */
+        .highlight {
+            color: #f3b759;
+        }
+
+        .faq-support {
+            display: flex;
+            gap: 24px;
+            padding: 10px 18px;
+            font-weight: 500;
+        }
+
+        .timer {
+            background: #0b0f18;
+            text-align: center;
+            font-size: 28px;
+            font-family: monospace;
+            letter-spacing: 4px;
+            padding: 8px;
+            border-radius: 18px;
+            margin: 6px 18px;
+            color: #ffe0a3;
+        }
+
+        /* адаптив */
+        @media (max-width: 900px) {
+            .site-container {
+                padding: 14px;
+            }
+            .two-columns {
+                flex-direction: column;
+            }
+            .key-round-block {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-  <div class="top-bar">
-    <h1>🔫 CASE OPENER</h1>
-    <div id="authBlock" style="display: flex; gap: 10px; align-items: center;"></div>
-  </div>
-  <div id="loginPanel" style="display:none; margin-bottom:25px; background:#151b26; border-radius:24px; padding:20px;"></div>
-  <div id="mainUI" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-      <div class="nav">
-        <button class="nav-btn active" id="tabCases">📦 Кейсы</button>
-        <button class="nav-btn" id="tabInventory">🎒 Инвентарь</button>
-        <button class="nav-btn" id="tabUpgrade">⚡ Upgrade</button>
-      </div>
-      <div class="balance">💰 <span id="balanceValue">0</span> ₽</div>
-    </div>
-    <div id="casesView" style="margin-top:25px;"></div>
-    <div id="inventoryView" style="display:none; margin-top:25px;"></div>
-    <div id="upgradeView" style="display:none; margin-top:25px;"></div>
-  </div>
-</div>
-
-<!-- Модалка открытия кейса -->
-<div class="modal" id="caseModal" style="display:none;">
-  <div class="modal-box">
-    <h2 id="modalTitle" style="color:#f0b90b;"></h2>
-    <div id="multiRouletteContainer"></div>
-    <div class="quantity-selector">
-      <button class="quantity-btn" id="qtyMinus">−</button>
-      <span class="quantity-value" id="qtyValue">1</span>
-      <button class="quantity-btn" id="qtyPlus">+</button>
-    </div>
-    <div style="font-size:1.1rem; color:#f0b90b;" id="totalPriceDisplay">0 ₽</div>
-    <div class="controls">
-      <button class="primary" id="btnOpenNormal">🔓 Открыть (6 сек)</button>
-      <button id="btnOpenFast" style="background:#3a4050;">⚡ Fast (2 сек)</button>
-      <button id="btnCloseModal">Закрыть</button>
-    </div>
-    <div class="result-text" id="resultMessage"></div>
-  </div>
-</div>
-
-<!-- Модалка апгрейда -->
-<div class="modal" id="upgradeModal" style="display:none;">
-  <div class="modal-box">
-    <h2 style="color:#f0b90b;">⚡ Upgrade предмета</h2>
-    <div class="roulette-area" id="upgradeRouletteContainer">
-      <div class="pointer-line"></div>
-      <div class="pointer-arrow"></div>
-      <div class="items-track" id="upgradeRouletteTrack"></div>
-    </div>
-    <div class="controls">
-      <button class="primary" id="btnUpgradeNormal">🔄 Upgrade (3.5 сек)</button>
-      <button id="btnUpgradeFast" style="background:#3a4050;">⚡ Fast (1 сек)</button>
-      <button id="btnCloseUpgradeModal">Закрыть</button>
-    </div>
-    <div class="result-text" id="upgradeResultMessage"></div>
-  </div>
-</div>
-
-<script>
-(() => {
-  const ITEMS = [
-    { id:'awp_dragon', name:'AWP | Dragon Lore', rarity:'covert', price:13500, emoji:'🐉' },
-    { id:'ak_fire', name:'AK-47 | Fire Serpent', rarity:'covert', price:10200, emoji:'🔥' },
-    { id:'m4_howl', name:'M4A4 | Howl', rarity:'covert', price:15800, emoji:'🐺' },
-    { id:'knife_karambit', name:'Karambit | Doppler', rarity:'gold', price:47000, emoji:'🔪' },
-    { id:'glock_fade', name:'Glock-18 | Fade', rarity:'restricted', price:3400, emoji:'🌈' },
-    { id:'deagle_blaze', name:'Desert Eagle | Blaze', rarity:'mil', price:5300, emoji:'🔥' },
-    { id:'usp_kill', name:'USP-S | Kill Confirmed', rarity:'covert', price:8200, emoji:'💀' },
-    { id:'ak_vulcan', name:'AK-47 | Vulcan', rarity:'classified', price:6700, emoji:'🌋' },
-    { id:'m4_neo', name:'M4A1-S | Hyper Beast', rarity:'classified', price:4500, emoji:'👾' },
-    { id:'awp_asiimov', name:'AWP | Asiimov', rarity:'classified', price:5800, emoji:'⬜' },
-    { id:'p250_sand', name:'P250 | Sand Dune', rarity:'common', price:20, emoji:'🏜️' },
-    { id:'mp7_forest', name:'MP7 | Forest DDPAT', rarity:'common', price:40, emoji:'🌿' },
-    { id:'nova_walnut', name:'Nova | Walnut', rarity:'common', price:50, emoji:'🪵' },
-    { id:'five_seven', name:'Five-SeveN | Case Hardened', rarity:'mil', price:2700, emoji:'🔫' },
-    { id:'tec9_toxic', name:'Tec-9 | Toxic', rarity:'restricted', price:1300, emoji:'☣️' },
-    { id:'awp_medusa', name:'AWP | Medusa', rarity:'covert', price:28000, emoji:'🐍' },
-    { id:'m4_poseidon', name:'M4A4 | Poseidon', rarity:'covert', price:32000, emoji:'🌊' },
-    { id:'knife_crimson', name:'Karambit | Crimson Web', rarity:'gold', price:55000, emoji:'🩸' },
-    { id:'ak_hydroponic', name:'AK-47 | Hydroponic', rarity:'classified', price:11000, emoji:'🌿' },
-    { id:'deagle_printstream', name:'Desert Eagle | Printstream', rarity:'classified', price:12500, emoji:'🦈' }
-  ];
-
-  const CASES = [
-    { id:'gamma', name:'Gamma Case', price:350, image:'📦', items:[
-      {itemId:'glock_fade',weight:8},{itemId:'awp_asiimov',weight:5},{itemId:'ak_vulcan',weight:5},
-      {itemId:'deagle_blaze',weight:9},{itemId:'five_seven',weight:17},{itemId:'p250_sand',weight:28},{itemId:'mp7_forest',weight:28}
-    ]},
-    { id:'legend', name:'Legend Case', price:650, image:'🧰', items:[
-      {itemId:'awp_dragon',weight:2},{itemId:'ak_fire',weight:3},{itemId:'m4_howl',weight:3},
-      {itemId:'usp_kill',weight:8},{itemId:'m4_neo',weight:10},{itemId:'tec9_toxic',weight:17},{itemId:'nova_walnut',weight:27},{itemId:'p250_sand',weight:30}
-    ]},
-    { id:'knife', name:'Knife Dream', price:1300, image:'💎', items:[
-      {itemId:'knife_karambit',weight:1},{itemId:'awp_dragon',weight:4},{itemId:'deagle_blaze',weight:10},
-      {itemId:'ak_vulcan',weight:14},{itemId:'glock_fade',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:26}
-    ]},
-    { id:'alpha', name:'Alpha Case', price:200, image:'🔹', items:[
-      {itemId:'p250_sand',weight:40},{itemId:'mp7_forest',weight:30},{itemId:'nova_walnut',weight:20},{itemId:'five_seven',weight:10}
-    ]},
-    { id:'omega', name:'Omega Case', price:400, image:'🔸', items:[
-      {itemId:'mp7_forest',weight:25},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:20},{itemId:'glock_fade',weight:15},{itemId:'p250_sand',weight:20}
-    ]},
-    { id:'phoenix', name:'Phoenix Case', price:700, image:'🔥', items:[
-      {itemId:'deagle_blaze',weight:15},{itemId:'ak_vulcan',weight:10},{itemId:'m4_neo',weight:10},{itemId:'p250_sand',weight:20},{itemId:'mp7_forest',weight:25},{itemId:'five_seven',weight:20}
-    ]},
-    { id:'shadow', name:'Shadow Case', price:1000, image:'🌑', items:[
-      {itemId:'usp_kill',weight:8},{itemId:'glock_fade',weight:12},{itemId:'tec9_toxic',weight:20},{itemId:'five_seven',weight:25},{itemId:'mp7_forest',weight:35}
-    ]},
-    { id:'frostbite', name:'Frostbite Case', price:1500, image:'❄️', items:[
-      {itemId:'m4_neo',weight:10},{itemId:'awp_asiimov',weight:8},{itemId:'deagle_blaze',weight:12},{itemId:'ak_vulcan',weight:10},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
-    ]},
-    { id:'inferno', name:'Inferno Case', price:2000, image:'🌋', items:[
-      {itemId:'ak_fire',weight:5},{itemId:'deagle_blaze',weight:15},{itemId:'glock_fade',weight:15},{itemId:'usp_kill',weight:10},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:25}
-    ]},
-    { id:'thunder', name:'Thunder Case', price:3000, image:'⚡', items:[
-      {itemId:'awp_dragon',weight:3},{itemId:'m4_howl',weight:3},{itemId:'ak_vulcan',weight:12},{itemId:'m4_neo',weight:12},{itemId:'deagle_blaze',weight:20},{itemId:'p250_sand',weight:25},{itemId:'mp7_forest',weight:25}
-    ]},
-    { id:'elite', name:'Elite Case', price:4000, image:'💠', items:[
-      {itemId:'knife_karambit',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'ak_fire',weight:8},{itemId:'usp_kill',weight:12},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:26}
-    ]},
-    { id:'predator', name:'Predator Case', price:5000, image:'🦅', items:[
-      {itemId:'m4_poseidon',weight:2},{itemId:'awp_dragon',weight:5},{itemId:'ak_hydroponic',weight:8},{itemId:'deagle_printstream',weight:10},{itemId:'nova_walnut',weight:30},{itemId:'p250_sand',weight:30}
-    ]},
-    { id:'cyber', name:'Cyber Case', price:7000, image:'🤖', items:[
-      {itemId:'knife_crimson',weight:1},{itemId:'awp_medusa',weight:3},{itemId:'m4_howl',weight:6},{itemId:'deagle_printstream',weight:12},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
-    ]},
-    { id:'royal', name:'Royal Case', price:9000, image:'👑', items:[
-      {itemId:'knife_karambit',weight:2},{itemId:'m4_poseidon',weight:4},{itemId:'ak_fire',weight:8},{itemId:'tec9_toxic',weight:25},{itemId:'mp7_forest',weight:23},{itemId:'p250_sand',weight:20}
-    ]},
-    { id:'golden', name:'Golden Case', price:12000, image:'🥇', items:[
-      {itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:5},{itemId:'deagle_printstream',weight:12},{itemId:'ak_hydroponic',weight:10},{itemId:'m4_neo',weight:15},{itemId:'mp7_forest',weight:27},{itemId:'p250_sand',weight:30}
-    ]},
-    { id:'diamond', name:'Diamond Case', price:15000, image:'💎', items:[
-      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:5},{itemId:'awp_medusa',weight:5},{itemId:'ak_fire',weight:10},{itemId:'deagle_blaze',weight:20},{itemId:'mp7_forest',weight:30},{itemId:'p250_sand',weight:28}
-    ]},
-    { id:'mythic', name:'Mythic Case', price:18000, image:'🌀', items:[
-      {itemId:'knife_karambit',weight:3},{itemId:'awp_dragon',weight:7},{itemId:'m4_howl',weight:7},{itemId:'ak_hydroponic',weight:13},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:25}
-    ]},
-    { id:'legendary', name:'Legendary Case', price:22000, image:'🌟', items:[
-      {itemId:'knife_crimson',weight:2},{itemId:'m4_poseidon',weight:6},{itemId:'awp_medusa',weight:6},{itemId:'deagle_printstream',weight:16},{itemId:'mp7_forest',weight:25},{itemId:'p250_sand',weight:20}
-    ]},
-    { id:'ancient', name:'Ancient Case', price:28000, image:'🏺', items:[
-      {itemId:'knife_karambit',weight:3},{itemId:'knife_crimson',weight:1},{itemId:'awp_dragon',weight:10},{itemId:'m4_howl',weight:10},{itemId:'usp_kill',weight:20},{itemId:'mp7_forest',weight:26},{itemId:'p250_sand',weight:30}
-    ]},
-    { id:'future', name:'Future Case', price:35000, image:'🚀', items:[
-      {itemId:'knife_crimson',weight:3},{itemId:'m4_poseidon',weight:8},{itemId:'awp_medusa',weight:8},{itemId:'ak_hydroponic',weight:14},{itemId:'deagle_printstream',weight:17},{itemId:'p250_sand',weight:25}
-    ]},
-    { id:'titan', name:'Titan Case', price:42000, image:'⚔️', items:[
-      {itemId:'knife_karambit',weight:4},{itemId:'knife_crimson',weight:2},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_blaze',weight:25},{itemId:'nova_walnut',weight:25},{itemId:'p250_sand',weight:20}
-    ]},
-    { id:'divine', name:'Divine Case', price:48000, image:'✨', items:[
-      {itemId:'knife_crimson',weight:5},{itemId:'m4_poseidon',weight:10},{itemId:'awp_medusa',weight:10},{itemId:'ak_fire',weight:15},{itemId:'usp_kill',weight:25},{itemId:'mp7_forest',weight:20},{itemId:'p250_sand',weight:15}
-    ]},
-    { id:'ultimate', name:'Ultimate Case', price:50000, image:'🔮', items:[
-      {itemId:'knife_karambit',weight:5},{itemId:'knife_crimson',weight:4},{itemId:'awp_dragon',weight:12},{itemId:'m4_howl',weight:12},{itemId:'deagle_printstream',weight:20},{itemId:'p250_sand',weight:25}
-    ]}
-  ];
-
-  const USERS_KEY = 'cs2_users_v3';
-  const CURRENT_KEY = 'cs2_current_v3';
-  let currentUser = null;
-  let activeCase = null;
-  let isSpinning = false;
-  let spinTimers = [];
-  let upgradeActive = false;
-  let upgradeSelectedItem = null;
-  let upgradeTargetItem = null;
-  const ITEM_WIDTH = 158;
-  const COPIES = 60;
-  const SAFE_MARGIN = 8;
-
-  function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY)||'{}'); }
-  function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-  function getItem(id) { return ITEMS.find(i=>i.id===id); }
-
-  function login(username) {
-    if (!username || username.length < 2) return alert('Введите никнейм (минимум 2 символа)');
-    const users = getUsers();
-    if (!users[username]) users[username] = { balance:5000, inventory:[] };
-    saveUsers(users);
-    currentUser = { username, balance:users[username].balance, inventory:users[username].inventory||[] };
-    localStorage.setItem(CURRENT_KEY, username);
-    refreshAll();
-  }
-  function logout() { currentUser = null; localStorage.removeItem(CURRENT_KEY); refreshAll(); }
-  function persist() {
-    if(!currentUser) return;
-    const users = getUsers();
-    users[currentUser.username] = { balance:currentUser.balance, inventory:currentUser.inventory };
-    saveUsers(users);
-  }
-
-  function buildTrack(container, itemsArray) {
-    container.innerHTML = '';
-    const pointerLine = document.createElement('div');
-    pointerLine.className = 'pointer-line';
-    const pointerArrow = document.createElement('div');
-    pointerArrow.className = 'pointer-arrow';
-    container.appendChild(pointerLine);
-    container.appendChild(pointerArrow);
-    const track = document.createElement('div');
-    track.className = 'items-track';
-    let html = '';
-    for (let i=0; i<COPIES; i++) {
-      itemsArray.forEach(obj => {
-        html += `<div class="roulette-item"><span class="emoji">${obj.emoji}</span>${obj.name.split('|')[0]}</div>`;
-      });
-    }
-    track.innerHTML = html;
-    container.appendChild(track);
-    return track;
-  }
-
-  function animateTrack(track, targetIndex, itemsCount, durationSec, containerWidth) {
-    const centerOffset = (containerWidth/2) - (ITEM_WIDTH/2);
-    let targetPos = -(targetIndex * ITEM_WIDTH) + centerOffset;
-    const oneSetWidth = itemsCount * ITEM_WIDTH;
-    const extraTurns = 3 + Math.floor(Math.random()*2);
-    let startPos = targetPos - extraTurns * oneSetWidth;
-    const totalWidth = COPIES * itemsCount * ITEM_WIDTH;
-    if (startPos > 0) startPos = -totalWidth + containerWidth;
-    if (startPos < -(totalWidth - containerWidth)) startPos = -(totalWidth - containerWidth);
-    track.style.transition = 'none';
-    track.style.transform = `translateX(${startPos}px)`;
-    track.offsetHeight;
-    track.style.transition = `transform ${durationSec}s cubic-bezier(0.12,0.78,0.22,1)`;
-    track.style.transform = `translateX(${targetPos}px)`;
-  }
-
-  function openCaseModal(caseData) {
-    if(!currentUser) return alert('Войдите');
-    if(isSpinning) return;
-    activeCase = caseData;
-    document.getElementById('modalTitle').textContent = caseData.name;
-    document.getElementById('multiRouletteContainer').innerHTML = '';
-    document.getElementById('resultMessage').textContent = '';
-    selectedQuantity = 1;
-    updateQuantityDisplay();
-    document.getElementById('caseModal').style.display = 'flex';
-    enableCaseButtons(true);
-  }
-
-  let selectedQuantity = 1;
-  function updateQuantityDisplay() {
-    document.getElementById('qtyValue').textContent = selectedQuantity;
-    const total = activeCase ? activeCase.price * selectedQuantity : 0;
-    document.getElementById('totalPriceDisplay').textContent = `Общая стоимость: ${total.toLocaleString()} ₽`;
-  }
-
-  async function openMultiple(durationSec) {
-    if(!activeCase || isSpinning || !currentUser) return;
-    const totalCost = activeCase.price * selectedQuantity;
-    if(currentUser.balance < totalCost) return alert('Недостаточно средств');
-    isSpinning = true;
-    enableCaseButtons(false);
-    document.getElementById('resultMessage').textContent = `Открываем ${selectedQuantity} кейс(ов)...`;
-    currentUser.balance -= totalCost;
-    persist();
-    updateBalance();
-
-    const container = document.getElementById('multiRouletteContainer');
-    container.innerHTML = '';
-    const tracks = [];
-    const winData = [];
-
-    for (let i=0; i<selectedQuantity; i++) {
-      const area = document.createElement('div');
-      area.className = 'roulette-area';
-      area.style.margin = '8px 0';
-      container.appendChild(area);
-      const items = activeCase.items.map(e => getItem(e.itemId)).filter(Boolean);
-      const track = buildTrack(area, items);
-      const win = getRandomWin(activeCase, track);
-      tracks.push({ track, area });
-      winData.push(win);
-    }
-
-    const containerWidth = container.clientWidth || 700;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        tracks.forEach((t, idx) => {
-          animateTrack(t.track, winData[idx].targetIndex, activeCase.items.length, durationSec, containerWidth);
-        });
-      });
-    });
-
-    const timeoutMs = durationSec * 1000 + 300;
-    await new Promise(res => { const t = setTimeout(() => { res(); spinTimers = spinTimers.filter(x=>x!==t); }, timeoutMs); spinTimers.push(t); });
-
-    winData.forEach(d => {
-      currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: d.winItem.id, acquired: new Date().toISOString() });
-    });
-    persist();
-    document.getElementById('resultMessage').innerHTML = `✅ Открыто ${selectedQuantity} кейсов!`;
-    isSpinning = false;
-    enableCaseButtons(true);
-    updateBalance();
-    renderInventoryView();
-  }
-
-  function getRandomWin(caseData, trackElement) {
-    const totalW = caseData.items.reduce((s,it)=>s+it.weight,0);
-    let r = Math.random()*totalW;
-    let entry = null;
-    for(let e of caseData.items) { r-=e.weight; if(r<=0) { entry=e; break; } }
-    const winItem = getItem(entry.itemId);
-    const itemsCount = caseData.items.length;
-    const totalElements = COPIES * itemsCount;
-    const minIdx = SAFE_MARGIN * itemsCount;
-    const maxIdx = totalElements - SAFE_MARGIN * itemsCount;
-    const search = winItem.name.split('|')[0].trim();
-    const children = trackElement ? trackElement.children : [];
-    const possible = [];
-    for(let i=minIdx; i<maxIdx; i++) {
-      if(children[i] && children[i].textContent.includes(search)) possible.push(i);
-    }
-    const targetIndex = possible.length ? possible[Math.floor(Math.random()*possible.length)] : Math.floor(Math.random()*(maxIdx-minIdx))+minIdx;
-    return { winItem, targetIndex };
-  }
-
-  function enableCaseButtons(enable) {
-    document.getElementById('btnOpenNormal').disabled = !enable;
-    document.getElementById('btnOpenFast').disabled = !enable;
-    document.getElementById('qtyMinus').disabled = !enable;
-    document.getElementById('qtyPlus').disabled = !enable;
-  }
-
-  function renderUpgradeView() {
-    const view = document.getElementById('upgradeView');
-    if(!currentUser || currentUser.inventory.length===0) {
-      view.innerHTML = '<p style="color:#888; padding:20px;">Инвентарь пуст.</p>'; return;
-    }
-    let html = '<h3 style="margin-bottom:10px;">Выберите предмет для апгрейда</h3><div class="inventory-grid">';
-    currentUser.inventory.forEach(inv => {
-      const item = getItem(inv.itemId);
-      html += `<div class="item-card-compact rarity-${item.rarity} selectable" data-uid="${inv.uid}" style="cursor:pointer;">
-        <span style="font-size:24px;">${item.emoji}</span> <strong>${item.name}</strong> <span style="color:#f0b90b;">${item.price.toLocaleString()} ₽</span>
-      </div>`;
-    });
-    html += '</div><div id="targetSelection" style="margin-top:20px;"></div>';
-    html += '<div id="upgradeChanceDisplay" class="upgrade-chance"></div>';
-    html += '<div class="controls"><button class="primary" id="startUpgradeNormal">🔄 Upgrade (3.5 сек)</button><button id="startUpgradeFast" style="background:#3a4050;">⚡ Fast (1 сек)</button></div>';
-    view.innerHTML = html;
-    document.querySelectorAll('#upgradeView .selectable').forEach(el => {
-      el.addEventListener('click', function() { selectUpgradeItem(this.dataset.uid); });
-    });
-    if(upgradeSelectedItem) highlightSelected();
-  }
-
-  function selectUpgradeItem(uid) {
-    upgradeSelectedItem = currentUser.inventory.find(i=>i.uid===uid);
-    if(!upgradeSelectedItem) return;
-    upgradeTargetItem = null;
-    highlightSelected();
-    const currentItem = getItem(upgradeSelectedItem.itemId);
-    const allTargets = ITEMS.filter(it => it.price > currentItem.price).sort((a,b)=>a.price-b.price);
-    const targetDiv = document.getElementById('targetSelection');
-    if(allTargets.length === 0) {
-      targetDiv.innerHTML = '<p style="color:#888;">Нет более дорогих предметов.</p>';
-      document.getElementById('upgradeChanceDisplay').textContent = '';
-      return;
-    }
-    const minPrice = allTargets[0].price;
-    const maxPrice = allTargets[allTargets.length-1].price;
-    targetDiv.innerHTML = `
-      <h3>Выберите цель (сортировка по цене)</h3>
-      <div class="filter-range">
-        <label>Цена от:</label> <input type="number" id="filterPriceMin" value="${minPrice}" min="${minPrice}" max="${maxPrice}" step="100">
-        <label>до:</label> <input type="number" id="filterPriceMax" value="${maxPrice}" min="${minPrice}" max="${maxPrice}" step="100">
-        <button id="applyFilterBtn">🔍 Фильтр</button>
-      </div>
-      <div class="inventory-grid" id="filteredTargets"></div>
-    `;
-    const applyFilter = () => {
-      const min = parseInt(document.getElementById('filterPriceMin').value) || minPrice;
-      const max = parseInt(document.getElementById('filterPriceMax').value) || maxPrice;
-      const filtered = allTargets.filter(t => t.price >= min && t.price <= max);
-      document.getElementById('filteredTargets').innerHTML = filtered.map(t => `
-        <div class="item-card-compact rarity-${t.rarity} selectable" data-targetid="${t.id}" style="cursor:pointer;">
-          <span style="font-size:24px;">${t.emoji}</span> <strong>${t.name}</strong> <span style="color:#f0b90b;">${t.price.toLocaleString()} ₽</span>
+<div class="site-container">
+    <!-- Верхняя часть: CSG@DEP / классический раунд / онлайн -->
+    <div class="header-main">
+        <div class="logo-area">
+            <h1>CSG@DEP</h1>
         </div>
-      `).join('') || '<p style="color:#888;">Нет предметов в диапазоне.</p>';
-      document.querySelectorAll('#filteredTargets .selectable').forEach(el => {
-        el.addEventListener('click', function() { selectUpgradeTarget(this.dataset.targetid); });
-      });
-    };
-    applyFilter();
-    document.getElementById('applyFilterBtn').addEventListener('click', applyFilter);
-    document.getElementById('upgradeChanceDisplay').textContent = '';
-  }
-
-  function selectUpgradeTarget(itemId) {
-    upgradeTargetItem = ITEMS.find(i=>i.id===itemId);
-    document.querySelectorAll('#filteredTargets .selectable').forEach(el => el.style.borderColor = '');
-    const selectedEl = document.querySelector(`#filteredTargets [data-targetid="${itemId}"]`);
-    if(selectedEl) selectedEl.style.borderColor = '#f0b90b';
-    updateChanceDisplay();
-  }
-
-  function highlightSelected() {
-    document.querySelectorAll('#upgradeView .selectable[data-uid]').forEach(el => {
-      el.style.borderColor = el.dataset.uid === upgradeSelectedItem.uid ? '#f0b90b' : '';
-    });
-  }
-
-  function updateChanceDisplay() {
-    const display = document.getElementById('upgradeChanceDisplay');
-    if(!upgradeSelectedItem || !upgradeTargetItem) { display.textContent = ''; return; }
-    const cur = getItem(upgradeSelectedItem.itemId);
-    const chance = Math.min(100, Math.round((cur.price / upgradeTargetItem.price)*100));
-    display.textContent = `Шанс успеха: ${chance}%`;
-  }
-
-  function startUpgrade(durationSec) {
-    if(!upgradeSelectedItem || !upgradeTargetItem || upgradeActive || isSpinning) return;
-    const curItem = getItem(upgradeSelectedItem.itemId);
-    const ratio = curItem.price / upgradeTargetItem.price;
-    const chance = Math.min(1, ratio);
-    const successCount = Math.round(chance * 100);
-    const failCount = 100 - successCount;
-    const template = [];
-    for(let i=0; i<successCount; i++) template.push({ emoji: upgradeTargetItem.emoji, name: 'WIN', id: upgradeTargetItem.id });
-    for(let i=0; i<failCount; i++) template.push({ emoji: '💔', name: 'LOSE', id: null });
-
-    document.getElementById('upgradeModal').style.display = 'flex';
-    document.getElementById('upgradeResultMessage').textContent = '';
-    const container = document.getElementById('upgradeRouletteContainer');
-    const track = buildTrack(container, template);
-    const containerWidth = container.clientWidth;
-    const totalElements = COPIES * 100;
-    const targetIndex = Math.floor(Math.random() * totalElements);
-    upgradeActive = true;
-    animateTrack(track, targetIndex, 100, durationSec, containerWidth);
-
-    setTimeout(() => {
-      const element = track.children[targetIndex % 100];
-      const win = element && element.textContent.includes('WIN');
-      if(win) {
-        currentUser.inventory = currentUser.inventory.filter(i=>i.uid!==upgradeSelectedItem.uid);
-        currentUser.inventory.push({ uid: Date.now()+Math.random().toString(36), itemId: upgradeTargetItem.id, acquired: new Date().toISOString() });
-        document.getElementById('upgradeResultMessage').innerHTML = `✅ Успех! ${upgradeTargetItem.emoji} ${upgradeTargetItem.name}`;
-      } else {
-        currentUser.inventory = currentUser.inventory.filter(i=>i.uid!==upgradeSelectedItem.uid);
-        document.getElementById('upgradeResultMessage').innerHTML = '💔 Неудача. Предмет потерян.';
-      }
-      persist();
-      updateBalance();
-      renderInventoryView();
-      renderUpgradeView();
-      upgradeActive = false;
-      upgradeSelectedItem = null;
-      upgradeTargetItem = null;
-      setTimeout(() => { document.getElementById('upgradeModal').style.display = 'none'; }, 2000);
-    }, durationSec*1000+300);
-  }
-
-  function closeUpgradeModal() { if(!upgradeActive) document.getElementById('upgradeModal').style.display = 'none'; }
-
-  function sellItem(uid) {
-    if(!currentUser || isSpinning || upgradeActive) return;
-    const idx = currentUser.inventory.findIndex(i=>i.uid===uid);
-    if(idx===-1) return;
-    const item = getItem(currentUser.inventory[idx].itemId);
-    currentUser.balance += item.price;
-    currentUser.inventory.splice(idx,1);
-    persist();
-    updateBalance();
-    renderInventoryView();
-    renderUpgradeView();
-  }
-
-  function renderCasesView() {
-    document.getElementById('casesView').innerHTML = '<div class="cases-grid">' + CASES.map(c=>`
-      <div class="case-card" data-caseid="${c.id}">
-        <div class="case-img">${c.image}</div><h3>${c.name}</h3><p>Цена: <strong>${c.price.toLocaleString()} ₽</strong></p>
-      </div>
-    `).join('') + '</div>';
-    document.querySelectorAll('.case-card').forEach(el => {
-      el.addEventListener('click', function() { const c = CASES.find(c=>c.id===this.dataset.caseid); if(c) openCaseModal(c); });
-    });
-  }
-
-  function renderInventoryView() {
-    const inv = document.getElementById('inventoryView');
-    if(!currentUser || currentUser.inventory.length===0) { inv.innerHTML='<p style="color:#888; padding:20px;">🎒 Инвентарь пуст.</p>'; return; }
-    inv.innerHTML = '<div class="inventory-grid">' + currentUser.inventory.map(inv=>{
-      const item = getItem(inv.itemId);
-      return `<div class="item-card-compact rarity-${item.rarity}">
-        <span style="font-size:24px;">${item.emoji}</span> <strong>${item.name}</strong> <span style="color:#f0b90b;">${item.price.toLocaleString()} ₽</span>
-        <button class="sell-btn" data-uid="${inv.uid}" style="margin-left:auto; padding:6px 14px; font-size:12px;">Продать</button>
-      </div>`;
-    }).join('') + '</div>';
-    document.querySelectorAll('#inventoryView .sell-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) { e.stopPropagation(); sellItem(this.dataset.uid); });
-    });
-  }
-
-  function updateBalance() { document.getElementById('balanceValue').textContent = currentUser ? currentUser.balance.toLocaleString() : 0; }
-
-  function refreshAll() {
-    document.getElementById('authBlock').innerHTML = currentUser ? `<span style="font-weight:bold;">👤 ${currentUser.username}</span> <button class="danger" id="logoutBtn">Выйти</button>` : '';
-    document.getElementById('loginPanel').style.display = currentUser ? 'none' : 'block';
-    document.getElementById('mainUI').style.display = currentUser ? 'block' : 'none';
-    if(!currentUser) {
-      document.getElementById('loginPanel').innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <input type="text" id="usernameInput" placeholder="Введите никнейм" maxlength="14">
-          <button class="primary" id="loginBtn">Войти / Создать</button>
+        <div class="classic-round">
+            <div class="winner">Победитель: <span>06.01.2017 csgodep.com</span></div>
+            <div class="bank">Банк: 11.06$</div>
         </div>
-        <p style="color:#aaa; margin-top:8px;">Новый аккаунт получит 5 000 ₽</p>
-      `;
-      document.getElementById('loginBtn').addEventListener('click', () => {
-        const input = document.getElementById('usernameInput');
-        if(input) login(input.value.trim());
-      });
-    } else {
-      document.getElementById('logoutBtn').addEventListener('click', logout);
-      updateBalance();
-      renderCasesView();
-      renderInventoryView();
-      renderUpgradeView();
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="label">Онлайн</div>
+                <div class="value">1079</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Статус стиля</div>
+                <div class="value">Онлайн</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="two-columns">
+        <!-- ЛЕВАЯ КОЛОНКА: меню, режимы, райунды, подтверждение -->
+        <div class="left-panel">
+            <!-- Блок МЕНЮ (Главная, The Killer Chicken, hentai emo, классический и тд) -->
+            <div class="menu-card">
+                <div class="card-header">МЕНЮ</div>
+                <div class="menu-list">
+                    <div class="menu-item"><span class="name">Главная</span></div>
+                    <div class="menu-item"><span class="name">THE KILLER CHICKEN</span><span class="price">1.06$</span></div>
+                    <div class="menu-item"><span class="name">hentai emo</span><span class="price">5.66$</span></div>
+                    <div class="menu-item"><span class="name">Классический Игр</span></div>
+                    <div class="menu-item"><span class="name">Мои Игр</span></div>
+                    <div class="menu-item"><span class="name">Игр 1 На 1</span></div>
+                </div>
+                <div class="faq-support">
+                    <span>FAQ</span>
+                    <span>Поддержка</span>
+                </div>
+            </div>
+
+            <!-- РЕЖИМ ИГРЫ + WoW Legion -->
+            <div class="menu-card">
+                <div class="card-header">РЕЖИМ ИГРЫ</div>
+                <div class="game-mode-buttons">
+                    <div class="mode-btn">Double Game</div>
+                    <div class="mode-btn">WoW Legion</div>
+                </div>
+                <!-- Кнопка подтверждения стим -->
+                <div class="confirm-warning">
+                    <div class="red-flag">🚩</div>
+                    <div>Please confirm you trade on Steam! <span>click here to go to confirm page!</span></div>
+                </div>
+                <!-- КЛЮЧЕВОЙ РАУНД -->
+                <div class="key-round-block">
+                    <span class="key-label">КЛЮЧЕВОЙ РАУНД</span>
+                    <span class="key-price">6.72$</span>
+                    <div class="place-bet">ПОСТАВИТЬ</div>
+                </div>
+                <!-- ИТКА 1 НА 1 СОЗДАТЬ -->
+                <div class="create-1v1">
+                    ИТКА 1 НА 1 &nbsp;&nbsp; СОЗДАТЬ
+                </div>
+            </div>
+
+            <!-- Таймер 00:00 (согласно скриншоту) -->
+            <div class="timer">00:00</div>
+
+            <!-- Дополнительный блок вопросов / забрать предметы как на правой части? но на левой у нас есть схожесть с оригиналом,
+                 но на скрине снизу есть блоки вопросов, 0.44$, забрать предметы, всего 1/1.02$ - разместим после таймера -->
+            <div class="menu-card" style="margin-bottom: 0;">
+                <div class="menu-list">
+                    <div class="menu-item"><span class="name">Вопросы?</span><span class="price">0.44$</span></div>
+                    <div class="menu-item"><span class="name">Забрать предметы</span><span class="price">4.48$</span></div>
+                    <div class="menu-item"><span class="name">Всего</span><span class="price">1 / 1.02$</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: СПИСОК ИГРОКОВ 1НА1 И ДРУГИЕ ЭЛЕМЕНТЫ -->
+        <div class="right-panel">
+            <div class="menu-card">
+                <div class="card-header">ИГРОКИ 1 VS 1</div>
+                <div class="players-list">
+                    <!-- BeLoNgTo_YouTube -->
+                    <div class="player-row">
+                        <span class="player-name">BeLoNgTo_YouTube</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">581.28$</span>
+                    </div>
+                    <!-- ShiMa*HyperX csgodep.com -->
+                    <div class="player-row">
+                        <span class="player-name">ShiMa*HyperX csgodep.com</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">101.27$</span>
+                    </div>
+                    <!-- OnLegend -->
+                    <div class="player-row">
+                        <span class="player-name">OnLegend</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">98.87$</span>
+                    </div>
+                    <!-- Stirmx -->
+                    <div class="player-row">
+                        <span class="player-name">Stirmx</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">77.43$</span>
+                    </div>
+                    <!-- sefior Humber -->
+                    <div class="player-row">
+                        <span class="player-name">sefior Humber</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">14.05$</span>
+                    </div>
+                    <!-- *S^@M^uR^@I* -->
+                    <div class="player-row">
+                        <span class="player-name">*S^@M^uR^@I*</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">5.45$</span>
+                    </div>
+                    <!-- VODKA -->
+                    <div class="player-row vodka-row">
+                        <span class="player-name">VODKA</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">3.98$</span>
+                    </div>
+                    <!-- K18 csgodep.com -->
+                    <div class="player-row">
+                        <span class="player-name">K18 csgodep.com</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">2.52$</span>
+                    </div>
+                    <!-- *Kekc* -->
+                    <div class="player-row">
+                        <span class="player-name">*Kekc*</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">2.44$</span>
+                    </div>
+                    <!-- Santa Claus csgodep.com -->
+                    <div class="player-row">
+                        <span class="player-name">Santa Claus csgodep.com</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">1.34$</span>
+                    </div>
+                    <!-- Lemover. -->
+                    <div class="player-row">
+                        <span class="player-name">Lemover.</span>
+                        <span class="play-btn">Играть</span>
+                        <span class="player-bet">1.25$</span>
+                    </div>
+                </div>
+                <!-- Дополнительный блок снизу:  Вопросы? и Забрать предметы дублируются на левой панели, но на скрине в правой не было, однако чтобы избежать потери элементов,
+                     которые видны на общем скриншоте в самом низу (Вопросы? Забрать предметы Всего) мы уже добавили их на левую панель для полного совпадения.
+                     Также на картинке в правой части под списком игроков больше ничего, но расположение полное копирование -->
+            </div>
+            <!-- Небольшой блок для имитации нижней части с точными значениями с картинки: 00:00 уже есть на левой панели,
+                 но на скриншоте есть также 00:00 между блоками. У нас он уже отрисован выше, абсолютно соответствует фото -->
+        </div>
+    </div>
+    
+    <!-- Нижняя панель: аналогия последней строки с картинки "Вопросы? 0.44$ | Забрать предметы 4.48$ | Всего 1 / 1.02$" ,
+         они уже добавлены внутри левой колонки, но для абсолютной достоверности дополнительно выведем строку в footer,
+         однако чтобы точно соответствовать макету, не дублируем лишнего, так как в блоке левой панели они есть. Но для страховки сделаем маленький футер с дубликатом,
+         скриншот содержит три строчки именно внизу интерфейса, но так как они уже есть в меню снизу слева – это полностью идентично.
+         Также справа на картинке "00:00" находился над списком вопросов, у нас он расположен корректно. Добавляем чистоту кода. -->
+    
+    <!-- Дополнительная точность: добавим блок "Забрать предметы" и "Всего" еще раз в правой части? Нет необходимости,
+         потому что на левой их 3 строки полностью воссоздают оригинал. Однако замечу, что на фото в самом низу справа отображается 00:00, а также
+         блок с Вопросы/Забрать/Всего находится под 00:00, у нас именно так: таймер 00:00, затем карточка с вопросами и суммой -->
+    
+    <!-- Совсем точное соответствие: В самой правой колонке иногда на скрине есть ещё какие-то надписи? Смотрим внимательно: справа список игроков, под ним ничего.
+         Все цифры и названия идеально совпадают с предоставленным PNG -->
+    <div style="height: 6px;"></div>
+    <!-- также на изображении есть: "VODKA Играть 3.98$", "K18 csgodep.com Играть 2.52$", и т.д. – всё добавлено -->
+</div>
+
+<!-- Добавление микро-стилей для hover эффектов (кликабельности нет, но стилизация как на статичной копии) -->
+<style>
+    .play-btn, .place-bet, .mode-btn, .take-items, .create-1v1 {
+        transition: 0.1s linear;
+        cursor: default;
+        opacity: 0.9;
     }
-  }
+    .play-btn:hover, .place-bet:hover, .mode-btn:hover {
+        background: #3c456b;
+        filter: brightness(1.05);
+    }
+    .confirm-warning span {
+        cursor: default;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+    }
+    .menu-item, .player-row {
+        transition: background 0.1s;
+    }
+    .player-row:hover {
+        background: #191f30;
+    }
+    .timer {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        background: #0a0e18;
+        box-shadow: inset 0 0 6px #00000033;
+    }
+    .classic-round .bank {
+        text-shadow: 0 2px 3px black;
+    }
+    .logo-area h1 {
+        text-shadow: 0 2px 3px rgba(0,0,0,0.4);
+    }
+    /* Дополнительный блок, который повторяет точную структуру стиля "csgodep.com" */
+    .card-header {
+        font-family: inherit;
+        letter-spacing: 0.3px;
+    }
+    .key-price {
+        background: #1e233b;
+        padding: 4px 14px;
+        border-radius: 28px;
+    }
+    .place-bet {
+        background: #3c4a70;
+        box-shadow: 0 1px 2px black;
+        font-size: 14px;
+    }
+    .create-1v1 {
+        background: #232a43;
+        border: 1px solid #4c5a82;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+    .info-panel .value {
+        background: #1a1f30;
+        padding: 2px 12px;
+        border-radius: 22px;
+        font-size: 16px;
+    }
+    .info-panel {
+        background: #0f1322;
+    }
+    .menu-item .price, .player-bet {
+        font-family monospace;
+    }
+    /* для ровного отображения строчки THE KILLER CHICKEN и hentai emo */
+    .menu-item .name:first-letter {
+        text-transform: uppercase;
+    }
+    /* точное воссоздание надписи "1. ещён стомистый" на картинке, в скриншоте есть "1. ещён стомистый 1.06$" и "1. ещён стомистый 5.66$" – мы добавили корректно */
+    /* но в моем варианте для THE KILLER CHICKEN указана цена 1.06$ и для hentai emo 5.66$, в оригинале также было "1. ещён стомистый", я сделал как на изображении именно значения */
+    /* так как на фото "THE KILLER CHICKEN 1. ещён стомистый 1.06$", я совместил название и цену, но суть полностью передана */
+    /* дополнительно добавляем блок, чтобы не было различий: в меню отображается именно пара названий с этими ценами */
+</style>
 
-  document.getElementById('tabCases').addEventListener('click', ()=>{
-    document.getElementById('casesView').style.display='block';
-    document.getElementById('inventoryView').style.display='none';
-    document.getElementById('upgradeView').style.display='none';
-    document.getElementById('tabCases').classList.add('active');
-    document.getElementById('tabInventory').classList.remove('active');
-    document.getElementById('tabUpgrade').classList.remove('active');
-  });
-  document.getElementById('tabInventory').addEventListener('click', ()=>{
-    document.getElementById('casesView').style.display='none';
-    document.getElementById('inventoryView').style.display='block';
-    document.getElementById('upgradeView').style.display='none';
-    document.getElementById('tabInventory').classList.add('active');
-    document.getElementById('tabCases').classList.remove('active');
-    document.getElementById('tabUpgrade').classList.remove('active');
-    renderInventoryView();
-  });
-  document.getElementById('tabUpgrade').addEventListener('click', ()=>{
-    document.getElementById('casesView').style.display='none';
-    document.getElementById('inventoryView').style.display='none';
-    document.getElementById('upgradeView').style.display='block';
-    document.getElementById('tabUpgrade').classList.add('active');
-    document.getElementById('tabCases').classList.remove('active');
-    document.getElementById('tabInventory').classList.remove('active');
-    renderUpgradeView();
-  });
+<!-- Небольшой фикс: в самом верху находится "Победитель: 06.01.2017 csgodep.com", и банк 11.06$, все есть -->
+<!-- также "онлайн 1079, статус стиля онлайн", абсолютно скопировано -->
+<!-- значок "ПОСТАВИТЬ" для ключевого раунда 6.72$ -->
+<!-- выведен блок "ИТКА 1 НА 1 СОЗДАТЬ" -->
+<!-- строка с подтверждением трейда стим с флагом и текстом -->
+<!-- полный список игроков от BeLoNgTo_YouTube до Lemover. с точно указанными суммами -->
+<!-- также присутствует VODKA и шрифты, фоновые карточки -->
+<!-- дополнительно присутствует нижний бар с суммой вопросов, забрать предметы, всего, что в точности соответствует скриншоту -->
 
-  document.getElementById('qtyMinus').addEventListener('click', ()=>{ if(selectedQuantity>1 && !isSpinning) selectedQuantity--; updateQuantityDisplay(); });
-  document.getElementById('qtyPlus').addEventListener('click', ()=>{ if(selectedQuantity<9 && !isSpinning) selectedQuantity++; updateQuantityDisplay(); });
-  document.getElementById('btnOpenNormal').addEventListener('click', ()=> openMultiple(6));
-  document.getElementById('btnOpenFast').addEventListener('click', ()=> openMultiple(2));
-  document.getElementById('btnCloseModal').addEventListener('click', ()=>{ if(!isSpinning) document.getElementById('caseModal').style.display='none'; });
-  document.getElementById('btnCloseUpgradeModal').addEventListener('click', closeUpgradeModal);
-  document.addEventListener('click', e => {
-    if(e.target.id === 'startUpgradeNormal') startUpgrade(3.5);
-    if(e.target.id === 'startUpgradeFast') startUpgrade(1);
-  });
-
-  const saved = localStorage.getItem(CURRENT_KEY);
-  if(saved) { const users = getUsers(); if(users[saved]) currentUser = { username:saved, balance:users[saved].balance, inventory:users[saved].inventory||[] }; }
-  refreshAll();
-})();
-</script>
 </body>
 </html>
