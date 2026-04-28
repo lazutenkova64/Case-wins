@@ -117,17 +117,31 @@
       width: 80px;
       margin: 0 auto;
     }
+    .bet-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .bet-input {
+      flex: 1;
+      background: #1a1f2b;
+      border: 1px solid #353d4e;
+      padding: 10px;
+      border-radius: 20px;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+    }
     .place-bet-btn {
-      width: 100%;
       background: var(--gold);
       border: none;
       color: #000;
       font-weight: 800;
-      padding: 12px;
-      border-radius: 25px;
+      padding: 10px 20px;
+      border-radius: 20px;
       cursor: pointer;
-      font-size: 15px;
-      letter-spacing: 1px;
+      font-size: 14px;
+      white-space: nowrap;
     }
     .place-bet-btn:disabled {
       background: #5c6170;
@@ -138,6 +152,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      min-height: 24px;
     }
     .item-chip {
       background: #1e2432;
@@ -156,20 +171,15 @@
       overflow: hidden;
       margin: 4px 0;
     }
-    .roulette-arrows {
+    .roulette-arrow {
       position: absolute;
       left: 50%;
-      top: 0;
+      bottom: 2px;
       transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100%;
-      justify-content: space-between;
+      font-size: 24px;
+      color: #f0b34b;
       z-index: 5;
       pointer-events: none;
-      font-size: 22px;
-      color: #f0b34b;
       text-shadow: 0 0 6px black;
     }
     .ticker-viewport {
@@ -319,15 +329,18 @@
   <div class="main-area">
     <div class="classic-section" id="classicBlock">
       <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
-      <div class="bank-display" id="classicBankDisplay">Банк: 0$</div>
+      <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
       <div class="timer-display" id="classicTimerDisplay">⏳ 3</div>
-      <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
+      <div class="bet-controls">
+        <input type="number" class="bet-input" id="classicBetInput" value="5" min="1" placeholder="Сумма ставки">
+        <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
+      </div>
       <div class="items-row" id="classicItemsRow"></div>
       <div class="roulette-wrapper" id="rouletteWrapper">
         <div class="ticker-viewport" id="tickerViewport">
           <div class="ticker-track" id="tickerTrack"></div>
         </div>
-        <div class="roulette-arrows" id="rouletteArrows" style="display:none;">▲<br>▼</div>
+        <div class="roulette-arrow" id="rouletteArrow" style="display:none;">▼</div>
       </div>
       <div class="bets-table" id="betsTable"></div>
     </div>
@@ -339,7 +352,7 @@
   <div class="inventory-panel">
     <h3>🎒 Инвентарь</h3>
     <div class="inv-grid"><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div></div>
-    <div>💰 Скины: 0$</div>
+    <div>💰 Скины: 0</div>
     <button class="btn">Купить</button>
     <button class="btn" style="background:#3e4455;">Продать</button>
   </div>
@@ -348,8 +361,6 @@
 
 <script>
   (() => {
-    const avatars = ['🐺','🦊','🐸','🐷','🐙','🐲','🦅','🐼','🐨','🐯','🐮','🐭','🐹','🐰','🦄','🐻'];
-    function rndAvatar() { return avatars[Math.floor(Math.random()*avatars.length)]; }
     const state = {
       user: { name: 'PlayerOne', balance: 1000, avatar: '🐺' },
       classicBets: [],
@@ -366,19 +377,29 @@
     const classicBankDisplay = document.getElementById('classicBankDisplay');
     const classicTimerDisplay = document.getElementById('classicTimerDisplay');
     const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
+    const classicBetInput = document.getElementById('classicBetInput');
     const classicItemsRow = document.getElementById('classicItemsRow');
     const tickerTrack = document.getElementById('tickerTrack');
-    const rouletteArrows = document.getElementById('rouletteArrows');
+    const tickerViewport = document.getElementById('tickerViewport');
+    const rouletteArrow = document.getElementById('rouletteArrow');
     const betsTable = document.getElementById('betsTable');
     const roomsList = document.getElementById('roomsList');
     const spectatorContainer = document.getElementById('spectatorContainer');
 
     function totalBank() { return state.classicBets.reduce((s,b)=>s+b.amount,0); }
 
+    function buildTicketArray() {
+      const tickets = [];
+      state.classicBets.forEach(b => {
+        for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar);
+      });
+      return tickets;
+    }
+
     function updateUI() {
       profileAvatar.textContent = state.user.avatar;
       profileName.textContent = state.user.name;
-      classicBankDisplay.textContent = `Банк: ${totalBank()}$`;
+      classicBankDisplay.textContent = `Банк: ${totalBank()}`;
       renderItemsRow();
       renderBetsTable();
       renderRooms();
@@ -386,7 +407,7 @@
 
     function renderItemsRow() {
       classicItemsRow.innerHTML = state.classicBets.map(b => 
-        `<span class="item-chip">${b.user.avatar} ${b.user.name}: ${b.amount}💰</span>`
+        `<span class="item-chip">${b.user.avatar} ${b.user.name}: ${b.amount}</span>`
       ).join('');
     }
 
@@ -396,35 +417,59 @@
         const percent = ((b.amount / total) * 100).toFixed(1);
         return `<div class="bet-row">
           <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> ${b.user.name}</div>
-          <span>${b.amount}💰</span>
+          <span>${b.amount}</span>
           <span>Билеты: ${b.amount}</span>
           <span style="color:#f0b34b;">${percent}%</span>
         </div>`;
       }).join('');
     }
 
-    function startInfiniteTicker() {
-      if (state.tickerAnimationId) cancelAnimationFrame(state.tickerAnimationId);
-      const viewport = document.getElementById('tickerViewport');
-      const viewWidth = viewport.clientWidth;
+    function animateRoulette(tickets, winnerAvatar, callback) {
+      const viewWidth = tickerViewport.clientWidth;
       const itemWidth = 54;
-      const itemsNeeded = Math.ceil(viewWidth / itemWidth) + 4;
-      const loopAvatars = Array.from({length: itemsNeeded}, () => rndAvatar());
-      tickerTrack.innerHTML = loopAvatars.map(a => `<div class="ticket-avatar-small">${a}</div>`).join('');
+      const totalItems = tickets.length;
+      const totalWidth = totalItems * itemWidth;
+      
+      tickerTrack.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        tickets.forEach(av => {
+          const el = document.createElement('div');
+          el.className = 'ticket-avatar-small';
+          el.textContent = av;
+          tickerTrack.appendChild(el);
+        });
+      }
+
       let pos = 0;
+      let speed = 2;
+      let phase = 'accelerating';
+      let accelSteps = 0;
+      const maxAccel = 40;
+      let decelSteps = 0;
+      const maxDecel = 60;
+      const finalWinnerIndex = Math.floor(Math.random() * tickets.length);
+      const targetOffset = -(finalWinnerIndex * itemWidth) + (viewWidth / 2 - itemWidth / 2);
+
       function step() {
-        pos -= 2;
-        if (pos <= -itemWidth * (loopAvatars.length/2)) pos = 0;
+        if (phase === 'accelerating') {
+          speed = Math.min(18, speed + 0.4);
+          accelSteps++;
+          if (accelSteps >= maxAccel) phase = 'decelerating';
+        } else if (phase === 'decelerating') {
+          speed = Math.max(0.3, speed - 0.25);
+          decelSteps++;
+          if (decelSteps >= maxDecel) {
+            tickerTrack.style.transform = `translateX(${targetOffset}px)`;
+            rouletteArrow.style.display = 'block';
+            if (callback) setTimeout(callback, 3000);
+            return;
+          }
+        }
+        pos -= speed;
         tickerTrack.style.transform = `translateX(${pos}px)`;
         state.tickerAnimationId = requestAnimationFrame(step);
       }
       state.tickerAnimationId = requestAnimationFrame(step);
-    }
-
-    function stopTickerAndShowWinner(winnerAvatar) {
-      if (state.tickerAnimationId) cancelAnimationFrame(state.tickerAnimationId);
-      tickerTrack.innerHTML = `<div class="ticket-avatar-small" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:70px;height:70px;font-size:32px;">${winnerAvatar}</div>`;
-      tickerTrack.style.transform = 'translateX(0px)';
     }
 
     function startClassicCountdown() {
@@ -441,28 +486,29 @@
 
     function runClassicGame() {
       state.classicSpinning = true;
-      classicPlaceBetBtn.style.display = 'none';
+      classicPlaceBetBtn.disabled = true;
       classicTimerDisplay.style.display = 'none';
-      rouletteArrows.style.display = 'flex';
-      startInfiniteTicker();
-      const allTickets = [];
-      state.classicBets.forEach(b => { for(let i=0;i<b.amount;i++) allTickets.push(b.user); });
-      const winner = allTickets[Math.floor(Math.random()*allTickets.length)];
-      setTimeout(() => {
-        stopTickerAndShowWinner(winner.avatar);
+      rouletteArrow.style.display = 'block';
+      
+      const tickets = buildTicketArray();
+      const allUsers = [];
+      state.classicBets.forEach(b => { for(let i=0;i<b.amount;i++) allUsers.push(b.user); });
+      const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+      
+      animateRoulette(tickets, winner.avatar, () => {
         const bank = totalBank();
         if (winner.name === state.user.name) state.user.balance += bank;
-        setTimeout(() => {
-          state.classicBets = [];
-          state.classicSpinning = false;
-          classicPlaceBetBtn.style.display = 'block';
-          classicTimerDisplay.style.display = 'block';
-          classicTimerDisplay.textContent = '⏳ 3';
-          rouletteArrows.style.display = 'none';
-          tickerTrack.innerHTML = '';
-          updateUI();
-        }, 3000);
-      }, 4000);
+        
+        state.classicBets = [];
+        state.classicSpinning = false;
+        classicPlaceBetBtn.disabled = false;
+        classicTimerDisplay.style.display = 'block';
+        classicTimerDisplay.textContent = '⏳ 3';
+        rouletteArrow.style.display = 'none';
+        tickerTrack.innerHTML = '';
+        tickerTrack.style.transform = 'translateX(0px)';
+        updateUI();
+      });
     }
 
     function clearClassicInterval() {
@@ -471,8 +517,8 @@
 
     classicPlaceBetBtn.addEventListener('click', ()=>{
       if (state.classicSpinning) return;
-      const amt = parseInt(prompt('Сколько монет поставить?','5'),10);
-      if (isNaN(amt)||amt<=0) return;
+      const amt = parseInt(classicBetInput.value, 10);
+      if (isNaN(amt) || amt <= 0) return;
       if (state.user.balance < amt) return alert('Недостаточно монет');
       state.user.balance -= amt;
       state.classicBets.push({ user: {...state.user}, amount: amt });
@@ -486,7 +532,7 @@
       state.user.balance -= bet;
       state.rooms.push({
         id: state.nextRoomId++, creator: {...state.user}, bet, opponent: null,
-        status: 'waiting', timer: 3, intervalId: null, ticketsCreator: Array.from({length:bet},(_,i)=>i+1), ticketsOpponent: []
+        status: 'waiting', timer: 3, intervalId: null
       });
       updateUI();
     }
@@ -497,7 +543,6 @@
       if (state.user.balance < room.bet) return alert('Недостаточно монет');
       state.user.balance -= room.bet;
       room.opponent = {...state.user};
-      room.ticketsOpponent = Array.from({length:room.bet},(_,i)=>room.bet+i+1);
       room.status = 'countdown'; room.timer = 3;
       startRoomCountdown(room); updateUI();
     }
@@ -527,7 +572,7 @@
       if(!state.rooms.length){roomsList.innerHTML='<div style="color:#7f8690;">Нет комнат</div>';return;}
       state.rooms.forEach(room=>{
         const d=document.createElement('div'); d.className='room-card';
-        d.innerHTML=`<div><span>${room.creator.avatar}</span> ${room.creator.name} (${room.bet}$) ${room.opponent?`VS ${room.opponent.avatar} ${room.opponent.name}`:''}</div>
+        d.innerHTML=`<div><span>${room.creator.avatar}</span> ${room.creator.name} (${room.bet}) ${room.opponent?`VS ${room.opponent.avatar} ${room.opponent.name}`:''}</div>
           <div style="display:flex;gap:6px;"><span>${room.status==='waiting'?'Ожидание':room.status==='countdown'?`Идет ${room.timer}с`:'Завершено'}</span>
           <button class="btn join-btn" data-id="${room.id}" ${room.status!=='waiting'?'disabled':''}>Играть</button>
           <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button></div>`;
@@ -542,7 +587,7 @@
 
     function openSpectator(room) {
       spectatorContainer.innerHTML=`<div class="spectator-overlay"><div class="spectator-card">
-        <h2>👁 Комната #${room.id}</h2><p>${room.creator.name} vs ${room.opponent?.name||'???'} | ${room.bet}$</p>
+        <h2>👁 Комната #${room.id}</h2><p>${room.creator.name} vs ${room.opponent?.name||'???'} | ${room.bet}</p>
         <p>Билеты ${room.creator.name}: 1-${room.bet} | ${room.opponent?room.bet+1+'-'+room.bet*2:''}</p>
         <button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button></div></div>`;
     }
