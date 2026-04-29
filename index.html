@@ -1,676 +1,853 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>case-wins · Классический раунд & 1 на 1</title>
-  <style>
-    :root {
-      --bg: #06080c;
-      --panel: #0f1219;
-      --card: #161b24;
-      --gold: #f0b34b;
-      --accent: #252b38;
-      --text: #c8cdd8;
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: var(--bg);
-      font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
-      color: var(--text);
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-    }
-    .app {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      gap: 6px;
-      padding: 6px;
-    }
-    .sidebar {
-      width: 200px;
-      background: var(--panel);
-      border-radius: 18px;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      border: 1px solid #252b38;
-      flex-shrink: 0;
-    }
-    .profile {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #1a1f2b;
-      padding: 10px;
-      border-radius: 24px;
-    }
-    .avatar-circle {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--gold);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .nav-btn {
-      background: #1a1f2b;
-      border: none;
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 22px;
-      cursor: pointer;
-      text-align: left;
-      font-weight: 600;
-      font-size: 13px;
-    }
-    .nav-btn.active {
-      background: var(--gold);
-      color: #000;
-    }
-    .main-area {
-      flex: 1;
-      display: flex;
-      gap: 8px;
-      min-width: 0;
-    }
-    .classic-section {
-      flex: 1;
-      background: var(--card);
-      border-radius: 22px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border: 1px solid #2a3140;
-      overflow: hidden;
-    }
-    .classic-header {
-      text-align: center;
-      font-weight: 700;
-      font-size: 15px;
-    }
-    .bank-display {
-      text-align: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--gold);
-    }
-    .timer-display {
-      text-align: center;
-      font-weight: 800;
-      font-size: 22px;
-      background: #1a1f2b;
-      border-radius: 20px;
-      padding: 4px;
-      width: 80px;
-      margin: 0 auto;
-    }
-    .place-bet-btn {
-      width: 100%;
-      background: var(--gold);
-      border: none;
-      color: #000;
-      font-weight: 800;
-      padding: 12px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    .place-bet-btn:disabled {
-      background: #5c6170;
-      color: #222;
-      cursor: not-allowed;
-    }
-    .items-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      min-height: 24px;
-    }
-    .item-chip {
-      background: #1e2432;
-      padding: 6px 12px;
-      border-radius: 18px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .roulette-wrapper {
-      position: relative;
-      height: 100px;
-      background: #0a0e15;
-      border-radius: 16px;
-      overflow: hidden;
-      margin: 0;
-      display: flex;
-      align-items: center;
-    }
-    .roulette-arrow-top {
-      position: absolute;
-      left: 50%;
-      top: 2px;
-      transform: translateX(-50%);
-      font-size: 20px;
-      color: #f0b34b;
-      z-index: 5;
-      pointer-events: none;
-      text-shadow: 0 0 6px black;
-    }
-    .ticker-viewport {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .ticker-track {
-      display: flex;
-      gap: 4px;
-      position: absolute;
-      left: 0;
-      will-change: transform;
-    }
-    .ticket-avatar-small {
-      width: 55px;
-      height: 55px;
-      background: #1e2432;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      border: 2px solid #3a4052;
-      flex-shrink: 0;
-    }
-    .winner-avatar-center {
-      width: 70px;
-      height: 70px;
-      background: #1e2432;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 34px;
-      border: 3px solid #f0b34b;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-      box-shadow: 0 0 20px rgba(240,179,75,0.6);
-    }
-    .bets-table {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-height: 160px;
-      overflow-y: auto;
-    }
-    .bet-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #1a1f2b;
-      border-radius: 14px;
-      padding: 8px 12px;
-    }
-    .bet-user {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .onevsone-section {
-      flex: 1;
-      background: var(--card);
-      border-radius: 22px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 1px solid #2a3140;
-    }
-    .rooms-scroll {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .room-card {
-      background: #1a1f2b;
-      border-radius: 16px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border: 1px solid #2f3748;
-    }
-    .room-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .btn {
-      background: #f0b34b;
-      border: none;
-      color: #000;
-      font-weight: 700;
-      padding: 7px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .btn:disabled {
-      background: #5c6170;
-      color: #222;
-    }
-    .inventory-panel {
-      width: 200px;
-      background: var(--panel);
-      border-radius: 18px;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 1px solid #252b38;
-      flex-shrink: 0;
-    }
-    .inv-grid {
-      display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 6px;
-    }
-    .inv-slot {
-      aspect-ratio: 1;
-      background: #1a1f2b;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-    .bet-input-inv {
-      background: #1a1f2b;
-      border: 1px solid #353d4e;
-      padding: 8px;
-      border-radius: 15px;
-      color: white;
-      text-align: center;
-      font-weight: bold;
-    }
-    .spectator-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-    .spectator-card {
-      background: #161b24;
-      border-radius: 28px;
-      padding: 24px;
-      width: 550px;
-      border: 2px solid #f0b34b;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .spec-bet-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #1e2432;
-      border-radius: 14px;
-      padding: 10px 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>case-wins · Классический раунд & 1 на 1</title>
+    <style>
+        :root {
+            --bg: #06080c;
+            --panel: #0f1219;
+            --card: #161b24;
+            --gold: #f0b34b;
+            --accent: #252b38;
+            --text: #c8cdd8;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            color: var(--text);
+            width: 100vw;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+        }
+        .app {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            gap: 6px;
+            padding: 6px;
+        }
+        .sidebar {
+            width: 200px;
+            background: var(--panel);
+            border-radius: 18px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid #252b38;
+            flex-shrink: 0;
+            position: sticky;
+            top: 6px;
+            align-self: flex-start;
+            height: fit-content;
+            max-height: calc(100vh - 12px);
+        }
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1a1f2b;
+            padding: 10px;
+            border-radius: 24px;
+        }
+        .avatar-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .nav-btn {
+            background: #1a1f2b;
+            border: none;
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 22px;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .nav-btn.active {
+            background: var(--gold);
+            color: #000;
+        }
+        .main-area {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            min-width: 0;
+            align-items: flex-start;
+        }
+        .classic-section {
+            flex: 1;
+            background: var(--card);
+            border-radius: 22px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #2a3140;
+            min-width: 0;
+        }
+        .classic-header {
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .bank-display {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--gold);
+        }
+        .place-bet-btn {
+            width: 100%;
+            background: var(--gold);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .place-bet-btn:disabled {
+            background: #5c6170;
+            color: #222;
+            cursor: not-allowed;
+        }
+        .items-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 24px;
+        }
+        .item-chip {
+            background: #1e2432;
+            padding: 6px 12px;
+            border-radius: 18px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .roulette-wrapper {
+            position: relative;
+            height: 140px;
+            background: transparent;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #252b38;
+        }
+        .timer-strip-bg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d1119;
+            z-index: 0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .timer-strip-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #f0b34b, #e6953c, #c77a28);
+            z-index: 1;
+            border-radius: 14px 0 0 14px;
+            transition: width 0.9s linear;
+            box-shadow: inset 0 0 30px rgba(255, 200, 100, 0.35), 0 0 25px rgba(240, 179, 75, 0.45);
+        }
+        .timer-strip-glow {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 14px;
+            box-shadow: inset 0 0 60px rgba(240, 179, 75, 0.2);
+        }
+        .timer-display {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            font-weight: 900;
+            font-size: 28px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 8px rgba(240, 179, 75, 0.8);
+            pointer-events: none;
+            letter-spacing: 2px;
+        }
+        .roulette-arrow-top {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            color: #f0b34b;
+            z-index: 5;
+            pointer-events: none;
+            text-shadow: 0 0 12px black, 0 0 6px rgba(240, 179, 75, 0.7);
+        }
+        .ticker-viewport {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            z-index: 3;
+        }
+        .ticker-track {
+            display: flex;
+            gap: 4px;
+            position: absolute;
+            left: 0;
+            will-change: transform;
+        }
+        .ticket-avatar-small {
+            width: 55px;
+            height: 55px;
+            background: #1e2432;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            border: 2px solid #3a4052;
+            flex-shrink: 0;
+        }
+        .winner-avatar-center {
+            width: 70px;
+            height: 70px;
+            background: #1e2432;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            border: 3px solid #f0b34b;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            box-shadow: 0 0 30px rgba(240, 179, 75, 0.8), 0 0 60px rgba(240, 179, 75, 0.4);
+        }
+        .bets-table {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .bet-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1a1f2b;
+            border-radius: 14px;
+            padding: 8px 12px;
+        }
+        .bet-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .onevsone-section {
+            flex: 1;
+            background: var(--card);
+            border-radius: 22px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #2a3140;
+            min-width: 0;
+        }
+        .rooms-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .room-card {
+            background: #1a1f2b;
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border: 1px solid #2f3748;
+        }
+        .room-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .btn {
+            background: #f0b34b;
+            border: none;
+            color: #000;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn:disabled {
+            background: #5c6170;
+            color: #222;
+        }
+        .inventory-panel {
+            width: 200px;
+            background: var(--panel);
+            border-radius: 18px;
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #252b38;
+            flex-shrink: 0;
+            position: sticky;
+            top: 6px;
+            align-self: flex-start;
+            height: fit-content;
+            max-height: calc(100vh - 12px);
+        }
+        .inv-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+        .inv-slot {
+            aspect-ratio: 1;
+            background: #1a1f2b;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .bet-input-inv {
+            background: #1a1f2b;
+            border: 1px solid #353d4e;
+            padding: 8px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+        .bet-input-inv::-webkit-inner-spin-button,
+        .bet-input-inv::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .bet-input-inv[type=number] {
+            -moz-appearance: textfield;
+        }
+        .spectator-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .spectator-card {
+            background: #161b24;
+            border-radius: 28px;
+            padding: 24px;
+            width: 550px;
+            border: 2px solid #f0b34b;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .spec-bet-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1e2432;
+            border-radius: 14px;
+            padding: 10px 14px;
+        }
+        @keyframes pulse-gold {
+            0%,
+            100% {
+                box-shadow: 0 0 30px rgba(240, 179, 75, 0.8), 0 0 60px rgba(240, 179, 75, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(240, 179, 75, 1), 0 0 90px rgba(240, 179, 75, 0.7);
+            }
+        }
+        .winner-avatar-center {
+            animation: pulse-gold 0.8s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-  <div class="sidebar">
-    <div class="profile">
-      <span class="avatar-circle" id="profileAvatar">🐺</span>
-      <div><div id="profileName">PlayerOne</div><div style="color:#3acf6e;">● Онлайн</div></div>
-    </div>
-    <button class="nav-btn active">🏠 Главная</button>
-    <button class="nav-btn">📜 История</button>
-    <button class="nav-btn">❓ FAQ</button>
-  </div>
-  <div class="main-area">
-    <div class="classic-section" id="classicBlock">
-      <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
-      <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
-      <div class="timer-display" id="classicTimerDisplay">⏳ 3</div>
-      <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
-      <div class="items-row" id="classicItemsRow"></div>
-      <div class="roulette-wrapper" id="rouletteWrapper">
-        <div class="roulette-arrow-top" id="rouletteArrowTop" style="display:none;">▼</div>
-        <div class="ticker-viewport" id="tickerViewport">
-          <div class="ticker-track" id="tickerTrack"></div>
+    <div class="app">
+        <div class="sidebar">
+            <div class="profile">
+                <span class="avatar-circle" id="profileAvatar">🐺</span>
+                <div>
+                    <div id="profileName">PlayerOne</div>
+                    <div style="color:#3acf6e;">● Онлайн</div>
+                </div>
+            </div>
+            <button class="nav-btn active">🏠 Главная</button>
+            <button class="nav-btn">📜 История</button>
+            <button class="nav-btn">❓ FAQ</button>
         </div>
-      </div>
-      <div class="bets-table" id="betsTable"></div>
+        <div class="main-area">
+            <div class="classic-section" id="classicBlock">
+                <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
+                <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
+                <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
+                <div class="items-row" id="classicItemsRow"></div>
+                <div class="roulette-wrapper" id="rouletteWrapper">
+                    <div class="timer-strip-bg">
+                        <div class="timer-strip-fill" id="timerStripFill"></div>
+                        <div class="timer-strip-glow"></div>
+                    </div>
+                    <div class="timer-display" id="classicTimerDisplay">⏳ 3</div>
+                    <div class="roulette-arrow-top" id="rouletteArrowTop" style="display:none;">▼</div>
+                    <div class="ticker-viewport" id="tickerViewport">
+                        <div class="ticker-track" id="tickerTrack"></div>
+                    </div>
+                </div>
+                <div class="bets-table" id="betsTable"></div>
+            </div>
+            <div class="onevsone-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <h3>🎲 1 НА 1</h3>
+                    <button class="btn" id="createRoomBtn">+ Создать</button>
+                </div>
+                <div class="rooms-scroll" id="roomsList"></div>
+            </div>
+        </div>
+        <div class="inventory-panel">
+            <h3>🎒 Инвентарь</h3>
+            <div class="inv-grid">
+                <div class="inv-slot">🔹</div>
+                <div class="inv-slot">🔹</div>
+                <div class="inv-slot">🔹</div>
+                <div class="inv-slot">🔹</div>
+            </div>
+            <div>💰 Скины: 0</div>
+            <button class="btn">Купить</button>
+            <button class="btn" style="background:#3e4455;">Продать</button>
+            <input type="number" class="bet-input-inv" id="classicBetInput" value="5" min="1" placeholder="Сумма ставки">
+            <span style="font-size:10px;color:#7f8690;text-align:center;">Ставка для классики и 1 на 1</span>
+        </div>
     </div>
-    <div class="onevsone-section">
-      <div style="display:flex;justify-content:space-between;"><h3>🎲 1 НА 1</h3><button class="btn" id="createRoomBtn">+ Создать</button></div>
-      <div class="rooms-scroll" id="roomsList"></div>
-    </div>
-  </div>
-  <div class="inventory-panel">
-    <h3>🎒 Инвентарь</h3>
-    <div class="inv-grid"><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div><div class="inv-slot">🔹</div></div>
-    <div>💰 Скины: 0</div>
-    <button class="btn">Купить</button>
-    <button class="btn" style="background:#3e4455;">Продать</button>
-    <input type="number" class="bet-input-inv" id="classicBetInput" value="5" min="1" placeholder="Сумма ставки">
-  </div>
-</div>
-<div id="spectatorContainer"></div>
+    <div id="spectatorContainer"></div>
 
-<script>
-  (() => {
-    const state = {
-      user: { name: 'PlayerOne', balance: 1000, avatar: '🐺' },
-      classicBets: [],
-      classicTimer: 3,
-      classicInterval: null,
-      classicSpinning: false,
-      tickerAnimationId: null,
-      rooms: [],
-      nextRoomId: 1,
-      roomAnimations: {}
-    };
+    <script>
+        (() => {
+            const state = {
+                user: { name: 'PlayerOne', balance: 1000, avatar: '🐺' },
+                classicBets: [],
+                classicTimer: 3,
+                classicInterval: null,
+                classicSpinning: false,
+                tickerAnimationId: null,
+                rooms: [],
+                nextRoomId: 1,
+                roomAnimations: {}
+            };
 
-    const profileAvatar = document.getElementById('profileAvatar');
-    const profileName = document.getElementById('profileName');
-    const classicBankDisplay = document.getElementById('classicBankDisplay');
-    const classicTimerDisplay = document.getElementById('classicTimerDisplay');
-    const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
-    const classicBetInput = document.getElementById('classicBetInput');
-    const classicItemsRow = document.getElementById('classicItemsRow');
-    const tickerTrack = document.getElementById('tickerTrack');
-    const tickerViewport = document.getElementById('tickerViewport');
-    const rouletteArrowTop = document.getElementById('rouletteArrowTop');
-    const betsTable = document.getElementById('betsTable');
-    const roomsList = document.getElementById('roomsList');
-    const spectatorContainer = document.getElementById('spectatorContainer');
+            const profileAvatar = document.getElementById('profileAvatar');
+            const profileName = document.getElementById('profileName');
+            const classicBankDisplay = document.getElementById('classicBankDisplay');
+            const classicTimerDisplay = document.getElementById('classicTimerDisplay');
+            const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
+            const classicBetInput = document.getElementById('classicBetInput');
+            const classicItemsRow = document.getElementById('classicItemsRow');
+            const tickerTrack = document.getElementById('tickerTrack');
+            const tickerViewport = document.getElementById('tickerViewport');
+            const rouletteArrowTop = document.getElementById('rouletteArrowTop');
+            const timerStripFill = document.getElementById('timerStripFill');
+            const betsTable = document.getElementById('betsTable');
+            const roomsList = document.getElementById('roomsList');
+            const spectatorContainer = document.getElementById('spectatorContainer');
 
-    function totalBank() { return state.classicBets.reduce((s,b)=>s+b.amount,0); }
+            function totalBank() { return state.classicBets.reduce((s, b) => s + b.amount, 0); }
 
-    function buildTicketArray(bets) {
-      const tickets = [];
-      bets.forEach(b => {
-        for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar);
-      });
-      if (tickets.length === 0) tickets.push('❓');
-      return tickets;
-    }
+            function buildTicketArray(bets) {
+                const tickets = [];
+                bets.forEach(b => {
+                    for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar);
+                });
+                if (tickets.length === 0) tickets.push('❓');
+                return tickets;
+            }
 
-    function updateUI() {
-      profileAvatar.textContent = state.user.avatar;
-      profileName.textContent = state.user.name;
-      classicBankDisplay.textContent = `Банк: ${totalBank()}`;
-      renderItemsRow();
-      renderBetsTable();
-      renderRooms();
-    }
+            function updateTimerStrip(seconds) {
+                const maxTime = 3;
+                const percent = Math.max(0, (seconds / maxTime) * 100);
+                timerStripFill.style.width = percent + '%';
+                if (percent <= 0) {
+                    timerStripFill.style.borderRadius = '14px';
+                } else if (percent < 100) {
+                    timerStripFill.style.borderRadius = '14px 0 0 14px';
+                } else {
+                    timerStripFill.style.borderRadius = '14px';
+                }
+            }
 
-    function renderItemsRow() {
-      classicItemsRow.innerHTML = state.classicBets.map(b => 
-        `<span class="item-chip">${b.user.avatar} ${b.user.name}: ${b.amount}</span>`
-      ).join('');
-    }
+            function updateUI() {
+                profileAvatar.textContent = state.user.avatar;
+                profileName.textContent = state.user.name;
+                classicBankDisplay.textContent = `Банк: ${totalBank()}`;
+                renderItemsRow();
+                renderBetsTable();
+                renderRooms();
+                if (!state.classicSpinning && !state.classicInterval) {
+                    updateTimerStrip(3);
+                    classicTimerDisplay.textContent = '⏳ 3';
+                }
+            }
 
-    function renderBetsTable() {
-      const total = totalBank() || 1;
-      betsTable.innerHTML = state.classicBets.map(b => {
-        const percent = ((b.amount / total) * 100).toFixed(1);
-        return `<div class="bet-row">
-          <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> ${b.user.name}</div>
-          <span>${b.amount}</span>
-          <span>Билеты: ${b.amount}</span>
-          <span style="color:#f0b34b;">${percent}%</span>
-        </div>`;
-      }).join('');
-    }
+            function renderItemsRow() {
+                classicItemsRow.innerHTML = state.classicBets.map(b =>
+                    `<span class="item-chip">${b.user.avatar} ${b.user.name}: ${b.amount}</span>`
+                ).join('');
+            }
 
-    function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, callback) {
-      if (state.roomAnimations[trackElement.id]) {
-        cancelAnimationFrame(state.roomAnimations[trackElement.id]);
-      }
-      trackElement.innerHTML = '';
-      const repeatedTickets = [];
-      for (let i = 0; i < 40; i++) {
-        tickets.forEach(av => repeatedTickets.push(av));
-      }
-      repeatedTickets.forEach(av => {
-        const el = document.createElement('div');
-        el.className = 'ticket-avatar-small';
-        el.textContent = av;
-        trackElement.appendChild(el);
-      });
-      let pos = 0;
-      let speed = 0.5;
-      const startTime = Date.now();
-      const phase1 = 2000;
-      const phase2 = 5000;
-      const phase3 = 15000;
-      const maxSpeed = 4.5;
-      const viewWidth = viewportElement.clientWidth;
-      const itemWidth = 59;
+            function renderBetsTable() {
+                const total = totalBank() || 1;
+                betsTable.innerHTML = state.classicBets.map(b => {
+                    const percent = ((b.amount / total) * 100).toFixed(1);
+                    return `<div class="bet-row">
+                        <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> ${b.user.name}</div>
+                        <span>${b.amount}</span>
+                        <span>Билеты: ${b.amount}</span>
+                        <span style="color:#f0b34b;">${percent}%</span>
+                    </div>`;
+                }).join('');
+            }
 
-      function step() {
-        const elapsed = Date.now() - startTime;
-        if (elapsed < phase1) {
-          speed = 0.5 + (elapsed / phase1) * (maxSpeed - 0.5);
-        } else if (elapsed < phase2) {
-          speed = maxSpeed;
-        } else if (elapsed < phase3) {
-          const decelProgress = (elapsed - phase2) / (phase3 - phase2);
-          speed = maxSpeed * (1 - decelProgress);
-        } else {
-          trackElement.innerHTML = '';
-          const winnerEl = document.createElement('div');
-          winnerEl.className = 'winner-avatar-center';
-          winnerEl.textContent = winnerAvatar;
-          viewportElement.appendChild(winnerEl);
-          if (arrowElement) arrowElement.style.display = 'block';
-          if (callback) setTimeout(callback, 3000);
-          return;
-        }
-        pos -= speed;
-        trackElement.style.transform = `translateX(${pos}px)`;
-        state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
-      }
-      state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
-    }
+            function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, callback) {
+                if (state.roomAnimations[trackElement.id]) {
+                    cancelAnimationFrame(state.roomAnimations[trackElement.id]);
+                }
+                trackElement.innerHTML = '';
+                const repeatedTickets = [];
+                for (let i = 0; i < 40; i++) {
+                    tickets.forEach(av => repeatedTickets.push(av));
+                }
+                repeatedTickets.forEach(av => {
+                    const el = document.createElement('div');
+                    el.className = 'ticket-avatar-small';
+                    el.textContent = av;
+                    trackElement.appendChild(el);
+                });
+                let pos = 0;
+                let speed = 0.5;
+                const startTime = Date.now();
+                const phase1 = 2000;
+                const phase2 = 5000;
+                const phase3 = 15000;
+                const maxSpeed = 4.5;
+                const viewWidth = viewportElement.clientWidth;
+                const itemWidth = 59;
 
-    function startClassicCountdown() {
-      if (state.classicBets.length < 2) return;
-      clearClassicInterval();
-      state.classicTimer = 3;
-      classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
-      state.classicInterval = setInterval(() => {
-        state.classicTimer--;
-        classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
-        if (state.classicTimer <= 0) { clearClassicInterval(); runClassicGame(); }
-      }, 1000);
-    }
+                function step() {
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed < phase1) {
+                        speed = 0.5 + (elapsed / phase1) * (maxSpeed - 0.5);
+                    } else if (elapsed < phase2) {
+                        speed = maxSpeed;
+                    } else if (elapsed < phase3) {
+                        const decelProgress = (elapsed - phase2) / (phase3 - phase2);
+                        speed = maxSpeed * (1 - decelProgress);
+                    } else {
+                        const winnerEl = document.createElement('div');
+                        winnerEl.className = 'winner-avatar-center';
+                        winnerEl.textContent = winnerAvatar;
+                        viewportElement.appendChild(winnerEl);
+                        if (arrowElement) arrowElement.style.display = 'block';
+                        if (callback) setTimeout(callback, 3000);
+                        return;
+                    }
+                    pos -= speed;
+                    trackElement.style.transform = `translateX(${pos}px)`;
+                    state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
+                }
+                state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
+            }
 
-    function runClassicGame() {
-      state.classicSpinning = true;
-      classicPlaceBetBtn.disabled = true;
-      classicTimerDisplay.style.display = 'none';
-      rouletteArrowTop.style.display = 'block';
-      const tickets = buildTicketArray(state.classicBets);
-      const allUsers = [];
-      state.classicBets.forEach(b => { for(let i=0;i<b.amount;i++) allUsers.push(b.user); });
-      const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
-      animateRoulette(tickerTrack, tickerViewport, rouletteArrowTop, tickets, winner.avatar, () => {
-        const bank = totalBank();
-        if (winner.name === state.user.name) state.user.balance += bank;
-        state.classicBets = [];
-        state.classicSpinning = false;
-        classicPlaceBetBtn.disabled = false;
-        classicTimerDisplay.style.display = 'block';
-        classicTimerDisplay.textContent = '⏳ 3';
-        rouletteArrowTop.style.display = 'none';
-        const existingWinner = document.querySelector('.winner-avatar-center');
-        if (existingWinner) existingWinner.remove();
-        tickerTrack.innerHTML = '';
-        updateUI();
-      });
-    }
+            function startClassicCountdown() {
+                if (state.classicBets.length < 2) return;
+                clearClassicInterval();
+                state.classicTimer = 3;
+                classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
+                updateTimerStrip(state.classicTimer);
+                state.classicInterval = setInterval(() => {
+                    state.classicTimer--;
+                    classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
+                    updateTimerStrip(state.classicTimer);
+                    if (state.classicTimer <= 0) {
+                        clearClassicInterval();
+                        runClassicGame();
+                    }
+                }, 1000);
+            }
 
-    function clearClassicInterval() {
-      if (state.classicInterval) { clearInterval(state.classicInterval); state.classicInterval = null; }
-    }
+            function runClassicGame() {
+                state.classicSpinning = true;
+                classicPlaceBetBtn.disabled = true;
+                updateTimerStrip(0);
+                classicTimerDisplay.style.display = 'none';
+                rouletteArrowTop.style.display = 'block';
+                const tickets = buildTicketArray(state.classicBets);
+                const allUsers = [];
+                state.classicBets.forEach(b => { for (let i = 0; i < b.amount; i++) allUsers.push(b.user); });
+                const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                animateRoulette(tickerTrack, tickerViewport, rouletteArrowTop, tickets, winner.avatar, () => {
+                    const bank = totalBank();
+                    if (winner.name === state.user.name) state.user.balance += bank;
+                    state.classicBets = [];
+                    state.classicSpinning = false;
+                    classicPlaceBetBtn.disabled = false;
+                    classicTimerDisplay.style.display = 'block';
+                    classicTimerDisplay.textContent = '⏳ 3';
+                    updateTimerStrip(3);
+                    rouletteArrowTop.style.display = 'none';
+                    const existingWinner = document.querySelector('#tickerViewport .winner-avatar-center');
+                    if (existingWinner) existingWinner.remove();
+                    tickerTrack.innerHTML = '';
+                    tickerTrack.style.transform = 'translateX(0px)';
+                    updateUI();
+                });
+            }
 
-    classicPlaceBetBtn.addEventListener('click', ()=>{
-      if (state.classicSpinning) return;
-      const amt = parseInt(classicBetInput.value, 10);
-      if (isNaN(amt) || amt <= 0) return;
-      if (state.user.balance < amt) return alert('Недостаточно монет');
-      state.user.balance -= amt;
-      state.classicBets.push({ user: {...state.user}, amount: amt });
-      updateUI();
-      if (state.classicBets.length >= 2 && !state.classicInterval) startClassicCountdown();
-    });
+            function clearClassicInterval() {
+                if (state.classicInterval) { clearInterval(state.classicInterval);
+                    state.classicInterval = null; }
+            }
 
-    function createRoom() {
-      const bet = parseInt(prompt('Ставка монет:','20'),10);
-      if (!bet || bet<=0 || state.user.balance < bet) return alert('Недостаточно средств');
-      state.user.balance -= bet;
-      const room = {
-        id: state.nextRoomId++, creator: {...state.user}, bet, opponent: null,
-        status: 'waiting', timer: 3, intervalId: null, winner: null,
-        trackId: `roomTrack${state.nextRoomId}`, viewportId: `roomViewport${state.nextRoomId}`, arrowId: `roomArrow${state.nextRoomId}`
-      };
-      state.rooms.push(room);
-      updateUI();
-    }
+            classicPlaceBetBtn.addEventListener('click', () => {
+                if (state.classicSpinning) return;
+                const amt = parseInt(classicBetInput.value, 10);
+                if (isNaN(amt) || amt <= 0) return;
+                if (state.user.balance < amt) return alert('Недостаточно монет');
+                state.user.balance -= amt;
+                state.classicBets.push({ user: { ...state.user }, amount: amt });
+                updateUI();
+                if (state.classicBets.length >= 2 && !state.classicInterval) startClassicCountdown();
+            });
 
-    function joinRoom(roomId) {
-      const room = state.rooms.find(r=>r.id===roomId);
-      if (!room || room.status!=='waiting') return;
-      if (state.user.balance < room.bet) return alert('Недостаточно монет');
-      state.user.balance -= room.bet;
-      room.opponent = {...state.user};
-      room.status = 'countdown'; room.timer = 3;
-      startRoomCountdown(room); updateUI();
-    }
+            function createRoom() {
+                const bet = parseInt(classicBetInput.value, 10);
+                if (!bet || bet <= 0 || state.user.balance < bet) {
+                    if (state.user.balance < bet) alert('Недостаточно средств');
+                    return;
+                }
+                state.user.balance -= bet;
+                const room = {
+                    id: state.nextRoomId++,
+                    creator: { ...state.user },
+                    bet,
+                    opponent: null,
+                    status: 'waiting',
+                    timer: 3,
+                    intervalId: null,
+                    winner: null,
+                    trackId: `roomTrack${state.nextRoomId}`,
+                    viewportId: `roomViewport${state.nextRoomId}`,
+                    arrowId: `roomArrow${state.nextRoomId}`
+                };
+                state.rooms.push(room);
+                updateUI();
+            }
 
-    function startRoomCountdown(room) {
-      clearRoomInterval(room);
-      room.intervalId = setInterval(() => {
-        room.timer--; updateUI();
-        if (room.timer<=0) { clearRoomInterval(room); runRoomGame(room); }
-      },1000);
-    }
+            function joinRoom(roomId) {
+                const room = state.rooms.find(r => r.id === roomId);
+                if (!room || room.status !== 'waiting') return;
+                if (state.user.balance < room.bet) return alert('Недостаточно монет');
+                state.user.balance -= room.bet;
+                room.opponent = { ...state.user };
+                room.status = 'countdown';
+                room.timer = 3;
+                startRoomCountdown(room);
+                updateUI();
+            }
 
-    function runRoomGame(room) {
-      room.status = 'spinning';
-      updateUI();
-      const bets = [
-        { user: room.creator, amount: room.bet },
-        { user: room.opponent, amount: room.bet }
-      ];
-      const tickets = buildTicketArray(bets);
-      const allUsers = [];
-      for(let i=0;i<room.bet;i++) allUsers.push(room.creator);
-      for(let i=0;i<room.bet;i++) allUsers.push(room.opponent);
-      const winner = allUsers[Math.floor(Math.random()*allUsers.length)];
-      room.winner = winner;
-      setTimeout(() => {
-        const trackEl = document.getElementById(room.trackId);
-        const viewportEl = document.getElementById(room.viewportId);
-        const arrowEl = document.getElementById(room.arrowId);
-        if (trackEl && viewportEl) {
-          animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, () => {
-            room.status = 'finished';
-            if (room.winner.name === state.user.name) state.user.balance += room.bet*2;
+            function startRoomCountdown(room) {
+                clearRoomInterval(room);
+                room.intervalId = setInterval(() => {
+                    room.timer--;
+                    updateUI();
+                    if (room.timer <= 0) {
+                        clearRoomInterval(room);
+                        runRoomGame(room);
+                    }
+                }, 1000);
+            }
+
+            function runRoomGame(room) {
+                room.status = 'spinning';
+                updateUI();
+                const bets = [
+                    { user: room.creator, amount: room.bet },
+                    { user: room.opponent, amount: room.bet }
+                ];
+                const tickets = buildTicketArray(bets);
+                const allUsers = [];
+                for (let i = 0; i < room.bet; i++) allUsers.push(room.creator);
+                for (let i = 0; i < room.bet; i++) allUsers.push(room.opponent);
+                const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                room.winner = winner;
+                setTimeout(() => {
+                    const trackEl = document.getElementById(room.trackId);
+                    const viewportEl = document.getElementById(room.viewportId);
+                    const arrowEl = document.getElementById(room.arrowId);
+                    if (trackEl && viewportEl) {
+                        if (arrowEl) arrowEl.style.display = 'block';
+                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, () => {
+                            room.status = 'finished';
+                            if (room.winner.name === state.user.name) state.user.balance += room.bet * 2;
+                            updateUI();
+                            setTimeout(() => {
+                                state.rooms = state.rooms.filter(r => r.id !== room.id);
+                                updateUI();
+                            }, 5000);
+                        });
+                    }
+                }, 100);
+            }
+
+            function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId);
+                    room.intervalId = null; } }
+
+            function renderRooms() {
+                const spinningCards = [];
+                const existingCards = roomsList.querySelectorAll('.room-card');
+                existingCards.forEach(card => {
+                    const id = parseInt(card.dataset.roomId);
+                    const room = state.rooms.find(r => r.id === id);
+                    if (room && (room.status === 'spinning' || room.status === 'countdown')) {
+                        spinningCards.push(card);
+                    }
+                });
+
+                roomsList.innerHTML = '';
+                if (!state.rooms.length) {
+                    roomsList.innerHTML = '<div style="color:#7f8690;">Нет комнат</div>';
+                    return;
+                }
+
+                const spinningRoomIds = new Set(spinningCards.map(c => parseInt(c.dataset.roomId)));
+
+                state.rooms.forEach(room => {
+                    if (spinningRoomIds.has(room.id)) {
+                        const savedCard = spinningCards.find(c => parseInt(c.dataset.roomId) === room.id);
+                        if (savedCard) {
+                            const headerDiv = savedCard.querySelector('.room-header');
+                            if (headerDiv) {
+                                const statusSpan = headerDiv.querySelector('span:first-child');
+                                if (statusSpan) {
+                                    statusSpan.textContent = room.status === 'waiting' ? 'Ожидание' :
+                                        room.status === 'countdown' ? `Идет ${room.timer}с` :
+                                        room.status === 'spinning' ? 'Крутим...' : 'Завершено';
+                                }
+                                const joinBtn = headerDiv.querySelector('.join-btn');
+                                if (joinBtn) {
+                                    joinBtn.disabled = room.status !== 'waiting';
+                                }
+                            }
+                            roomsList.appendChild(savedCard);
+                            return;
+                        }
+                    }
+
+                    const d = document.createElement('div');
+                    d.className = 'room-card';
+                    d.dataset.roomId = room.id;
+                    d.innerHTML = `
+                        <div class="room-header">
+                            <div><span>${room.creator.avatar}</span> ${room.creator.name} (${room.bet}) ${room.opponent ? `VS ${room.opponent.avatar} ${room.opponent.name}` : ''}</div>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <span>${room.status === 'waiting' ? 'Ожидание' : room.status === 'countdown' ? `Идет ${room.timer}с` : room.status === 'spinning' ? 'Крутим...' : 'Завершено'}</span>
+                                <button class="btn join-btn" data-id="${room.id}" ${room.status !== 'waiting' ? 'disabled' : ''}>Играть</button>
+                                <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
+                            </div>
+                        </div>
+                        <div class="roulette-wrapper" style="height:70px;border:1px solid #2f3748;">
+                            <div class="roulette-arrow-top" id="${room.arrowId}" style="display:${room.status === 'spinning' ? 'block' : 'none'};">▼</div>
+                            <div class="ticker-viewport" id="${room.viewportId}">
+                                <div class="ticker-track" id="${room.trackId}"></div>
+                            </div>
+                        </div>`;
+                    roomsList.appendChild(d);
+                });
+
+                document.querySelectorAll('.join-btn').forEach(b => b.addEventListener('click', e => joinRoom(parseInt(e.target.dataset.id))));
+                document.querySelectorAll('.watch-btn').forEach(b => b.addEventListener('click', e => {
+                    const room = state.rooms.find(r => r.id === parseInt(e.target.dataset.id));
+                    if (room) openSpectator(room);
+                }));
+            }
+
+            function openSpectator(room) {
+                const totalBet = room.bet * 2;
+                const creatorPercent = ((room.bet / totalBet) * 100).toFixed(1);
+                const opponentPercent = room.opponent ? ((room.bet / totalBet) * 100).toFixed(1) : '0.0';
+                spectatorContainer.innerHTML = `<div class="spectator-overlay"><div class="spectator-card">
+                    <h2>👁 Комната #${room.id}</h2>
+                    <div class="spec-bet-row">
+                        <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span> ${room.creator.name}</div>
+                        <span>${room.bet}</span>
+                        <span>Билеты: 1-${room.bet}</span>
+                        <span style="color:#f0b34b;">${creatorPercent}%</span>
+                    </div>
+                    ${room.opponent ? `<div class="spec-bet-row">
+                        <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span> ${room.opponent.name}</div>
+                        <span>${room.bet}</span>
+                        <span>Билеты: ${room.bet + 1}-${room.bet * 2}</span>
+                        <span style="color:#f0b34b;">${opponentPercent}%</span>
+                    </div>` : '<div style="color:#7f8690;">Ожидание второго игрока...</div>'}
+                    <button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>
+                </div></div>`;
+            }
+
+            document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+            updateTimerStrip(3);
             updateUI();
-            setTimeout(()=>{ state.rooms=state.rooms.filter(r=>r.id!==room.id); updateUI(); },5000);
-          });
-        }
-      }, 100);
-    }
-
-    function clearRoomInterval(room) { if(room.intervalId){clearInterval(room.intervalId);room.intervalId=null;} }
-
-    function renderRooms() {
-      roomsList.innerHTML = '';
-      if(!state.rooms.length){roomsList.innerHTML='<div style="color:#7f8690;">Нет комнат</div>';return;}
-      state.rooms.forEach(room=>{
-        const d=document.createElement('div'); d.className='room-card';
-        d.innerHTML = `
-          <div class="room-header">
-            <div><span>${room.creator.avatar}</span> ${room.creator.name} (${room.bet}) ${room.opponent?`VS ${room.opponent.avatar} ${room.opponent.name}`:''}</div>
-            <div style="display:flex;gap:6px;">
-              <span>${room.status==='waiting'?'Ожидание':room.status==='countdown'?`Идет ${room.timer}с`:room.status==='spinning'?'Крутим...':'Завершено'}</span>
-              <button class="btn join-btn" data-id="${room.id}" ${room.status!=='waiting'?'disabled':''}>Играть</button>
-              <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
-            </div>
-          </div>
-          <div class="roulette-wrapper" style="height:70px;">
-            <div class="roulette-arrow-top" id="${room.arrowId}" style="display:${room.status==='spinning'?'block':'none'};">▼</div>
-            <div class="ticker-viewport" id="${room.viewportId}">
-              <div class="ticker-track" id="${room.trackId}"></div>
-            </div>
-          </div>`;
-        roomsList.appendChild(d);
-      });
-      document.querySelectorAll('.join-btn').forEach(b=>b.addEventListener('click',e=>joinRoom(parseInt(e.target.dataset.id))));
-      document.querySelectorAll('.watch-btn').forEach(b=>b.addEventListener('click',e=>{
-        const room=state.rooms.find(r=>r.id===parseInt(e.target.dataset.id));
-        if(room) openSpectator(room);
-      }));
-    }
-
-    function openSpectator(room) {
-      const totalBet = room.bet * 2;
-      const creatorPercent = ((room.bet / totalBet) * 100).toFixed(1);
-      const opponentPercent = room.opponent ? ((room.bet / totalBet) * 100).toFixed(1) : '0.0';
-      spectatorContainer.innerHTML = `<div class="spectator-overlay"><div class="spectator-card">
-        <h2>👁 Комната #${room.id}</h2>
-        <div class="spec-bet-row">
-          <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span> ${room.creator.name}</div>
-          <span>${room.bet}</span>
-          <span>Билеты: 1-${room.bet}</span>
-          <span style="color:#f0b34b;">${creatorPercent}%</span>
-        </div>
-        ${room.opponent ? `<div class="spec-bet-row">
-          <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span> ${room.opponent.name}</div>
-          <span>${room.bet}</span>
-          <span>Билеты: ${room.bet+1}-${room.bet*2}</span>
-          <span style="color:#f0b34b;">${opponentPercent}%</span>
-        </div>` : '<div style="color:#7f8690;">Ожидание второго игрока...</div>'}
-        <button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>
-      </div></div>`;
-    }
-
-    document.getElementById('createRoomBtn').addEventListener('click',createRoom);
-    updateUI();
-  })();
-</script>
+        })();
+    </script>
 </body>
 </html>
