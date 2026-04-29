@@ -6,18 +6,20 @@
   <title>case-wins · Классический раунд & 1 на 1</title>
   <style>
     :root {
-      --bg: #050706;
-      --panel: #0c0f0d;
-      --card: #121714;
-      --gold: #1a3a2a;
-      --accent: #151d18;
-      --text: #a0a8a0;
-      --dark-green: #0f2a1a;
-      --mid-green: #1e4d2e;
-      --light-gray: #7a827a;
-      --surface: #141c17;
-      --border: #1f2a22;
-      --muted-green: #1a3322;
+      --bg: #0f1215;
+      --panel: #171b20;
+      --card: #1e2228;
+      --gold: #5a7d6e;
+      --accent: #2a3038;
+      --text: #c0c5cd;
+      --dark-green: #3d5a4f;
+      --mid-green: #4e6d5f;
+      --light-gray: #9da3ad;
+      --surface: #21252c;
+      --border: #323840;
+      --muted-green: #415b4e;
+      --soft-bg: #1a1e24;
+      --timer-bg: #262b33;
     }
     * {
       margin: 0;
@@ -64,7 +66,7 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
+      background: linear-gradient(135deg, #4a6b5c, #3a5446);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -86,13 +88,13 @@
     }
     .nav-btn:hover {
       border-color: var(--mid-green);
-      background: #18221c;
+      background: #262c33;
     }
     .nav-btn.active {
-      background: var(--dark-green);
-      color: #d0d8d0;
+      background: #2e3d36;
+      color: #e0e5e8;
       border-color: var(--mid-green);
-      box-shadow: 0 0 10px rgba(30, 77, 46, 0.3);
+      box-shadow: 0 0 10px rgba(78, 109, 95, 0.25);
     }
     .main-area {
       flex: 1;
@@ -125,14 +127,14 @@
       text-align: center;
       font-size: 20px;
       font-weight: 800;
-      color: #b0b8b0;
-      text-shadow: 0 0 6px rgba(26, 58, 42, 0.4);
+      color: #cdd3d8;
+      text-shadow: 0 0 6px rgba(90, 125, 110, 0.3);
     }
     .place-bet-btn {
       width: 100%;
-      background: linear-gradient(135deg, #1a3a2a, #0f2a1a);
+      background: linear-gradient(135deg, #3d5a4f, #2f423b);
       border: 2px solid var(--border);
-      color: #d0d8d0;
+      color: #e0e5e8;
       font-weight: 800;
       padding: 13px;
       border-radius: 25px;
@@ -144,12 +146,12 @@
     }
     .place-bet-btn:hover {
       border-color: var(--mid-green);
-      box-shadow: 0 0 16px rgba(26, 58, 42, 0.5);
+      box-shadow: 0 0 16px rgba(78, 109, 95, 0.4);
       transform: translateY(-1px);
     }
     .place-bet-btn:disabled {
-      background: #1e2420;
-      border-color: #2a302c;
+      background: #2a2f34;
+      border-color: #3a4048;
       color: #666;
       cursor: not-allowed;
       box-shadow: none;
@@ -190,15 +192,33 @@
       z-index: 6;
       transition: width 1s linear;
       border-radius: 2px;
-      box-shadow: 0 0 6px rgba(30, 77, 46, 0.5);
+      box-shadow: 0 0 6px rgba(78, 109, 95, 0.5);
+    }
+    .timer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: var(--timer-bg);
+      border-radius: 16px;
+      padding: 8px 16px;
+      margin: 0 auto;
+      width: fit-content;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .timer-digits {
+      font-weight: 800;
+      font-size: 20px;
+      color: #c8d0d6;
+      letter-spacing: 1px;
     }
     .timer-progress-container {
-      width: 66%;
+      width: 100%;
       height: 8px;
-      background: var(--surface);
+      background: #1a1f25;
       border-radius: 10px;
       overflow: hidden;
-      margin: 0 auto;
       border: 1px solid var(--border);
     }
     .timer-progress-fill {
@@ -214,7 +234,7 @@
       top: 8px;
       transform: translateX(-50%);
       font-size: 18px;
-      color: #b0b8b0;
+      color: #cdd3d8;
       z-index: 5;
       pointer-events: none;
       filter: drop-shadow(0 0 4px rgba(0,0,0,0.8));
@@ -261,7 +281,7 @@
       top: 50%;
       transform: translate(-50%, -50%);
       z-index: 3;
-      box-shadow: 0 0 20px rgba(26, 58, 42, 0.6);
+      box-shadow: 0 0 20px rgba(78, 109, 95, 0.5);
     }
     .bets-table {
       display: flex;
@@ -320,7 +340,7 @@
     .btn {
       background: var(--mid-green);
       border: 1px solid var(--border);
-      color: #d0d8d0;
+      color: #e0e5e8;
       font-weight: 700;
       padding: 8px 16px;
       border-radius: 20px;
@@ -330,16 +350,16 @@
     }
     .btn:hover {
       background: var(--dark-green);
-      box-shadow: 0 0 8px rgba(26, 58, 42, 0.4);
+      box-shadow: 0 0 8px rgba(78, 109, 95, 0.35);
     }
     .btn:disabled {
-      background: #1e2420;
-      border-color: #2a302c;
+      background: #2a2f34;
+      border-color: #3a4048;
       color: #666;
       cursor: not-allowed;
     }
     .btn-secondary {
-      background: #1a221e;
+      background: #252b32;
       border-color: var(--border);
     }
     .inventory-panel {
@@ -377,7 +397,7 @@
       border: 1px solid var(--border);
       padding: 10px;
       border-radius: 15px;
-      color: #d0d8d0;
+      color: #e0e5e8;
       text-align: center;
       font-weight: bold;
       font-size: 14px;
@@ -386,13 +406,21 @@
       outline: none;
       border-color: var(--mid-green);
     }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
     .spectator-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0,0,0,0.92);
+      background: rgba(0,0,0,0.9);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -407,7 +435,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 0 40px rgba(26, 58, 42, 0.3);
+      box-shadow: 0 0 40px rgba(78, 109, 95, 0.3);
     }
     .spec-bet-row {
       display: flex;
@@ -436,7 +464,7 @@
       <span class="avatar-circle" id="profileAvatar">🐺</span>
       <div>
         <div id="profileName" style="font-weight: 600;">PlayerOne</div>
-        <div style="color: #7a827a; font-size: 12px;"><span class="online-dot"></span>Онлайн</div>
+        <div style="color: #8a929a; font-size: 12px;"><span class="online-dot"></span>Онлайн</div>
       </div>
     </div>
     <button class="nav-btn active">🏠 Главная</button>
@@ -450,8 +478,11 @@
       <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
       <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
       <div class="items-row" id="classicItemsRow"></div>
-      <div class="timer-progress-container" id="classicTimerProgressContainer">
-        <div class="timer-progress-fill" id="classicTimerProgressFill" style="width: 100%;"></div>
+      <div class="timer-container" id="classicTimerContainer">
+        <div class="timer-digits" id="classicTimerDigits">3</div>
+        <div class="timer-progress-container">
+          <div class="timer-progress-fill" id="classicTimerProgressFill" style="width: 100%;"></div>
+        </div>
       </div>
       <div class="roulette-wrapper" id="rouletteWrapper">
         <div class="timer-bar" id="timerBar" style="width: 100%;"></div>
@@ -464,19 +495,19 @@
     </div>
     <div class="onevsone-section">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h3 style="color:#b0b8b0;">🎲 ИГРА 1 НА 1</h3>
+        <h3 style="color:#cdd3d8;">🎲 ИГРА 1 НА 1</h3>
         <button class="btn" id="createRoomBtn">+ Создать</button>
       </div>
       <div class="rooms-scroll" id="roomsList"></div>
     </div>
   </div>
   <div class="inventory-panel">
-    <h3 style="color:#b0b8b0;">🎒 Инвентарь</h3>
+    <h3 style="color:#cdd3d8;">🎒 Инвентарь</h3>
     <div class="inv-grid">
       <div class="inv-slot">🔹</div><div class="inv-slot">🔹</div>
       <div class="inv-slot">🔹</div><div class="inv-slot">🔹</div>
     </div>
-    <div style="color:var(--light-gray);">💰 Скины: <span style="color:#b0b8b0;">0</span></div>
+    <div style="color:var(--light-gray);">💰 Скины: <span style="color:#cdd3d8;">0</span></div>
     <button class="btn" style="width:100%;">🛒 Купить</button>
     <button class="btn btn-secondary" style="width:100%;">💸 Продать</button>
     <input type="number" class="bet-input-inv" id="classicBetInput" value="10" min="1" placeholder="Сумма ставки">
@@ -508,6 +539,7 @@
     const tickerViewport = document.getElementById('tickerViewport');
     const rouletteArrowTop = document.getElementById('rouletteArrowTop');
     const timerBar = document.getElementById('timerBar');
+    const classicTimerDigits = document.getElementById('classicTimerDigits');
     const classicTimerProgressFill = document.getElementById('classicTimerProgressFill');
     const betsTable = document.getElementById('betsTable');
     const roomsList = document.getElementById('roomsList');
@@ -547,12 +579,12 @@
           <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> ${b.user.name}</div>
           <span style="color:var(--light-gray);">${b.amount}</span>
           <span style="color:var(--light-gray);">Билеты: ${b.amount}</span>
-          <span style="color:#b0b8b0;font-weight:700;">${percent}%</span>
+          <span style="color:#cdd3d8;font-weight:700;">${percent}%</span>
         </div>`;
       }).join('');
     }
 
-    function animateRoulette(trackElement, viewportElement, arrowElement, barElement, tickets, winnerAvatar, callback, progressFillElement) {
+    function animateRoulette(trackElement, viewportElement, arrowElement, barElement, tickets, winnerAvatar, callback, progressFillElement, digitsElement) {
       const animId = trackElement.id;
       if (state.roomAnimations[animId]) {
         cancelAnimationFrame(state.roomAnimations[animId]);
@@ -618,6 +650,7 @@
       if (state.classicBets.length < 2) return;
       clearClassicInterval();
       state.classicTimer = 3;
+      classicTimerDigits.textContent = state.classicTimer;
       classicTimerProgressFill.style.transition = 'none';
       classicTimerProgressFill.style.width = '100%';
       setTimeout(() => {
@@ -626,6 +659,7 @@
       }, 20);
       state.classicInterval = setInterval(() => {
         state.classicTimer--;
+        classicTimerDigits.textContent = state.classicTimer;
         if (state.classicTimer <= 0) {
           clearClassicInterval();
           runClassicGame();
@@ -654,12 +688,13 @@
         timerBar.style.transition = 'none';
         classicTimerProgressFill.style.transition = 'none';
         classicTimerProgressFill.style.width = '100%';
+        classicTimerDigits.textContent = '3';
         const existingWinner = document.querySelector('#tickerViewport .winner-avatar-center');
         if (existingWinner) existingWinner.remove();
         tickerTrack.innerHTML = '';
         tickerTrack.style.transform = 'translateX(0px)';
         updateUI();
-      }, classicTimerProgressFill);
+      }, classicTimerProgressFill, classicTimerDigits);
     }
 
     function clearClassicInterval() {
@@ -696,7 +731,8 @@
         viewportId: `roomViewport${roomId}`,
         arrowId: `roomArrow${roomId}`,
         barId: `roomBar${roomId}`,
-        progressId: `roomProgress${roomId}`
+        progressId: `roomProgress${roomId}`,
+        digitsId: `roomDigits${roomId}`
       };
       state.rooms.push(room);
       updateUI();
@@ -716,7 +752,9 @@
 
     function startRoomCountdown(room) {
       clearRoomInterval(room);
+      const digitsEl = document.getElementById(room.digitsId);
       const progressFill = document.getElementById(room.progressId);
+      if (digitsEl) digitsEl.textContent = room.timer;
       if (progressFill) {
         progressFill.style.transition = 'none';
         progressFill.style.width = '100%';
@@ -727,6 +765,7 @@
       }
       room.intervalId = setInterval(() => {
         room.timer--;
+        if (digitsEl) digitsEl.textContent = room.timer;
         updateUI();
         if (room.timer <= 0) {
           clearRoomInterval(room);
@@ -762,7 +801,7 @@
               state.rooms = state.rooms.filter(r=>r.id!==room.id);
               updateUI();
             }, 5000);
-          }, null);
+          }, null, null);
         }
       }, 100);
     }
@@ -788,7 +827,7 @@
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span>
               <span style="font-weight:600;">${room.creator.name}</span>
-              <span style="color:#b0b8b0;">${room.bet}</span>
+              <span style="color:#cdd3d8;">${room.bet}</span>
               ${room.opponent ? `<span style="color:var(--light-gray);">VS</span><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span><span style="font-weight:600;">${room.opponent.name}</span>` : '<span style="color:var(--light-gray);">ожидание...</span>'}
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
@@ -797,8 +836,11 @@
               <button class="btn btn-secondary watch-btn" data-id="${room.id}">👁</button>
             </div>
           </div>
-          <div class="timer-progress-container" style="width:50%;margin:0 auto;">
-            <div class="timer-progress-fill" id="${room.progressId}" style="width:100%;"></div>
+          <div class="timer-container" style="width:fit-content;margin:0 auto;">
+            <div class="timer-digits" id="${room.digitsId}">${room.timer}</div>
+            <div class="timer-progress-container" style="width:120px;">
+              <div class="timer-progress-fill" id="${room.progressId}" style="width:100%;"></div>
+            </div>
           </div>
           <div class="roulette-wrapper" style="height:55px;">
             <div class="timer-bar" id="${room.barId}" style="width:100%;${room.status==='spinning'?'display:block;':'display:none;'}"></div>
@@ -821,18 +863,18 @@
       const creatorPercent = ((room.bet / totalBet) * 100).toFixed(1);
       const opponentPercent = room.opponent ? ((room.bet / totalBet) * 100).toFixed(1) : '0.0';
       spectatorContainer.innerHTML = `<div class="spectator-overlay"><div class="spectator-card">
-        <h2 style="color:#b0b8b0;">👁 Комната #${room.id}</h2>
+        <h2 style="color:#cdd3d8;">👁 Комната #${room.id}</h2>
         <div class="spec-bet-row">
           <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span> <span style="font-weight:600;">${room.creator.name}</span></div>
           <span style="color:var(--light-gray);">${room.bet}</span>
           <span style="color:var(--light-gray);">Билеты: 1-${room.bet}</span>
-          <span style="color:#b0b8b0;font-weight:700;">${creatorPercent}%</span>
+          <span style="color:#cdd3d8;font-weight:700;">${creatorPercent}%</span>
         </div>
         ${room.opponent ? `<div class="spec-bet-row">
           <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span> <span style="font-weight:600;">${room.opponent.name}</span></div>
           <span style="color:var(--light-gray);">${room.bet}</span>
           <span style="color:var(--light-gray);">Билеты: ${room.bet+1}-${room.bet*2}</span>
-          <span style="color:#b0b8b0;font-weight:700;">${opponentPercent}%</span>
+          <span style="color:#cdd3d8;font-weight:700;">${opponentPercent}%</span>
         </div>` : '<div style="color:var(--light-gray);text-align:center;padding:12px;">Ожидание второго игрока...</div>'}
         <button class="btn" onclick="this.parentElement.parentElement.remove()" style="width:100%;">Закрыть</button>
       </div></div>`;
