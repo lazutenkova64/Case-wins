@@ -289,6 +289,8 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .bet-row {
             display: flex;
@@ -318,6 +320,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
         }
         .room-card {
             background: #1a1f2b;
@@ -600,12 +604,10 @@
 
             const state = {
                 user: null,
-                sessionToken: null,
                 classicBets: [],
                 classicTimer: 3,
                 classicInterval: null,
                 classicSpinning: false,
-                tickerAnimationId: null,
                 rooms: [],
                 nextRoomId: 1,
                 roomAnimations: {},
@@ -621,7 +623,6 @@
             const classicTimerDisplay = document.getElementById('classicTimerDisplay');
             const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
             const classicBetInput = document.getElementById('classicBetInput');
-            const classicItemsRow = document.getElementById('classicItemsRow');
             const tickerTrack = document.getElementById('tickerTrack');
             const tickerViewport = document.getElementById('tickerViewport');
             const rouletteArrowTop = document.getElementById('rouletteArrowTop');
@@ -635,17 +636,15 @@
             const profileModalContainer = document.getElementById('profileModalContainer');
 
             function generateSessionToken() {
-                return 'session_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
+                return 's_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
             }
 
             function totalBank() { return state.classicBets.reduce((s, b) => s + b.amount, 0); }
 
             function buildTicketArray(bets) {
                 const tickets = [];
-                bets.forEach(b => {
-                    for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar);
-                });
-                if (tickets.length === 0) tickets.push('❓');
+                bets.forEach(b => { for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar); });
+                if (!tickets.length) tickets.push('❓');
                 return tickets;
             }
 
@@ -653,19 +652,10 @@
                 const maxTime = 3;
                 const percent = Math.max(0, (seconds / maxTime) * 100);
                 timerStripFill.style.width = percent + '%';
-                if (percent <= 0) {
-                    timerStripFill.style.borderRadius = '14px';
-                } else if (percent < 100) {
-                    timerStripFill.style.borderRadius = '14px 0 0 14px';
-                } else {
-                    timerStripFill.style.borderRadius = '14px';
-                }
             }
 
             function updateBalanceDisplay() {
-                if (state.user) {
-                    sidebarBalance.textContent = `💰 ${state.user.balance}`;
-                }
+                if (state.user) sidebarBalance.textContent = `💰 ${state.user.balance}`;
             }
 
             function updateUI() {
@@ -682,42 +672,28 @@
                 }
             }
 
-            function renderItemsRow() {
-                classicItemsRow.innerHTML = '';
-            }
-
             function renderBetsTable() {
                 const totalBankValue = totalBank() || 1;
-                const aggregatedBets = [];
                 const userBetsMap = new Map();
-
                 state.classicBets.forEach(b => {
                     const key = b.user.id;
                     if (userBetsMap.has(key)) {
-                        const existing = userBetsMap.get(key);
-                        existing.totalAmount += b.amount;
+                        userBetsMap.get(key).totalAmount += b.amount;
                     } else {
-                        userBetsMap.set(key, {
-                            user: b.user,
-                            totalAmount: b.amount
-                        });
+                        userBetsMap.set(key, { user: b.user, totalAmount: b.amount });
                     }
                 });
-
-                userBetsMap.forEach((value) => {
-                    aggregatedBets.push(value);
-                });
+                const aggregatedBets = Array.from(userBetsMap.values());
 
                 betsTable.innerHTML = aggregatedBets.map(b => {
                     const percent = ((b.totalAmount / totalBankValue) * 100).toFixed(1);
                     const isCurrentUser = state.user && b.user.id === state.user.id;
-                    const rowStyle = isCurrentUser ? 'border: 1px solid #f0b34b;' : '';
-                    return `<div class="bet-row" style="${rowStyle}">
+                    return `<div class="bet-row" style="${isCurrentUser ? 'border: 1px solid #f0b34b;' : ''}">
                         <div class="bet-user">
                             <span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> 
                             <span>${b.user.username}${isCurrentUser ? ' (Вы)' : ''}</span>
                         </div>
-                        <span>${b.totalAmount} монет</span>
+                        <span>${b.totalAmount}💰</span>
                         <span>Билеты: ${b.totalAmount}</span>
                         <span style="color:#f0b34b;font-weight:bold;">${percent}%</span>
                     </div>`;
@@ -725,38 +701,25 @@
             }
 
             function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, callback) {
-                if (state.roomAnimations[trackElement.id]) {
-                    cancelAnimationFrame(state.roomAnimations[trackElement.id]);
-                }
+                if (state.roomAnimations[trackElement.id]) cancelAnimationFrame(state.roomAnimations[trackElement.id]);
                 trackElement.innerHTML = '';
-                const repeatedTickets = [];
-                for (let i = 0; i < 40; i++) {
-                    tickets.forEach(av => repeatedTickets.push(av));
-                }
-                repeatedTickets.forEach(av => {
+                const allTickets = [];
+                for (let i = 0; i < 40; i++) tickets.forEach(av => allTickets.push(av));
+                allTickets.forEach(av => {
                     const el = document.createElement('div');
                     el.className = 'ticket-avatar-small';
                     el.textContent = av;
                     trackElement.appendChild(el);
                 });
-                let pos = 0;
-                let speed = 0.5;
+                let pos = 0, speed = 0.5;
                 const startTime = Date.now();
-                const phase1 = 2000;
-                const phase2 = 5000;
-                const phase3 = 15000;
-                const maxSpeed = 4.5;
 
                 function step() {
                     const elapsed = Date.now() - startTime;
-                    if (elapsed < phase1) {
-                        speed = 0.5 + (elapsed / phase1) * (maxSpeed - 0.5);
-                    } else if (elapsed < phase2) {
-                        speed = maxSpeed;
-                    } else if (elapsed < phase3) {
-                        const decelProgress = (elapsed - phase2) / (phase3 - phase2);
-                        speed = maxSpeed * (1 - decelProgress);
-                    } else {
+                    if (elapsed < 2000) speed = 0.5 + (elapsed / 2000) * 4;
+                    else if (elapsed < 5000) speed = 4.5;
+                    else if (elapsed < 15000) speed = 4.5 * (1 - (elapsed - 5000) / 10000);
+                    else {
                         const winnerEl = document.createElement('div');
                         winnerEl.className = 'winner-avatar-center';
                         winnerEl.textContent = winnerAvatar;
@@ -773,21 +736,23 @@
             }
 
             async function placeBetClassic() {
-                if (state.classicSpinning) return;
-                if (!state.user) return;
+                if (state.classicSpinning || !state.user) return;
                 const amt = parseInt(classicBetInput.value, 10);
-                if (isNaN(amt) || amt <= 0) return;
+                if (isNaN(amt) || amt <= 0) return alert('Введите сумму ставки');
                 if (state.user.balance < amt) return alert('Недостаточно монет');
 
+                classicPlaceBetBtn.disabled = true;
                 const newBalance = state.user.balance - amt;
+                
                 const { error: updateError } = await supabase
                     .from('users')
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
 
                 if (updateError) {
-                    console.error('Ошибка обновления баланса:', updateError);
-                    return;
+                    console.error('Ошибка баланса:', updateError);
+                    classicPlaceBetBtn.disabled = false;
+                    return alert('Ошибка обновления баланса');
                 }
 
                 const { data: betData, error: betError } = await supabase
@@ -798,132 +763,37 @@
                         user_avatar: state.user.avatar,
                         amount: amt,
                         game_type: 'classic',
-                        room_id: null,
                         status: 'active'
                     }])
                     .select();
 
                 if (betError) {
-                    console.error('Ошибка при размещении ставки:', betError);
+                    console.error('Ошибка ставки:', betError);
                     await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
-                    return;
+                    classicPlaceBetBtn.disabled = false;
+                    return alert('Ошибка размещения ставки');
                 }
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                state.classicBets.push({
-                    id: betData[0].id,
-                    user: {
-                        id: state.user.id,
-                        username: state.user.username,
-                        avatar: state.user.avatar
-                    },
-                    amount: amt
-                });
+                if (betData && betData[0]) {
+                    state.classicBets.push({
+                        id: betData[0].id,
+                        user: {
+                            id: state.user.id,
+                            username: state.user.username,
+                            avatar: state.user.avatar
+                        },
+                        amount: amt
+                    });
+                }
 
+                classicPlaceBetBtn.disabled = false;
                 updateUI();
 
                 if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
                     startClassicCountdown();
-                }
-            }
-
-            async function loadActiveClassicBets() {
-                const { data: activeBets, error } = await supabase
-                    .from('bets')
-                    .select('*')
-                    .eq('game_type', 'classic')
-                    .eq('status', 'active');
-
-                if (error) {
-                    console.error('Ошибка загрузки активных ставок:', error);
-                    return;
-                }
-
-                if (activeBets && activeBets.length > 0) {
-                    state.classicBets = activeBets.map(bet => ({
-                        id: bet.id,
-                        user: {
-                            id: bet.user_id,
-                            username: bet.user_name,
-                            avatar: bet.user_avatar
-                        },
-                        amount: bet.amount
-                    }));
-                    updateUI();
-                    if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
-                        startClassicCountdown();
-                    }
-                }
-            }
-
-            async function loadActiveRooms() {
-                const { data: activeRoomBets, error } = await supabase
-                    .from('bets')
-                    .select('*')
-                    .eq('game_type', '1v1')
-                    .eq('status', 'active');
-
-                if (error) {
-                    console.error('Ошибка загрузки комнат:', error);
-                    return;
-                }
-
-                if (activeRoomBets && activeRoomBets.length > 0) {
-                    const roomMap = new Map();
-
-                    activeRoomBets.forEach(bet => {
-                        const roomId = bet.room_id;
-                        if (!roomMap.has(roomId)) {
-                            roomMap.set(roomId, {
-                                id: roomId,
-                                creator: null,
-                                opponent: null,
-                                bet: bet.amount,
-                                status: 'waiting',
-                                timer: 3,
-                                intervalId: null,
-                                winner: null,
-                                trackId: `roomTrack${roomId}`,
-                                viewportId: `roomViewport${roomId}`,
-                                arrowId: `roomArrow${roomId}`,
-                                arrowAboveId: `roomArrowAbove${roomId}`,
-                                betIds: []
-                            });
-                        }
-
-                        const room = roomMap.get(roomId);
-                        room.betIds.push(bet.id);
-
-                        if (!room.creator) {
-                            room.creator = {
-                                id: bet.user_id,
-                                username: bet.user_name,
-                                avatar: bet.user_avatar
-                            };
-                        } else if (room.creator.id !== bet.user_id && !room.opponent) {
-                            room.opponent = {
-                                id: bet.user_id,
-                                username: bet.user_name,
-                                avatar: bet.user_avatar
-                            };
-                            room.status = 'countdown';
-                        }
-                    });
-
-                    state.rooms = [];
-                    roomMap.forEach((room, roomId) => {
-                        state.rooms.push(room);
-                        if (state.nextRoomId <= roomId) {
-                            state.nextRoomId = roomId + 1;
-                        }
-                        if (room.opponent && room.status === 'countdown') {
-                            startRoomCountdown(room);
-                        }
-                    });
-
-                    updateUI();
                 }
             }
 
@@ -962,16 +832,14 @@
                     await supabase
                         .from('bets')
                         .update({ status: 'completed', is_winner: false })
-                        .eq('game_type', 'classic')
-                        .eq('status', 'active');
+                        .in('id', state.classicBets.map(b => b.id));
 
-                    const winnerBetIds = state.classicBets.filter(b => b.user.id === winner.id).map(b => b.id);
-
-                    if (winnerBetIds.length > 0) {
+                    const winnerIds = state.classicBets.filter(b => b.user.id === winner.id).map(b => b.id);
+                    if (winnerIds.length) {
                         await supabase
                             .from('bets')
                             .update({ is_winner: true, won_amount: bank })
-                            .in('id', winnerBetIds);
+                            .in('id', winnerIds);
                     }
 
                     if (winner.id === state.user.id) {
@@ -988,10 +856,11 @@
                     updateTimerStrip(3);
                     rouletteArrowTop.style.display = 'none';
                     rouletteArrowAbove.style.display = 'none';
-                    const existingWinner = document.querySelector('#tickerViewport .winner-avatar-center');
-                    if (existingWinner) existingWinner.remove();
+                    const ew = document.querySelector('#tickerViewport .winner-avatar-center');
+                    if (ew) ew.remove();
                     tickerTrack.innerHTML = '';
                     tickerTrack.style.transform = 'translateX(0px)';
+                    updateBalanceDisplay();
                     updateUI();
                 });
             }
@@ -1006,8 +875,7 @@
                 if (!state.user) return;
                 const bet = parseInt(classicBetInput.value, 10);
                 if (!bet || bet <= 0 || state.user.balance < bet) {
-                    if (state.user.balance < bet) alert('Недостаточно средств');
-                    return;
+                    return alert(state.user.balance < bet ? 'Недостаточно средств' : 'Введите сумму ставки');
                 }
 
                 const newBalance = state.user.balance - bet;
@@ -1016,16 +884,12 @@
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
 
-                if (updateError) {
-                    console.error('Ошибка обновления баланса:', updateError);
-                    return;
-                }
+                if (updateError) return alert('Ошибка обновления баланса');
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                const roomId = state.nextRoomId++;
-
+                const roomId = Date.now();
                 const { data: betData, error: betError } = await supabase
                     .from('bets')
                     .insert([{
@@ -1040,11 +904,10 @@
                     .select();
 
                 if (betError) {
-                    console.error('Ошибка создания комнаты:', betError);
                     await supabase.from('users').update({ balance: state.user.balance + bet }).eq('id', state.user.id);
                     state.user.balance += bet;
                     updateBalanceDisplay();
-                    return;
+                    return alert('Ошибка создания комнаты');
                 }
 
                 state.rooms.push({
@@ -1056,13 +919,12 @@
                     timer: 3,
                     intervalId: null,
                     winner: null,
-                    trackId: `roomTrack${roomId}`,
-                    viewportId: `roomViewport${roomId}`,
-                    arrowId: `roomArrow${roomId}`,
-                    arrowAboveId: `roomArrowAbove${roomId}`,
+                    trackId: `rt${roomId}`,
+                    viewportId: `rv${roomId}`,
+                    arrowId: `ra${roomId}`,
+                    arrowAboveId: `raa${roomId}`,
                     betIds: betData ? [betData[0].id] : []
                 });
-
                 updateUI();
             }
 
@@ -1077,11 +939,7 @@
                     .from('users')
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
-
-                if (updateError) {
-                    console.error('Ошибка обновления баланса:', updateError);
-                    return;
-                }
+                if (updateError) return alert('Ошибка баланса');
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
@@ -1100,11 +958,10 @@
                     .select();
 
                 if (betError) {
-                    console.error('Ошибка присоединения:', betError);
                     await supabase.from('users').update({ balance: state.user.balance + room.bet }).eq('id', state.user.id);
                     state.user.balance += room.bet;
                     updateBalanceDisplay();
-                    return;
+                    return alert('Ошибка присоединения');
                 }
 
                 room.opponent = { id: state.user.id, username: state.user.username, avatar: state.user.avatar };
@@ -1154,23 +1011,20 @@
                             await supabase
                                 .from('bets')
                                 .update({ status: 'completed', is_winner: false })
-                                .eq('room_id', room.id)
-                                .eq('game_type', '1v1')
-                                .eq('status', 'active');
+                                .in('id', room.betIds);
 
                             await supabase
                                 .from('bets')
                                 .update({ is_winner: true, won_amount: room.bet * 2 })
                                 .eq('room_id', room.id)
-                                .eq('user_id', winner.id)
-                                .eq('game_type', '1v1')
-                                .eq('status', 'completed');
+                                .eq('user_id', winner.id);
 
                             if (room.winner.id === state.user.id) {
                                 const newBalance = state.user.balance + room.bet * 2;
                                 await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                                 state.user.balance = newBalance;
                             }
+                            updateBalanceDisplay();
                             updateUI();
                             setTimeout(() => {
                                 if (arrowAboveEl) arrowAboveEl.style.display = 'none';
@@ -1185,16 +1039,10 @@
             function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId); room.intervalId = null; } }
 
             function renderRooms() {
-                roomsList.innerHTML = '';
-                if (!state.rooms.length) {
-                    roomsList.innerHTML = '<div style="color:#7f8690;">Нет комнат</div>';
-                    return;
-                }
-
+                roomsList.innerHTML = state.rooms.length ? '' : '<div style="color:#7f8690;">Нет комнат</div>';
                 state.rooms.forEach(room => {
                     const d = document.createElement('div');
                     d.className = 'room-card';
-                    d.dataset.roomId = room.id;
                     const isCreator = state.user && room.creator.id === state.user.id;
                     const isInitiator = state.user && room.opponent && room.opponent.id === state.user.id;
                     const canJoin = !isCreator && !isInitiator && room.status === 'waiting';
@@ -1207,11 +1055,7 @@
                                 ${room.opponent ? ` VS <span>${room.opponent.avatar}</span> <strong>${room.opponent.username}${isInitiator ? ' (Вы)' : ''}</strong>` : ''}
                             </div>
                             <div style="display:flex;gap:6px;align-items:center;">
-                                <span style="font-size:12px;">${
-                                    room.status === 'waiting' ? '⏳ Ожидание' : 
-                                    room.status === 'countdown' ? `🔴 ${room.timer}с` : 
-                                    room.status === 'spinning' ? '🎰 Крутим...' : '✅ Завершено'
-                                }</span>
+                                <span style="font-size:12px;">${room.status === 'waiting' ? '⏳ Ожидание' : room.status === 'countdown' ? `🔴 ${room.timer}с` : room.status === 'spinning' ? '🎰 Крутим...' : '✅ Завершено'}</span>
                                 <button class="btn join-btn" data-id="${room.id}" ${!canJoin ? 'disabled' : ''}>⚔️ Играть</button>
                                 <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
                             </div>
@@ -1225,31 +1069,28 @@
                         </div>`;
                     roomsList.appendChild(d);
                 });
-
-                document.querySelectorAll('.join-btn').forEach(b => b.addEventListener('click', e => joinRoom(parseInt(e.target.dataset.id))));
+                document.querySelectorAll('.join-btn').forEach(b => b.addEventListener('click', e => joinRoom(Number(e.target.dataset.id))));
                 document.querySelectorAll('.watch-btn').forEach(b => b.addEventListener('click', e => {
-                    const room = state.rooms.find(r => r.id === parseInt(e.target.dataset.id));
+                    const room = state.rooms.find(r => r.id === Number(e.target.dataset.id));
                     if (room) openSpectator(room);
                 }));
             }
 
             function openSpectator(room) {
                 const totalBet = room.bet * 2;
-                const creatorPercent = ((room.bet / totalBet) * 100).toFixed(1);
-                const opponentPercent = room.opponent ? ((room.bet / totalBet) * 100).toFixed(1) : '0.0';
                 spectatorContainer.innerHTML = `<div class="spectator-overlay"><div class="spectator-card">
                     <h2>👁 Комната #${room.id}</h2>
                     <div class="spec-bet-row">
                         <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span> ${room.creator.username}</div>
                         <span>${room.bet}</span>
                         <span>Билеты: 1-${room.bet}</span>
-                        <span style="color:#f0b34b;">${creatorPercent}%</span>
+                        <span style="color:#f0b34b;">${((room.bet / totalBet) * 100).toFixed(1)}%</span>
                     </div>
                     ${room.opponent ? `<div class="spec-bet-row">
                         <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span> ${room.opponent.username}</div>
                         <span>${room.bet}</span>
                         <span>Билеты: ${room.bet + 1}-${room.bet * 2}</span>
-                        <span style="color:#f0b34b;">${opponentPercent}%</span>
+                        <span style="color:#f0b34b;">${((room.bet / totalBet) * 100).toFixed(1)}%</span>
                     </div>` : '<div style="color:#7f8690;">Ожидание второго игрока...</div>'}
                     <button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>
                 </div></div>`;
@@ -1262,55 +1103,44 @@
                         <div class="profile-modal-content">
                             <h2 style="text-align:center;color:#f0b34b;">👤 Профиль</h2>
                             <div style="text-align:center;">
-                                <div style="font-size:60px;margin:10px 0;" id="profileModalAvatar">${currentAvatar}</div>
+                                <div style="font-size:60px;margin:10px 0;">${currentAvatar}</div>
                                 <h3>${state.user ? state.user.username : ''}</h3>
                                 <p style="color:#3acf6e;">💰 Баланс: ${state.user ? state.user.balance : 0}</p>
                             </div>
-                            <div>
-                                <h4 style="margin-bottom:10px;">Выберите аватар:</h4>
-                                <div class="avatar-selector" id="avatarSelector">
+                            <div><h4 style="margin-bottom:10px;">Выберите аватар:</h4>
+                                <div class="avatar-selector">
                                     ${AVAILABLE_AVATARS.map(av => `<div class="avatar-option ${av === currentAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</div>`).join('')}
                                 </div>
                             </div>
-                            <button class="btn" id="saveAvatarBtn" style="padding:12px;font-size:14px;">💾 Сохранить аватар</button>
-                            <button class="btn" id="logoutProfileBtn" style="padding:12px;font-size:14px;background:#ff4444;color:white;">🚪 Выйти из аккаунта</button>
-                            <button class="btn" id="closeProfileBtn" style="padding:12px;font-size:14px;background:#4a5068;">✖ Закрыть</button>
+                            <button class="btn" id="saveAvatarBtn" style="padding:12px;">💾 Сохранить</button>
+                            <button class="btn" id="logoutProfileBtn" style="padding:12px;background:#ff4444;color:white;">🚪 Выйти</button>
+                            <button class="btn" id="closeProfileBtn" style="padding:12px;background:#4a5068;">✖ Закрыть</button>
                         </div>
                     </div>`;
 
-                let selectedAvatar = currentAvatar;
-
+                let selected = currentAvatar;
                 document.getElementById('avatarSelector').addEventListener('click', e => {
-                    const avatarOption = e.target.closest('.avatar-option');
-                    if (avatarOption) {
+                    const opt = e.target.closest('.avatar-option');
+                    if (opt) {
                         document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                        avatarOption.classList.add('selected');
-                        selectedAvatar = avatarOption.dataset.avatar;
-                        document.getElementById('profileModalAvatar').textContent = selectedAvatar;
+                        opt.classList.add('selected');
+                        selected = opt.dataset.avatar;
                     }
                 });
-
                 document.getElementById('saveAvatarBtn').addEventListener('click', async () => {
-                    if (state.user && selectedAvatar !== state.user.avatar) {
-                        const { error } = await supabase.from('users').update({ avatar: selectedAvatar }).eq('id', state.user.id);
-                        if (!error) {
-                            state.user.avatar = selectedAvatar;
-                            updateUI();
-                            profileModalContainer.innerHTML = '';
-                            showProfileModal();
-                        } else {
-                            alert('Ошибка сохранения аватара');
-                        }
+                    if (state.user && selected !== state.user.avatar) {
+                        await supabase.from('users').update({ avatar: selected }).eq('id', state.user.id);
+                        state.user.avatar = selected;
+                        updateUI();
                     }
+                    profileModalContainer.innerHTML = '';
                 });
-
                 document.getElementById('logoutProfileBtn').addEventListener('click', () => {
                     localStorage.removeItem('casewins_session');
                     if (state.classicChannel) supabase.removeChannel(state.classicChannel);
                     if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
                     if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
                     state.user = null;
-                    state.sessionToken = null;
                     state.classicBets = [];
                     state.rooms = [];
                     state.classicSpinning = false;
@@ -1319,120 +1149,133 @@
                     mainApp.style.display = 'none';
                     showAuthForm();
                 });
-
                 document.getElementById('closeProfileBtn').addEventListener('click', () => { profileModalContainer.innerHTML = ''; });
                 document.getElementById('profileModalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) profileModalContainer.innerHTML = ''; });
             }
 
             async function registerByNickname(nickname, password) {
-                const newUserId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); });
+                const { data: exist } = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
+                if (exist) return { success: false, message: 'Никнейм уже занят' };
 
-                const { data: existingCheck } = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
-                if (existingCheck) return { success: false, message: 'Никнейм уже занят' };
+                const newId = crypto.randomUUID();
+                const { error: ue } = await supabase.from('users').insert([{ id: newId, username: nickname, balance: 1000, avatar: '🐺' }]);
+                if (ue) return { success: false, message: 'Ошибка: ' + ue.message };
 
-                const { error: insertUserError } = await supabase.from('users').insert([{ id: newUserId, username: nickname, balance: 1000, avatar: '🐺' }]);
-                if (insertUserError) {
-                    if (insertUserError.message.includes('duplicate')) return { success: false, message: 'Ошибка: пользователь уже существует' };
-                    return { success: false, message: 'Ошибка создания пользователя: ' + insertUserError.message };
+                const { error: ne } = await supabase.from('user_nicknames').insert([{ user_id: newId, nickname, password_hash: password }]);
+                if (ne) {
+                    await supabase.from('users').delete().eq('id', newId);
+                    return { success: false, message: 'Ошибка: ' + ne.message };
                 }
-
-                const { error: insertNickError } = await supabase.from('user_nicknames').insert([{ user_id: newUserId, nickname, password_hash: password }]);
-                if (insertNickError) {
-                    await supabase.from('users').delete().eq('id', newUserId);
-                    if (insertNickError.message.includes('duplicate')) return { success: false, message: 'Никнейм уже занят' };
-                    return { success: false, message: 'Ошибка сохранения: ' + insertNickError.message };
-                }
-
-                return { success: true, user: { id: newUserId, username: nickname, balance: 1000, avatar: '🐺' } };
+                return { success: true, user: { id: newId, username: nickname, balance: 1000, avatar: '🐺' } };
             }
 
             async function loginByNickname(nickname, password) {
-                const { data: nickData, error: nickError } = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
-                if (nickError || !nickData) return { success: false, message: 'Неверный никнейм или пароль' };
-                if (nickData.password_hash !== password) return { success: false, message: 'Неверный пароль' };
+                const { data: nick } = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
+                if (!nick || nick.password_hash !== password) return { success: false, message: 'Неверный никнейм или пароль' };
 
-                const { data: userData, error: userError } = await supabase.from('users').select('*').eq('id', nickData.user_id).single();
-                if (userError || !userData) return { success: false, message: 'Пользователь не найден' };
+                const { data: user } = await supabase.from('users').select('*').eq('id', nick.user_id).single();
+                if (!user) return { success: false, message: 'Пользователь не найден' };
 
-                return { success: true, user: { id: userData.id, username: userData.username, balance: userData.balance, avatar: userData.avatar } };
+                return { success: true, user: { id: user.id, username: user.username, balance: user.balance, avatar: user.avatar } };
             }
 
             function showAuthForm() {
                 authContainer.innerHTML = `
-                    <div class="auth-overlay">
-                        <div class="auth-card">
-                            <h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>
-                            <p style="text-align:center;color:#7f8690;font-size:14px;">Регистрация и вход по никнейму</p>
-                            <div class="auth-error" id="authError"></div>
-                            <input type="text" class="auth-input" id="authNickname" placeholder="Никнейм" autocomplete="off" maxlength="20">
-                            <input type="password" class="auth-input" id="authPassword" placeholder="Пароль" maxlength="50">
-                            <button class="btn" id="authSignUpBtn" style="padding:12px;font-size:16px;">📝 Регистрация</button>
-                            <button class="btn" id="authSignInBtn" style="padding:12px;font-size:16px;background:#4a5068;">🔑 Войти</button>
-                        </div>
-                    </div>`;
+                    <div class="auth-overlay"><div class="auth-card">
+                        <h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>
+                        <p style="text-align:center;color:#7f8690;font-size:14px;">Вход по никнейму</p>
+                        <div class="auth-error" id="authError"></div>
+                        <input type="text" class="auth-input" id="authNickname" placeholder="Никнейм" autocomplete="off" maxlength="20">
+                        <input type="password" class="auth-input" id="authPassword" placeholder="Пароль" maxlength="50">
+                        <button class="btn" id="authSignUpBtn" style="padding:12px;font-size:16px;">📝 Регистрация</button>
+                        <button class="btn" id="authSignInBtn" style="padding:12px;font-size:16px;background:#4a5068;">🔑 Войти</button>
+                    </div></div>`;
 
-                const errorDiv = document.getElementById('authError');
-                const showError = (msg) => { errorDiv.textContent = msg; errorDiv.classList.add('show'); setTimeout(() => errorDiv.classList.remove('show'), 3000); };
+                const errDiv = document.getElementById('authError');
+                const showErr = (m) => { errDiv.textContent = m; errDiv.classList.add('show'); setTimeout(() => errDiv.classList.remove('show'), 3000); };
 
-                document.getElementById('authSignUpBtn').addEventListener('click', async () => {
-                    const nickname = document.getElementById('authNickname').value.trim();
-                    const password = document.getElementById('authPassword').value;
-                    if (!nickname || !password) return showError('Заполните все поля');
-                    if (nickname.length < 3) return showError('Никнейм от 3 символов');
-                    if (password.length < 4) return showError('Пароль от 4 символов');
+                const doAuth = async (isReg) => {
+                    const nick = document.getElementById('authNickname').value.trim();
+                    const pass = document.getElementById('authPassword').value;
+                    if (!nick || !pass) return showErr('Заполните все поля');
+                    if (isReg && nick.length < 3) return showErr('Никнейм от 3 символов');
+                    if (isReg && pass.length < 4) return showErr('Пароль от 4 символов');
 
-                    const result = await registerByNickname(nickname, password);
+                    const result = isReg ? await registerByNickname(nick, pass) : await loginByNickname(nick, pass);
                     if (result.success) {
                         state.user = result.user;
-                        state.sessionToken = generateSessionToken();
-                        localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password, token: state.sessionToken }));
+                        localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password: pass }));
                         authContainer.innerHTML = '';
                         mainApp.style.display = 'flex';
-                        await initializeGameData();
-                        initRealtimeChannels();
+                        await loadGameData();
+                        initRealtime();
                         updateUI();
                     } else {
-                        showError(result.message);
+                        showErr(result.message);
+                    }
+                };
+
+                document.getElementById('authSignUpBtn').addEventListener('click', () => doAuth(true));
+                document.getElementById('authSignInBtn').addEventListener('click', () => doAuth(false));
+            }
+
+            async function loadGameData() {
+                const { data: bets } = await supabase.from('bets').select('*').eq('status', 'active');
+                if (!bets) return;
+
+                state.classicBets = [];
+                const roomMap = new Map();
+
+                bets.forEach(bet => {
+                    if (bet.game_type === 'classic') {
+                        state.classicBets.push({
+                            id: bet.id,
+                            user: { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar },
+                            amount: bet.amount
+                        });
+                    } else if (bet.game_type === '1v1') {
+                        const rid = bet.room_id;
+                        if (!roomMap.has(rid)) {
+                            roomMap.set(rid, {
+                                id: rid, bet: bet.amount, betIds: [], status: 'waiting',
+                                creator: null, opponent: null, timer: 3, intervalId: null, winner: null,
+                                trackId: `rt${rid}`, viewportId: `rv${rid}`, arrowId: `ra${rid}`, arrowAboveId: `raa${rid}`
+                            });
+                        }
+                        const room = roomMap.get(rid);
+                        room.betIds.push(bet.id);
+                        if (!room.creator) {
+                            room.creator = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
+                        } else if (!room.opponent && room.creator.id !== bet.user_id) {
+                            room.opponent = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
+                            room.status = 'countdown';
+                        }
                     }
                 });
 
-                document.getElementById('authSignInBtn').addEventListener('click', async () => {
-                    const nickname = document.getElementById('authNickname').value.trim();
-                    const password = document.getElementById('authPassword').value;
-                    if (!nickname || !password) return showError('Заполните все поля');
+                state.rooms = Array.from(roomMap.values());
+                state.nextRoomId = Math.max(1, ...state.rooms.map(r => r.id)) + 1;
 
-                    const result = await loginByNickname(nickname, password);
-                    if (result.success) {
-                        state.user = result.user;
-                        state.sessionToken = generateSessionToken();
-                        localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password, token: state.sessionToken }));
-                        authContainer.innerHTML = '';
-                        mainApp.style.display = 'flex';
-                        await initializeGameData();
-                        initRealtimeChannels();
-                        updateUI();
-                    } else {
-                        showError(result.message);
-                    }
+                state.rooms.forEach(room => {
+                    if (room.opponent && room.status === 'countdown') startRoomCountdown(room);
                 });
+
+                if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
+                    startClassicCountdown();
+                }
             }
 
-            async function initializeGameData() {
-                await loadActiveClassicBets();
-                await loadActiveRooms();
-            }
-
-            function initRealtimeChannels() {
-                if (state.classicChannel) { supabase.removeChannel(state.classicChannel); }
-                if (state.roomsChannel) { supabase.removeChannel(state.roomsChannel); }
-                if (state.balanceChannel) { supabase.removeChannel(state.balanceChannel); }
+            function initRealtime() {
+                if (state.classicChannel) supabase.removeChannel(state.classicChannel);
+                if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
+                if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
 
                 state.classicChannel = supabase
-                    .channel('classic-bets-channel')
+                    .channel('cb')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, payload => {
-                        const newBet = payload.new;
-                        if (!state.classicBets.some(b => b.id === newBet.id) && newBet.status === 'active') {
-                            state.classicBets.push({ id: newBet.id, user: { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar }, amount: newBet.amount });
+                        const b = payload.new;
+                        if (b.status === 'active' && !state.classicBets.some(x => x.id === b.id)) {
+                            state.classicBets.push({ id: b.id, user: { id: b.user_id, username: b.user_name, avatar: b.user_avatar }, amount: b.amount });
                             updateUI();
                             if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) startClassicCountdown();
                         }
@@ -1441,7 +1284,7 @@
                         if (payload.new.status === 'completed') {
                             state.classicBets = state.classicBets.filter(b => b.id !== payload.new.id);
                             updateUI();
-                            if (state.classicBets.length === 0) {
+                            if (!state.classicBets.length) {
                                 clearClassicInterval();
                                 state.classicSpinning = false;
                                 classicPlaceBetBtn.disabled = false;
@@ -1460,28 +1303,34 @@
                     .subscribe();
 
                 state.roomsChannel = supabase
-                    .channel('rooms-channel')
+                    .channel('rv')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
-                        const newBet = payload.new;
-                        const existingRoom = state.rooms.find(r => r.id === newBet.room_id);
-                        if (!existingRoom && newBet.status === 'active') {
-                            state.rooms.push({ id: newBet.room_id, creator: { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar }, opponent: null, bet: newBet.amount, status: 'waiting', timer: 3, intervalId: null, winner: null, trackId: `roomTrack${newBet.room_id}`, viewportId: `roomViewport${newBet.room_id}`, arrowId: `roomArrow${newBet.room_id}`, arrowAboveId: `roomArrowAbove${newBet.room_id}`, betIds: [newBet.id] });
-                            if (state.nextRoomId <= newBet.room_id) state.nextRoomId = newBet.room_id + 1;
+                        const b = payload.new;
+                        if (b.status !== 'active') return;
+                        const room = state.rooms.find(r => r.id === b.room_id);
+                        if (!room) {
+                            state.rooms.push({
+                                id: b.room_id, bet: b.amount, betIds: [b.id], status: 'waiting',
+                                creator: { id: b.user_id, username: b.user_name, avatar: b.user_avatar },
+                                opponent: null, timer: 3, intervalId: null, winner: null,
+                                trackId: `rt${b.room_id}`, viewportId: `rv${b.room_id}`, arrowId: `ra${b.room_id}`, arrowAboveId: `raa${b.room_id}`
+                            });
+                            state.nextRoomId = Math.max(state.nextRoomId, b.room_id + 1);
                             updateUI();
-                        } else if (existingRoom && existingRoom.status === 'waiting' && existingRoom.creator.id !== newBet.user_id) {
-                            existingRoom.opponent = { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar };
-                            existingRoom.betIds.push(newBet.id);
-                            existingRoom.status = 'countdown';
-                            existingRoom.timer = 3;
-                            startRoomCountdown(existingRoom);
+                        } else if (room.status === 'waiting' && room.creator.id !== b.user_id) {
+                            room.opponent = { id: b.user_id, username: b.user_name, avatar: b.user_avatar };
+                            room.betIds.push(b.id);
+                            room.status = 'countdown';
+                            room.timer = 3;
+                            startRoomCountdown(room);
                             updateUI();
                         }
                     })
                     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
                         if (payload.new.status === 'completed') {
-                            const roomToRemove = state.rooms.find(r => r.betIds.includes(payload.new.id));
-                            if (roomToRemove && roomToRemove.status === 'finished') {
-                                state.rooms = state.rooms.filter(r => r.id !== roomToRemove.id);
+                            const room = state.rooms.find(r => r.betIds.includes(payload.new.id));
+                            if (room && room.status === 'finished') {
+                                state.rooms = state.rooms.filter(r => r.id !== room.id);
                                 updateUI();
                             }
                         }
@@ -1490,7 +1339,7 @@
 
                 if (state.user) {
                     state.balanceChannel = supabase
-                        .channel('balance-channel-' + state.user.id)
+                        .channel('bl')
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${state.user.id}` }, payload => {
                             if (payload.new.balance !== state.user.balance) {
                                 state.user.balance = payload.new.balance;
@@ -1503,22 +1352,20 @@
 
             async function restoreSession() {
                 const saved = localStorage.getItem('casewins_session');
-                if (saved) {
-                    try {
-                        const data = JSON.parse(saved);
-                        const result = await loginByNickname(data.username, data.password);
-                        if (result.success) {
-                            state.user = result.user;
-                            state.sessionToken = data.token;
-                            mainApp.style.display = 'flex';
-                            await initializeGameData();
-                            initRealtimeChannels();
-                            updateUI();
-                            return true;
-                        }
-                    } catch (e) {}
-                    localStorage.removeItem('casewins_session');
-                }
+                if (!saved) return false;
+                try {
+                    const data = JSON.parse(saved);
+                    const result = await loginByNickname(data.username, data.password);
+                    if (result.success) {
+                        state.user = result.user;
+                        mainApp.style.display = 'flex';
+                        await loadGameData();
+                        initRealtime();
+                        updateUI();
+                        return true;
+                    }
+                } catch (e) {}
+                localStorage.removeItem('casewins_session');
                 return false;
             }
 
