@@ -114,6 +114,12 @@
             font-weight: 800;
             color: var(--gold);
         }
+        .balance-display {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #3acf6e;
+        }
         .place-bet-btn {
             width: 100%;
             background: var(--gold);
@@ -205,14 +211,28 @@
         .roulette-arrow-top {
             position: absolute;
             left: 50%;
-            top: 0px;
-            transform: translate(-50%, -120%);
+            top: -22px;
+            transform: translateX(-50%);
             font-size: 32px;
             color: #f0b34b;
-            z-index: 25;
+            z-index: 30;
             pointer-events: none;
             text-shadow: 0 0 15px black, 0 0 10px rgba(240, 179, 75, 0.9);
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.8));
+            display: none;
+        }
+        .roulette-arrow-above {
+            position: absolute;
+            left: 50%;
+            top: -22px;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: #f0b34b;
+            z-index: 30;
+            pointer-events: none;
+            text-shadow: 0 0 15px black, 0 0 10px rgba(240, 179, 75, 0.9);
+            filter: drop-shadow(0 0 8px rgba(0,0,0,0.8));
+            display: none;
         }
         .ticker-viewport {
             width: 100%;
@@ -412,19 +432,6 @@
         .winner-avatar-center {
             animation: pulse-gold 0.8s ease-in-out infinite;
         }
-        .roulette-arrow-above {
-            position: absolute;
-            left: 50%;
-            top: -22px;
-            transform: translateX(-50%);
-            font-size: 32px;
-            color: #f0b34b;
-            z-index: 30;
-            pointer-events: none;
-            text-shadow: 0 0 15px black, 0 0 10px rgba(240, 179, 75, 0.9);
-            filter: drop-shadow(0 0 8px rgba(0,0,0,0.8));
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -445,6 +452,7 @@
             <div class="classic-section" id="classicBlock">
                 <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
                 <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
+                <div class="balance-display" id="classicBalanceDisplay">💰 Баланс: 1000</div>
                 <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
                 <div class="items-row" id="classicItemsRow"></div>
                 <div class="roulette-wrapper" id="rouletteWrapper">
@@ -464,6 +472,7 @@
             <div class="onevsone-section">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <h3>🎲 1 НА 1</h3>
+                    <div class="balance-display" id="oneVsOneBalanceDisplay" style="font-size:14px;">💰 Баланс: 1000</div>
                     <button class="btn" id="createRoomBtn">+ Создать</button>
                 </div>
                 <div class="rooms-scroll" id="roomsList"></div>
@@ -503,6 +512,7 @@
             const profileAvatar = document.getElementById('profileAvatar');
             const profileName = document.getElementById('profileName');
             const classicBankDisplay = document.getElementById('classicBankDisplay');
+            const classicBalanceDisplay = document.getElementById('classicBalanceDisplay');
             const classicTimerDisplay = document.getElementById('classicTimerDisplay');
             const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
             const classicBetInput = document.getElementById('classicBetInput');
@@ -515,6 +525,7 @@
             const betsTable = document.getElementById('betsTable');
             const roomsList = document.getElementById('roomsList');
             const spectatorContainer = document.getElementById('spectatorContainer');
+            const oneVsOneBalanceDisplay = document.getElementById('oneVsOneBalanceDisplay');
 
             function totalBank() { return state.classicBets.reduce((s, b) => s + b.amount, 0); }
 
@@ -544,6 +555,8 @@
                 profileAvatar.textContent = state.user.avatar;
                 profileName.textContent = state.user.name;
                 classicBankDisplay.textContent = `Банк: ${totalBank()}`;
+                classicBalanceDisplay.textContent = `💰 Баланс: ${state.user.balance}`;
+                oneVsOneBalanceDisplay.textContent = `💰 Баланс: ${state.user.balance}`;
                 renderBetsTable();
                 renderRooms();
                 if (!state.classicSpinning && !state.classicInterval) {
@@ -609,9 +622,6 @@
                         winnerEl.textContent = winnerAvatar;
                         viewportElement.appendChild(winnerEl);
                         if (arrowElement) arrowElement.style.display = 'block';
-                        if (rouletteArrowAbove && viewportElement === tickerViewport) {
-                            rouletteArrowAbove.style.display = 'block';
-                        }
                         if (callback) setTimeout(callback, 3000);
                         return;
                     }
