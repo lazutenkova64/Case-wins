@@ -273,6 +273,17 @@
             z-index: 15;
             box-shadow: 0 0 30px rgba(240, 179, 75, 0.8), 0 0 60px rgba(240, 179, 75, 0.4);
         }
+        .winner-info {
+            text-align: center;
+            font-weight: 800;
+            color: #f0b34b;
+            font-size: 14px;
+            margin-top: 4px;
+            display: none;
+        }
+        .winner-info.show {
+            display: block;
+        }
         .bets-table {
             display: flex;
             flex-direction: column;
@@ -287,6 +298,8 @@
             background: #1a1f2b;
             border-radius: 14px;
             padding: 8px 12px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .bet-user {
             display: flex;
@@ -389,7 +402,8 @@
         .bet-input-inv[type=number] {
             -moz-appearance: textfield;
         }
-        .spectator-overlay {
+        .spectator-overlay,
+        .admin-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -401,7 +415,8 @@
             justify-content: center;
             z-index: 100;
         }
-        .spectator-card {
+        .spectator-card,
+        .admin-card {
             background: #161b24;
             border-radius: 28px;
             padding: 24px;
@@ -411,8 +426,14 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        .spec-bet-row {
+        .admin-card {
+            max-width: 700px;
+        }
+        .spec-bet-row,
+        .admin-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -559,6 +580,7 @@
                         <div class="ticker-track" id="tickerTrack"></div>
                     </div>
                 </div>
+                <div class="winner-info" id="classicWinnerInfo"></div>
                 <div class="bets-table" id="betsTable"></div>
             </div>
             <div class="onevsone-section">
@@ -586,18 +608,21 @@
     </div>
     <div id="spectatorContainer"></div>
     <div id="profileModalContainer"></div>
+    <div id="adminContainer"></div>
 
     <script>
         (function() {
             const SUPABASE_URL = 'https://jwjbjdzncshylthzbwtq.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_xCVgHMfqaAI5BH7kcYuNbQ_KYZdAoRO';
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const ADMIN_PASSWORD = '4321!';
 
             const AVAILABLE_AVATARS = ['🐺', '🦊', '🐱', '👑', '🐲', '🦁', '🐯', '🐻', '🐼', '🐨', '🐸', '🦄', '🐙', '🦑', '🐋', '🦈'];
 
             const state = {
                 user: null,
                 classicBets: [],
+                classicTicketMap: null,
                 classicTimer: 3,
                 classicInterval: null,
                 classicSpinning: false,
@@ -611,30 +636,25 @@
                 isInGame: false
             };
 
-            const elements = {
-                profileAvatar: document.getElementById('profileAvatar'),
-                profileName: document.getElementById('profileName'),
-                sidebarBalance: document.getElementById('sidebarBalance'),
-                classicBankDisplay: document.getElementById('classicBankDisplay'),
-                classicTimerDisplay: document.getElementById('classicTimerDisplay'),
-                classicPlaceBetBtn: document.getElementById('classicPlaceBetBtn'),
-                classicBetInput: document.getElementById('classicBetInput'),
-                tickerTrack: document.getElementById('tickerTrack'),
-                tickerViewport: document.getElementById('tickerViewport'),
-                rouletteArrowTop: document.getElementById('rouletteArrowTop'),
-                rouletteArrowAbove: document.getElementById('rouletteArrowAbove'),
-                timerStripFill: document.getElementById('timerStripFill'),
-                betsTable: document.getElementById('betsTable'),
-                roomsList: document.getElementById('roomsList'),
-                spectatorContainer: document.getElementById('spectatorContainer'),
-                authContainer: document.getElementById('authContainer'),
-                mainApp: document.getElementById('mainApp'),
-                profileModalContainer: document.getElementById('profileModalContainer'),
-                createRoomBtn: document.getElementById('createRoomBtn'),
-                profileButton: document.getElementById('profileButton')
-            };
+            const $ = function(id) { return document.getElementById(id); };
 
             function totalBank() { return state.classicBets.reduce(function(s, b) { return s + b.amount; }, 0); }
+
+            function buildTicketMap(bets) {
+                var ticketMap = [];
+                var ticketIndex = 1;
+                bets.forEach(function(b) {
+                    var start = ticketIndex;
+                    var end = ticketIndex + b.amount - 1;
+                    for (var i = 0; i < b.amount; i++) {
+                        ticketMap.push({ user: b.user, ticketNumber: ticketIndex });
+                        ticketIndex++;
+                    }
+                    b.ticketStart = start;
+                    b.ticketEnd = end;
+                });
+                return ticketMap;
+            }
 
             function buildTicketArray(bets) {
                 var tickets = [];
@@ -644,13 +664,11 @@
             }
 
             function updateTimerStrip(seconds) {
-                var maxTime = 3;
-                var percent = Math.max(0, (seconds / maxTime) * 100);
-                elements.timerStripFill.style.width = percent + '%';
+                $('timerStripFill').style.width = Math.max(0, (seconds / 3) * 100) + '%';
             }
 
             function updateBalanceDisplay() {
-                if (state.user) elements.sidebarBalance.textContent = '💰 ' + state.user.balance;
+                if (state.user) $('sidebarBalance').textContent = '💰 ' + state.user.balance;
             }
 
             function checkIsInGame() {
@@ -663,49 +681,59 @@
 
             function updateUI() {
                 if (!state.user) return;
-                elements.profileAvatar.textContent = state.user.avatar;
-                elements.profileName.textContent = state.user.username;
+                $('profileAvatar').textContent = state.user.avatar;
+                $('profileName').textContent = state.user.username;
                 updateBalanceDisplay();
-                elements.classicBankDisplay.textContent = 'Банк: ' + totalBank();
+                $('classicBankDisplay').textContent = 'Банк: ' + totalBank();
                 checkIsInGame();
                 renderBetsTable();
                 renderRooms();
                 if (!state.classicSpinning && !state.classicInterval) {
                     updateTimerStrip(3);
-                    elements.classicTimerDisplay.textContent = '⏳ 3';
+                    $('classicTimerDisplay').textContent = '⏳ 3';
                 }
             }
 
             function renderBetsTable() {
                 var totalBankValue = totalBank() || 1;
                 var userBetsMap = new Map();
+                var currentTicket = 1;
                 state.classicBets.forEach(function(b) {
                     var key = b.user.id;
                     if (userBetsMap.has(key)) {
-                        userBetsMap.get(key).totalAmount += b.amount;
+                        var existing = userBetsMap.get(key);
+                        existing.totalAmount += b.amount;
+                        existing.ticketEnd += b.amount;
                     } else {
-                        userBetsMap.set(key, { user: b.user, totalAmount: b.amount });
+                        userBetsMap.set(key, {
+                            user: b.user,
+                            totalAmount: b.amount,
+                            ticketStart: currentTicket,
+                            ticketEnd: currentTicket + b.amount - 1
+                        });
                     }
+                    currentTicket += b.amount;
                 });
                 var aggregatedBets = [];
                 userBetsMap.forEach(function(v) { aggregatedBets.push(v); });
 
-                elements.betsTable.innerHTML = aggregatedBets.map(function(b) {
+                $('betsTable').innerHTML = aggregatedBets.map(function(b) {
                     var percent = ((b.totalAmount / totalBankValue) * 100).toFixed(1);
                     var isCurrentUser = state.user && b.user.id === state.user.id;
+                    var ticketRange = b.ticketStart === b.ticketEnd ? String(b.ticketStart) : (b.ticketStart + '-' + b.ticketEnd);
                     return '<div class="bet-row" style="' + (isCurrentUser ? 'border: 1px solid #f0b34b;' : '') + '">' +
                         '<div class="bet-user">' +
                         '<span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + b.user.avatar + '</span> ' +
                         '<span>' + b.user.username + (isCurrentUser ? ' (Вы)' : '') + '</span>' +
                         '</div>' +
                         '<span>' + b.totalAmount + '💰</span>' +
-                        '<span>Билеты: ' + b.totalAmount + '</span>' +
+                        '<span>Билеты: ' + ticketRange + '</span>' +
                         '<span style="color:#f0b34b;font-weight:bold;">' + percent + '%</span>' +
                         '</div>';
                 }).join('');
             }
 
-            function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, callback) {
+            function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, winnerName, winningTicket, callback) {
                 if (state.roomAnimations[trackElement.id]) cancelAnimationFrame(state.roomAnimations[trackElement.id]);
                 trackElement.innerHTML = '';
                 var allTickets = [];
@@ -732,6 +760,7 @@
                         var winnerEl = document.createElement('div');
                         winnerEl.className = 'winner-avatar-center';
                         winnerEl.textContent = winnerAvatar;
+                        winnerEl.title = winnerName + ' | Билет #' + winningTicket;
                         viewportElement.appendChild(winnerEl);
                         if (arrowElement) arrowElement.style.display = 'block';
                         if (callback) setTimeout(callback, 3000);
@@ -746,41 +775,29 @@
 
             async function placeBetClassic() {
                 if (state.classicSpinning || !state.user) return;
-                var amt = parseInt(elements.classicBetInput.value, 10);
+                var amt = parseInt($('classicBetInput').value, 10);
                 if (isNaN(amt) || amt <= 0) return alert('Введите сумму ставки');
                 if (state.user.balance < amt) return alert('Недостаточно монет');
 
-                elements.classicPlaceBetBtn.disabled = true;
+                $('classicPlaceBetBtn').disabled = true;
                 var newBalance = state.user.balance - amt;
 
-                var updateResult = await supabase
-                    .from('users')
-                    .update({ balance: newBalance })
-                    .eq('id', state.user.id);
+                var updateResult = await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
+                if (updateResult.error) { $('classicPlaceBetBtn').disabled = false; return alert('Ошибка баланса'); }
 
-                if (updateResult.error) {
-                    console.error('Ошибка баланса:', updateResult.error);
-                    elements.classicPlaceBetBtn.disabled = false;
-                    return alert('Ошибка обновления баланса');
-                }
-
-                var betResult = await supabase
-                    .from('bets')
-                    .insert([{
-                        user_id: state.user.id,
-                        user_name: state.user.username,
-                        user_avatar: state.user.avatar,
-                        amount: amt,
-                        game_type: 'classic',
-                        status: 'active'
-                    }])
-                    .select();
+                var betResult = await supabase.from('bets').insert([{
+                    user_id: state.user.id,
+                    user_name: state.user.username,
+                    user_avatar: state.user.avatar,
+                    amount: amt,
+                    game_type: 'classic',
+                    status: 'active'
+                }]).select();
 
                 if (betResult.error) {
-                    console.error('Ошибка ставки:', betResult.error);
                     await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
-                    elements.classicPlaceBetBtn.disabled = false;
-                    return alert('Ошибка размещения ставки');
+                    $('classicPlaceBetBtn').disabled = false;
+                    return alert('Ошибка ставки');
                 }
 
                 state.user.balance = newBalance;
@@ -789,16 +806,12 @@
                 if (betResult.data && betResult.data[0]) {
                     state.classicBets.push({
                         id: betResult.data[0].id,
-                        user: {
-                            id: state.user.id,
-                            username: state.user.username,
-                            avatar: state.user.avatar
-                        },
+                        user: { id: state.user.id, username: state.user.username, avatar: state.user.avatar },
                         amount: amt
                     });
                 }
 
-                elements.classicPlaceBetBtn.disabled = false;
+                $('classicPlaceBetBtn').disabled = false;
                 updateUI();
 
                 if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
@@ -810,11 +823,11 @@
                 if (state.classicBets.length < 2) return;
                 clearClassicInterval();
                 state.classicTimer = 3;
-                elements.classicTimerDisplay.textContent = '⏳ ' + state.classicTimer;
+                $('classicTimerDisplay').textContent = '⏳ ' + state.classicTimer;
                 updateTimerStrip(state.classicTimer);
                 state.classicInterval = setInterval(function() {
                     state.classicTimer--;
-                    elements.classicTimerDisplay.textContent = '⏳ ' + state.classicTimer;
+                    $('classicTimerDisplay').textContent = '⏳ ' + state.classicTimer;
                     updateTimerStrip(state.classicTimer);
                     if (state.classicTimer <= 0) {
                         clearClassicInterval();
@@ -825,51 +838,47 @@
 
             async function runClassicGame() {
                 state.classicSpinning = true;
-                elements.classicPlaceBetBtn.disabled = true;
+                $('classicPlaceBetBtn').disabled = true;
+                $('classicWinnerInfo').classList.remove('show');
                 updateTimerStrip(0);
-                elements.classicTimerDisplay.style.display = 'none';
-                elements.rouletteArrowAbove.style.display = 'none';
-                elements.rouletteArrowTop.style.display = 'block';
+                $('classicTimerDisplay').style.display = 'none';
+                $('rouletteArrowAbove').style.display = 'none';
+                $('rouletteArrowTop').style.display = 'block';
+                var ticketMap = buildTicketMap(state.classicBets);
                 var tickets = buildTicketArray(state.classicBets);
-                var allUsers = [];
-                state.classicBets.forEach(function(b) { for (var i = 0; i < b.amount; i++) allUsers.push(b.user); });
-                var winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                var winner = ticketMap[Math.floor(Math.random() * ticketMap.length)];
 
-                animateRoulette(elements.tickerTrack, elements.tickerViewport, elements.rouletteArrowTop, tickets, winner.avatar, async function() {
+                animateRoulette($('tickerTrack'), $('tickerViewport'), $('rouletteArrowTop'), tickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
                     var bank = totalBank();
-
                     var betIds = state.classicBets.map(function(b) { return b.id; });
-                    await supabase
-                        .from('bets')
-                        .update({ status: 'completed', is_winner: false })
-                        .in('id', betIds);
+                    await supabase.from('bets').update({ status: 'completed', is_winner: false }).in('id', betIds);
 
-                    var winnerIds = state.classicBets.filter(function(b) { return b.user.id === winner.id; }).map(function(b) { return b.id; });
+                    var winnerIds = state.classicBets.filter(function(b) { return b.user.id === winner.user.id; }).map(function(b) { return b.id; });
                     if (winnerIds.length) {
-                        await supabase
-                            .from('bets')
-                            .update({ is_winner: true, won_amount: bank })
-                            .in('id', winnerIds);
+                        await supabase.from('bets').update({ is_winner: true, won_amount: bank }).in('id', winnerIds);
                     }
 
-                    if (winner.id === state.user.id) {
+                    if (winner.user.id === state.user.id) {
                         var newBalance = state.user.balance + bank;
                         await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                         state.user.balance = newBalance;
                     }
 
+                    $('classicWinnerInfo').textContent = '🏆 Победитель: ' + winner.user.username + ' | Билет #' + winner.ticketNumber + ' | Выигрыш: ' + bank + '💰';
+                    $('classicWinnerInfo').classList.add('show');
+
                     state.classicBets = [];
                     state.classicSpinning = false;
-                    elements.classicPlaceBetBtn.disabled = false;
-                    elements.classicTimerDisplay.style.display = 'block';
-                    elements.classicTimerDisplay.textContent = '⏳ 3';
+                    $('classicPlaceBetBtn').disabled = false;
+                    $('classicTimerDisplay').style.display = 'block';
+                    $('classicTimerDisplay').textContent = '⏳ 3';
                     updateTimerStrip(3);
-                    elements.rouletteArrowTop.style.display = 'none';
-                    elements.rouletteArrowAbove.style.display = 'none';
+                    $('rouletteArrowTop').style.display = 'none';
+                    $('rouletteArrowAbove').style.display = 'none';
                     var ew = document.querySelector('#tickerViewport .winner-avatar-center');
                     if (ew) ew.remove();
-                    elements.tickerTrack.innerHTML = '';
-                    elements.tickerTrack.style.transform = 'translateX(0px)';
+                    $('tickerTrack').innerHTML = '';
+                    $('tickerTrack').style.transform = 'translateX(0px)';
                     updateBalanceDisplay();
                     updateUI();
                 });
@@ -880,39 +889,31 @@
                     state.classicInterval = null; }
             }
 
-            elements.classicPlaceBetBtn.addEventListener('click', placeBetClassic);
+            $('classicPlaceBetBtn').addEventListener('click', placeBetClassic);
 
             async function createRoom() {
                 if (!state.user) return;
-                var bet = parseInt(elements.classicBetInput.value, 10);
-                if (!bet || bet <= 0 || state.user.balance < bet) {
-                    return alert(state.user.balance < bet ? 'Недостаточно средств' : 'Введите сумму ставки');
-                }
+                var bet = parseInt($('classicBetInput').value, 10);
+                if (!bet || bet <= 0) return alert('Введите сумму ставки');
+                if (state.user.balance < bet) return alert('Недостаточно средств');
 
                 var newBalance = state.user.balance - bet;
-                var updateResult = await supabase
-                    .from('users')
-                    .update({ balance: newBalance })
-                    .eq('id', state.user.id);
-
-                if (updateResult.error) return alert('Ошибка обновления баланса');
+                var updateResult = await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
+                if (updateResult.error) return alert('Ошибка баланса: ' + updateResult.error.message);
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
                 var roomId = Date.now();
-                var betResult = await supabase
-                    .from('bets')
-                    .insert([{
-                        user_id: state.user.id,
-                        user_name: state.user.username,
-                        user_avatar: state.user.avatar,
-                        amount: bet,
-                        game_type: '1v1',
-                        room_id: roomId,
-                        status: 'active'
-                    }])
-                    .select();
+                var betResult = await supabase.from('bets').insert([{
+                    user_id: state.user.id,
+                    user_name: state.user.username,
+                    user_avatar: state.user.avatar,
+                    amount: bet,
+                    game_type: '1v1',
+                    room_id: roomId,
+                    status: 'active'
+                }]).select();
 
                 if (betResult.error) {
                     await supabase.from('users').update({ balance: state.user.balance + bet }).eq('id', state.user.id);
@@ -937,7 +938,6 @@
                     betIds: betResult.data ? [betResult.data[0].id] : []
                 });
                 updateUI();
-                alert('Комната создана! Ожидайте соперника.');
             }
 
             async function joinRoom(roomId) {
@@ -947,27 +947,21 @@
                 if (state.user.balance < room.bet) return alert('Недостаточно монет');
 
                 var newBalance = state.user.balance - room.bet;
-                var updateResult = await supabase
-                    .from('users')
-                    .update({ balance: newBalance })
-                    .eq('id', state.user.id);
+                var updateResult = await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                 if (updateResult.error) return alert('Ошибка баланса');
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                var betResult = await supabase
-                    .from('bets')
-                    .insert([{
-                        user_id: state.user.id,
-                        user_name: state.user.username,
-                        user_avatar: state.user.avatar,
-                        amount: room.bet,
-                        game_type: '1v1',
-                        room_id: roomId,
-                        status: 'active'
-                    }])
-                    .select();
+                var betResult = await supabase.from('bets').insert([{
+                    user_id: state.user.id,
+                    user_name: state.user.username,
+                    user_avatar: state.user.avatar,
+                    amount: room.bet,
+                    game_type: '1v1',
+                    room_id: roomId,
+                    status: 'active'
+                }]).select();
 
                 if (betResult.error) {
                     await supabase.from('users').update({ balance: state.user.balance + room.bet }).eq('id', state.user.id);
@@ -999,14 +993,15 @@
             async function runRoomGame(room) {
                 room.status = 'spinning';
                 updateUI();
+                var ticketMap = buildTicketMap([
+                    { user: room.creator, amount: room.bet },
+                    { user: room.opponent, amount: room.bet }
+                ]);
                 var tickets = buildTicketArray([
                     { user: room.creator, amount: room.bet },
                     { user: room.opponent, amount: room.bet }
                 ]);
-                var allUsers = [];
-                for (var i = 0; i < room.bet; i++) allUsers.push(room.creator);
-                for (var i = 0; i < room.bet; i++) allUsers.push(room.opponent);
-                var winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                var winner = ticketMap[Math.floor(Math.random() * ticketMap.length)];
                 room.winner = winner;
 
                 setTimeout(function() {
@@ -1017,21 +1012,12 @@
                     if (trackEl && viewportEl) {
                         if (arrowEl) arrowEl.style.display = 'block';
                         if (arrowAboveEl) arrowAboveEl.style.display = 'block';
-                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, async function() {
+                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
                             room.status = 'finished';
+                            await supabase.from('bets').update({ status: 'completed', is_winner: false }).in('id', room.betIds);
+                            await supabase.from('bets').update({ is_winner: true, won_amount: room.bet * 2 }).eq('room_id', room.id).eq('user_id', winner.user.id);
 
-                            await supabase
-                                .from('bets')
-                                .update({ status: 'completed', is_winner: false })
-                                .in('id', room.betIds);
-
-                            await supabase
-                                .from('bets')
-                                .update({ is_winner: true, won_amount: room.bet * 2 })
-                                .eq('room_id', room.id)
-                                .eq('user_id', winner.id);
-
-                            if (room.winner.id === state.user.id) {
+                            if (room.winner.user.id === state.user.id) {
                                 var newBalance = state.user.balance + room.bet * 2;
                                 await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                                 state.user.balance = newBalance;
@@ -1052,7 +1038,7 @@
                     room.intervalId = null; } }
 
             function renderRooms() {
-                elements.roomsList.innerHTML = state.rooms.length ? '' : '<div style="color:#7f8690;">Нет комнат</div>';
+                $('roomsList').innerHTML = state.rooms.length ? '' : '<div style="color:#7f8690;">Нет комнат</div>';
                 state.rooms.forEach(function(room) {
                     var d = document.createElement('div');
                     d.className = 'room-card';
@@ -1061,56 +1047,40 @@
                     var canJoin = !isCreator && !isInitiator && room.status === 'waiting';
                     d.innerHTML =
                         '<div class="room-header">' +
-                        '<div>' +
-                        '<span>' + room.creator.avatar + '</span> ' +
-                        '<strong>' + room.creator.username + (isCreator ? ' (Вы)' : '') + '</strong> ' +
-                        '(' + room.bet + '💰)' +
+                        '<div><span>' + room.creator.avatar + '</span> <strong>' + room.creator.username + (isCreator ? ' (Вы)' : '') + '</strong> (' + room.bet + '💰)' +
                         (room.opponent ? ' VS <span>' + room.opponent.avatar + '</span> <strong>' + room.opponent.username + (isInitiator ? ' (Вы)' : '') + '</strong>' : '') +
                         '</div>' +
                         '<div style="display:flex;gap:6px;align-items:center;">' +
                         '<span style="font-size:12px;">' + (room.status === 'waiting' ? '⏳ Ожидание' : room.status === 'countdown' ? '🔴 ' + room.timer + 'с' : room.status === 'spinning' ? '🎰 Крутим...' : '✅ Завершено') + '</span>' +
                         '<button class="btn join-btn" data-id="' + room.id + '" ' + (!canJoin ? 'disabled' : '') + '>⚔️ Играть</button>' +
                         '<button class="btn watch-btn" data-id="' + room.id + '" style="background:#4a5068;">👁</button>' +
-                        '</div>' +
-                        '</div>' +
+                        '</div></div>' +
                         '<div class="roulette-wrapper" style="height:70px;border:1px solid #2f3748;">' +
                         '<div class="roulette-arrow-above" id="' + room.arrowAboveId + '" style="display:' + (room.status === 'spinning' ? 'block' : 'none') + ';">▼</div>' +
                         '<div class="roulette-arrow-top" id="' + room.arrowId + '" style="display:' + (room.status === 'spinning' ? 'block' : 'none') + ';">▼</div>' +
-                        '<div class="ticker-viewport" id="' + room.viewportId + '">' +
-                        '<div class="ticker-track" id="' + room.trackId + '"></div>' +
-                        '</div>' +
+                        '<div class="ticker-viewport" id="' + room.viewportId + '"><div class="ticker-track" id="' + room.trackId + '"></div></div>' +
                         '</div>';
-                    elements.roomsList.appendChild(d);
+                    $('roomsList').appendChild(d);
                 });
 
                 document.querySelectorAll('.join-btn').forEach(function(b) {
-                    b.addEventListener('click', function(e) { joinRoom(Number(e.target.dataset.id)); });
+                    b.onclick = function(e) { joinRoom(Number(e.target.dataset.id)); };
                 });
                 document.querySelectorAll('.watch-btn').forEach(function(b) {
-                    b.addEventListener('click', function(e) {
+                    b.onclick = function(e) {
                         var room = state.rooms.find(function(r) { return r.id === Number(e.target.dataset.id); });
                         if (room) openSpectator(room);
-                    });
+                    };
                 });
             }
 
             function openSpectator(room) {
                 var totalBet = room.bet * 2;
-                elements.spectatorContainer.innerHTML =
+                $('spectatorContainer').innerHTML =
                     '<div class="spectator-overlay"><div class="spectator-card">' +
                     '<h2>👁 Комната #' + room.id + '</h2>' +
-                    '<div class="spec-bet-row">' +
-                    '<div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.creator.avatar + '</span> ' + room.creator.username + '</div>' +
-                    '<span>' + room.bet + '</span>' +
-                    '<span>Билеты: 1-' + room.bet + '</span>' +
-                    '<span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span>' +
-                    '</div>' +
-                    (room.opponent ? '<div class="spec-bet-row">' +
-                        '<div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.opponent.avatar + '</span> ' + room.opponent.username + '</div>' +
-                        '<span>' + room.bet + '</span>' +
-                        '<span>Билеты: ' + (room.bet + 1) + '-' + (room.bet * 2) + '</span>' +
-                        '<span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span>' +
-                        '</div>' : '<div style="color:#7f8690;">Ожидание второго игрока...</div>') +
+                    '<div class="spec-bet-row"><div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.creator.avatar + '</span> ' + room.creator.username + '</div><span>' + room.bet + '</span><span>Билеты: 1-' + room.bet + '</span><span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span></div>' +
+                    (room.opponent ? '<div class="spec-bet-row"><div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.opponent.avatar + '</span> ' + room.opponent.username + '</div><span>' + room.bet + '</span><span>Билеты: ' + (room.bet + 1) + '-' + (room.bet * 2) + '</span><span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span></div>' : '<div style="color:#7f8690;">Ожидание второго игрока...</div>') +
                     '<button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>' +
                     '</div></div>';
             }
@@ -1118,87 +1088,149 @@
             function showProfileModal() {
                 var currentAvatar = state.user ? state.user.avatar : '🐺';
                 var canChangeAvatar = !state.isInGame;
-                elements.profileModalContainer.innerHTML =
+                $('profileModalContainer').innerHTML =
                     '<div class="profile-modal" id="profileModalOverlay">' +
                     '<div class="profile-modal-content">' +
                     '<h2 style="text-align:center;color:#f0b34b;">👤 Профиль</h2>' +
-                    '<div style="text-align:center;">' +
-                    '<div style="font-size:60px;margin:10px 0;" id="profileModalAvatar">' + currentAvatar + '</div>' +
-                    '<h3>' + (state.user ? state.user.username : '') + '</h3>' +
-                    '<p style="color:#3acf6e;">💰 Баланс: ' + (state.user ? state.user.balance : 0) + '</p>' +
-                    (state.isInGame ? '<p style="color:#ffaa00;">🔒 Аватар заблокирован во время игры</p>' : '') +
-                    '</div>' +
-                    '<div>' +
-                    '<h4 style="margin-bottom:10px;">Выберите аватар:</h4>' +
-                    '<div class="avatar-selector" id="avatarSelector" style="' + (!canChangeAvatar ? 'pointer-events:none;opacity:0.5;' : '') + '">' +
-                    AVAILABLE_AVATARS.map(function(av) { return '<div class="avatar-option' + (av === currentAvatar ? ' selected' : '') + '" data-avatar="' + av + '">' + av + '</div>'; }).join('') +
-                    '</div>' +
-                    '</div>' +
+                    '<div style="text-align:center;"><div style="font-size:60px;margin:10px 0;" id="profileModalAvatar">' + currentAvatar + '</div><h3>' + (state.user ? state.user.username : '') + '</h3><p style="color:#3acf6e;">💰 Баланс: ' + (state.user ? state.user.balance : 0) + '</p>' + (state.isInGame ? '<p style="color:#ffaa00;">🔒 Аватар заблокирован во время игры</p>' : '') + '</div>' +
+                    '<div><h4 style="margin-bottom:10px;">Выберите аватар:</h4><div class="avatar-selector" id="avatarSelector" style="' + (!canChangeAvatar ? 'pointer-events:none;opacity:0.5;' : '') + '">' + AVAILABLE_AVATARS.map(function(av) { return '<div class="avatar-option' + (av === currentAvatar ? ' selected' : '') + '" data-avatar="' + av + '">' + av + '</div>'; }).join('') + '</div></div>' +
                     '<button class="btn" id="saveAvatarBtn" style="padding:12px;" ' + (!canChangeAvatar ? 'disabled' : '') + '>💾 Сохранить</button>' +
+                    '<button class="btn" id="adminPanelBtn" style="padding:12px;background:#9b59b6;color:white;">🔧 Админ панель</button>' +
                     '<button class="btn" id="logoutProfileBtn" style="padding:12px;background:#ff4444;color:white;">🚪 Выйти</button>' +
                     '<button class="btn" id="closeProfileBtn" style="padding:12px;background:#4a5068;">✖ Закрыть</button>' +
                     '</div></div>';
 
                 var selected = currentAvatar;
-
                 var avatarSelector = document.getElementById('avatarSelector');
                 if (avatarSelector && canChangeAvatar) {
                     avatarSelector.addEventListener('click', function(e) {
                         var opt = e.target.closest('.avatar-option');
                         if (opt) {
-                            var allOpts = document.querySelectorAll('#avatarSelector .avatar-option');
-                            allOpts.forEach(function(el) { el.classList.remove('selected'); });
+                            document.querySelectorAll('#avatarSelector .avatar-option').forEach(function(el) { el.classList.remove('selected'); });
                             opt.classList.add('selected');
                             selected = opt.dataset.avatar;
-                            var modalAvatar = document.getElementById('profileModalAvatar');
-                            if (modalAvatar) modalAvatar.textContent = selected;
+                            var ma = document.getElementById('profileModalAvatar');
+                            if (ma) ma.textContent = selected;
                         }
                     });
                 }
 
                 var saveBtn = document.getElementById('saveAvatarBtn');
-                if (saveBtn) {
-                    saveBtn.addEventListener('click', async function() {
-                        if (state.user && selected !== state.user.avatar && !state.isInGame) {
-                            var updateResult = await supabase.from('users').update({ avatar: selected }).eq('id', state.user.id);
-                            if (!updateResult.error) {
-                                state.user.avatar = selected;
-                                updateUI();
-                            }
-                        }
-                        elements.profileModalContainer.innerHTML = '';
-                    });
-                }
+                if (saveBtn) saveBtn.addEventListener('click', async function() {
+                    if (state.user && selected !== state.user.avatar && !state.isInGame) {
+                        var r = await supabase.from('users').update({ avatar: selected }).eq('id', state.user.id);
+                        if (!r.error) { state.user.avatar = selected;
+                            updateUI(); }
+                    }
+                    $('profileModalContainer').innerHTML = '';
+                });
+
+                var adminBtn = document.getElementById('adminPanelBtn');
+                if (adminBtn) adminBtn.addEventListener('click', function() {
+                    $('profileModalContainer').innerHTML = '';
+                    showAdminAuth();
+                });
 
                 var logoutBtn = document.getElementById('logoutProfileBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', function() {
-                        localStorage.removeItem('casewins_session');
-                        if (state.classicChannel) supabase.removeChannel(state.classicChannel);
-                        if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
-                        if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
-                        if (state.avatarChannel) supabase.removeChannel(state.avatarChannel);
-                        state.user = null;
-                        state.classicBets = [];
-                        state.rooms = [];
-                        state.classicSpinning = false;
-                        state.isInGame = false;
-                        clearClassicInterval();
-                        elements.profileModalContainer.innerHTML = '';
-                        elements.mainApp.style.display = 'none';
-                        showAuthForm();
-                    });
-                }
+                if (logoutBtn) logoutBtn.addEventListener('click', function() {
+                    localStorage.removeItem('casewins_session');
+                    if (state.classicChannel) supabase.removeChannel(state.classicChannel);
+                    if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
+                    if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
+                    if (state.avatarChannel) supabase.removeChannel(state.avatarChannel);
+                    state.user = null;
+                    state.classicBets = [];
+                    state.rooms = [];
+                    state.classicSpinning = false;
+                    state.isInGame = false;
+                    clearClassicInterval();
+                    $('profileModalContainer').innerHTML = '';
+                    $('mainApp').style.display = 'none';
+                    showAuthForm();
+                });
 
                 var closeBtn = document.getElementById('closeProfileBtn');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', function() { elements.profileModalContainer.innerHTML = ''; });
-                }
+                if (closeBtn) closeBtn.addEventListener('click', function() { $('profileModalContainer').innerHTML = ''; });
 
                 var overlay = document.getElementById('profileModalOverlay');
-                if (overlay) {
-                    overlay.addEventListener('click', function(e) { if (e.target === e.currentTarget) elements.profileModalContainer.innerHTML = ''; });
-                }
+                if (overlay) overlay.addEventListener('click', function(e) { if (e.target === e.currentTarget) $('profileModalContainer').innerHTML = ''; });
+            }
+
+            function showAdminAuth() {
+                $('adminContainer').innerHTML =
+                    '<div class="admin-overlay"><div class="admin-card">' +
+                    '<h2 style="text-align:center;color:#f0b34b;">🔐 Доступ к админ панели</h2>' +
+                    '<div class="auth-error" id="adminError"></div>' +
+                    '<input type="password" class="auth-input" id="adminPasswordInput" placeholder="Пароль администратора">' +
+                    '<button class="btn" id="adminLoginBtn" style="padding:12px;">Войти</button>' +
+                    '<button class="btn" id="adminCloseBtn" style="padding:12px;background:#4a5068;">Закрыть</button>' +
+                    '</div></div>';
+
+                var errDiv = document.getElementById('adminError');
+                var showErr = function(m) { errDiv.textContent = m;
+                    errDiv.classList.add('show');
+                    setTimeout(function() { errDiv.classList.remove('show'); }, 3000); };
+
+                document.getElementById('adminLoginBtn').addEventListener('click', function() {
+                    var pass = document.getElementById('adminPasswordInput').value;
+                    if (pass === ADMIN_PASSWORD) {
+                        $('adminContainer').innerHTML = '';
+                        openAdminPanel();
+                    } else {
+                        showErr('Неверный пароль');
+                    }
+                });
+
+                document.getElementById('adminCloseBtn').addEventListener('click', function() { $('adminContainer').innerHTML = ''; });
+            }
+
+            async function openAdminPanel() {
+                var usersResult = await supabase.from('users').select('*').order('username');
+                if (usersResult.error) return alert('Ошибка загрузки пользователей');
+
+                var users = usersResult.data;
+                $('adminContainer').innerHTML =
+                    '<div class="admin-overlay"><div class="admin-card">' +
+                    '<h2 style="text-align:center;color:#f0b34b;">🔧 Админ панель</h2>' +
+                    '<div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">' +
+                    users.map(function(u) {
+                        return '<div class="admin-row" id="adminRow_' + u.id + '">' +
+                            '<div><span style="font-size:20px;">' + (u.avatar || '🐺') + '</span> <strong>' + u.username + '</strong></div>' +
+                            '<div style="display:flex;gap:6px;align-items:center;">' +
+                            '<span style="color:#3acf6e;">💰</span>' +
+                            '<input type="number" class="auth-input" id="balance_' + u.id + '" value="' + u.balance + '" style="width:100px;padding:6px;">' +
+                            '<button class="btn save-balance-btn" data-id="' + u.id + '" style="font-size:11px;padding:5px 10px;">💾</button>' +
+                            '</div></div>';
+                    }).join('') +
+                    '</div>' +
+                    '<button class="btn" id="adminRefreshBtn" style="padding:12px;">🔄 Обновить</button>' +
+                    '<button class="btn" id="adminClosePanelBtn" style="padding:12px;background:#ff4444;color:white;">Закрыть</button>' +
+                    '</div></div>';
+
+                document.querySelectorAll('.save-balance-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function() {
+                        var userId = this.dataset.id;
+                        var newBalance = parseInt(document.getElementById('balance_' + userId).value, 10);
+                        if (isNaN(newBalance) || newBalance < 0) return alert('Некорректная сумма');
+                        var r = await supabase.from('users').update({ balance: newBalance }).eq('id', userId);
+                        if (!r.error) {
+                            if (state.user && state.user.id === userId) {
+                                state.user.balance = newBalance;
+                                updateBalanceDisplay();
+                            }
+                            alert('Баланс обновлён!');
+                        } else {
+                            alert('Ошибка: ' + r.error.message);
+                        }
+                    });
+                });
+
+                document.getElementById('adminRefreshBtn').addEventListener('click', function() {
+                    $('adminContainer').innerHTML = '';
+                    openAdminPanel();
+                });
+
+                document.getElementById('adminClosePanelBtn').addEventListener('click', function() { $('adminContainer').innerHTML = ''; });
             }
 
             async function registerByNickname(nickname, password) {
@@ -1226,17 +1258,12 @@
 
                 return {
                     success: true,
-                    user: {
-                        id: userResult.data.id,
-                        username: userResult.data.username,
-                        balance: userResult.data.balance,
-                        avatar: userResult.data.avatar
-                    }
+                    user: { id: userResult.data.id, username: userResult.data.username, balance: userResult.data.balance, avatar: userResult.data.avatar }
                 };
             }
 
             function showAuthForm() {
-                elements.authContainer.innerHTML =
+                $('authContainer').innerHTML =
                     '<div class="auth-overlay"><div class="auth-card">' +
                     '<h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>' +
                     '<p style="text-align:center;color:#7f8690;font-size:14px;">Вход по никнейму</p>' +
@@ -1263,8 +1290,8 @@
                     if (result.success) {
                         state.user = result.user;
                         localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password: pass }));
-                        elements.authContainer.innerHTML = '';
-                        elements.mainApp.style.display = 'flex';
+                        $('authContainer').innerHTML = '';
+                        $('mainApp').style.display = 'flex';
                         await loadGameData();
                         initRealtime();
                         updateUI();
@@ -1276,18 +1303,17 @@
                 document.getElementById('authSignUpBtn').addEventListener('click', function() { doAuth(true); });
                 document.getElementById('authSignInBtn').addEventListener('click', function() { doAuth(false); });
 
-                var nickInput = document.getElementById('authNickname');
                 var passInput = document.getElementById('authPassword');
+                if (passInput) passInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') doAuth(false); });
+
+                var nickInput = document.getElementById('authNickname');
                 if (nickInput) nickInput.focus();
-                if (passInput) {
-                    passInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') doAuth(false); });
-                }
             }
 
             async function loadGameData() {
                 try {
                     var betsResult = await supabase.from('bets').select('*').eq('status', 'active');
-                    if (!betsResult.data) return;
+                    if (!betsResult.data || betsResult.error) return;
 
                     state.classicBets = [];
                     var roomMap = new Map();
@@ -1332,7 +1358,7 @@
                     state.rooms = Array.from(roomMap.values());
                     var maxRoomId = 0;
                     state.rooms.forEach(function(r) { if (r.id > maxRoomId) maxRoomId = r.id; });
-                    state.nextRoomId = maxRoomId + 1;
+                    state.nextRoomId = Math.max(maxRoomId + 1, 1);
 
                     state.rooms.forEach(function(room) {
                         if (room.opponent && room.status === 'countdown') startRoomCountdown(room);
@@ -1342,7 +1368,7 @@
                         startClassicCountdown();
                     }
                 } catch (e) {
-                    console.error('Ошибка загрузки данных:', e);
+                    console.error('Ошибка загрузки:', e);
                 }
             }
 
@@ -1352,8 +1378,7 @@
                 if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
                 if (state.avatarChannel) supabase.removeChannel(state.avatarChannel);
 
-                state.classicChannel = supabase
-                    .channel('cb')
+                state.classicChannel = supabase.channel('cb')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, function(payload) {
                         var b = payload.new;
                         if (b.status === 'active' && !state.classicBets.some(function(x) { return x.id === b.id; })) {
@@ -1369,23 +1394,22 @@
                             if (!state.classicBets.length) {
                                 clearClassicInterval();
                                 state.classicSpinning = false;
-                                elements.classicPlaceBetBtn.disabled = false;
-                                elements.classicTimerDisplay.style.display = 'block';
-                                elements.classicTimerDisplay.textContent = '⏳ 3';
+                                $('classicPlaceBetBtn').disabled = false;
+                                $('classicTimerDisplay').style.display = 'block';
+                                $('classicTimerDisplay').textContent = '⏳ 3';
                                 updateTimerStrip(3);
-                                elements.rouletteArrowTop.style.display = 'none';
-                                elements.rouletteArrowAbove.style.display = 'none';
+                                $('rouletteArrowTop').style.display = 'none';
+                                $('rouletteArrowAbove').style.display = 'none';
                                 var ew = document.querySelector('#tickerViewport .winner-avatar-center');
                                 if (ew) ew.remove();
-                                elements.tickerTrack.innerHTML = '';
-                                elements.tickerTrack.style.transform = 'translateX(0px)';
+                                $('tickerTrack').innerHTML = '';
+                                $('tickerTrack').style.transform = 'translateX(0px)';
+                                $('classicWinnerInfo').classList.remove('show');
                             }
                         }
-                    })
-                    .subscribe();
+                    }).subscribe();
 
-                state.roomsChannel = supabase
-                    .channel('rv')
+                state.roomsChannel = supabase.channel('rv')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, function(payload) {
                         var b = payload.new;
                         if (b.status !== 'active') return;
@@ -1425,29 +1449,24 @@
                                 updateUI();
                             }
                         }
-                    })
-                    .subscribe();
+                    }).subscribe();
 
                 if (state.user) {
-                    state.balanceChannel = supabase
-                        .channel('bl')
+                    state.balanceChannel = supabase.channel('bl')
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: 'id=eq.' + state.user.id }, function(payload) {
                             if (payload.new.balance !== state.user.balance) {
                                 state.user.balance = payload.new.balance;
                                 updateBalanceDisplay();
                             }
-                        })
-                        .subscribe();
+                        }).subscribe();
 
-                    state.avatarChannel = supabase
-                        .channel('av')
+                    state.avatarChannel = supabase.channel('av')
                         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: 'id=eq.' + state.user.id }, function(payload) {
                             if (payload.new.avatar !== state.user.avatar) {
                                 state.user.avatar = payload.new.avatar;
-                                elements.profileAvatar.textContent = state.user.avatar;
+                                $('profileAvatar').textContent = state.user.avatar;
                             }
-                        })
-                        .subscribe();
+                        }).subscribe();
                 }
             }
 
@@ -1459,7 +1478,7 @@
                     var result = await loginByNickname(data.username, data.password);
                     if (result.success) {
                         state.user = result.user;
-                        elements.mainApp.style.display = 'flex';
+                        $('mainApp').style.display = 'flex';
                         await loadGameData();
                         initRealtime();
                         updateUI();
@@ -1470,8 +1489,8 @@
                 return false;
             }
 
-            elements.createRoomBtn.addEventListener('click', createRoom);
-            elements.profileButton.addEventListener('click', showProfileModal);
+            $('createRoomBtn').addEventListener('click', createRoom);
+            $('profileButton').addEventListener('click', showProfileModal);
 
             updateTimerStrip(3);
             (async function() { if (!await restoreSession()) showAuthForm(); })();
