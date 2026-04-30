@@ -142,18 +142,6 @@
             color: #222;
             cursor: not-allowed;
         }
-        .items-row {
-            display: none;
-        }
-        .item-chip {
-            background: #1e2432;
-            padding: 6px 12px;
-            border-radius: 18px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
         .roulette-wrapper {
             position: relative;
             height: 70px;
@@ -352,6 +340,7 @@
         .btn:disabled {
             background: #5c6170;
             color: #222;
+            cursor: not-allowed;
         }
         .inventory-panel {
             width: 200px;
@@ -416,7 +405,8 @@
             background: #161b24;
             border-radius: 28px;
             padding: 24px;
-            width: 550px;
+            width: 90%;
+            max-width: 550px;
             border: 2px solid #f0b34b;
             display: flex;
             flex-direction: column;
@@ -429,6 +419,8 @@
             background: #1e2432;
             border-radius: 14px;
             padding: 10px 14px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
         .auth-overlay {
             position: fixed;
@@ -446,7 +438,8 @@
             background: #161b24;
             border-radius: 20px;
             padding: 30px;
-            width: 400px;
+            width: 90%;
+            max-width: 400px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -476,7 +469,8 @@
             background: #161b24;
             border-radius: 20px;
             padding: 25px;
-            width: 350px;
+            width: 90%;
+            max-width: 350px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -553,7 +547,6 @@
                 <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
                 <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
                 <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
-                <div class="items-row" id="classicItemsRow"></div>
                 <div class="roulette-wrapper" id="rouletteWrapper">
                     <div class="roulette-arrow-above" id="rouletteArrowAbove">▼</div>
                     <div class="timer-strip-bg">
@@ -595,7 +588,7 @@
     <div id="profileModalContainer"></div>
 
     <script>
-        (() => {
+        (function() {
             const SUPABASE_URL = 'https://jwjbjdzncshylthzbwtq.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_xCVgHMfqaAI5BH7kcYuNbQ_KYZdAoRO';
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -613,114 +606,130 @@
                 roomAnimations: {},
                 classicChannel: null,
                 roomsChannel: null,
-                balanceChannel: null
+                balanceChannel: null,
+                avatarChannel: null,
+                isInGame: false
             };
 
-            const profileAvatar = document.getElementById('profileAvatar');
-            const profileName = document.getElementById('profileName');
-            const sidebarBalance = document.getElementById('sidebarBalance');
-            const classicBankDisplay = document.getElementById('classicBankDisplay');
-            const classicTimerDisplay = document.getElementById('classicTimerDisplay');
-            const classicPlaceBetBtn = document.getElementById('classicPlaceBetBtn');
-            const classicBetInput = document.getElementById('classicBetInput');
-            const tickerTrack = document.getElementById('tickerTrack');
-            const tickerViewport = document.getElementById('tickerViewport');
-            const rouletteArrowTop = document.getElementById('rouletteArrowTop');
-            const rouletteArrowAbove = document.getElementById('rouletteArrowAbove');
-            const timerStripFill = document.getElementById('timerStripFill');
-            const betsTable = document.getElementById('betsTable');
-            const roomsList = document.getElementById('roomsList');
-            const spectatorContainer = document.getElementById('spectatorContainer');
-            const authContainer = document.getElementById('authContainer');
-            const mainApp = document.getElementById('mainApp');
-            const profileModalContainer = document.getElementById('profileModalContainer');
+            const elements = {
+                profileAvatar: document.getElementById('profileAvatar'),
+                profileName: document.getElementById('profileName'),
+                sidebarBalance: document.getElementById('sidebarBalance'),
+                classicBankDisplay: document.getElementById('classicBankDisplay'),
+                classicTimerDisplay: document.getElementById('classicTimerDisplay'),
+                classicPlaceBetBtn: document.getElementById('classicPlaceBetBtn'),
+                classicBetInput: document.getElementById('classicBetInput'),
+                tickerTrack: document.getElementById('tickerTrack'),
+                tickerViewport: document.getElementById('tickerViewport'),
+                rouletteArrowTop: document.getElementById('rouletteArrowTop'),
+                rouletteArrowAbove: document.getElementById('rouletteArrowAbove'),
+                timerStripFill: document.getElementById('timerStripFill'),
+                betsTable: document.getElementById('betsTable'),
+                roomsList: document.getElementById('roomsList'),
+                spectatorContainer: document.getElementById('spectatorContainer'),
+                authContainer: document.getElementById('authContainer'),
+                mainApp: document.getElementById('mainApp'),
+                profileModalContainer: document.getElementById('profileModalContainer'),
+                createRoomBtn: document.getElementById('createRoomBtn'),
+                profileButton: document.getElementById('profileButton')
+            };
 
-            function generateSessionToken() {
-                return 's_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-            }
-
-            function totalBank() { return state.classicBets.reduce((s, b) => s + b.amount, 0); }
+            function totalBank() { return state.classicBets.reduce(function(s, b) { return s + b.amount; }, 0); }
 
             function buildTicketArray(bets) {
-                const tickets = [];
-                bets.forEach(b => { for (let i = 0; i < b.amount; i++) tickets.push(b.user.avatar); });
+                var tickets = [];
+                bets.forEach(function(b) { for (var i = 0; i < b.amount; i++) tickets.push(b.user.avatar); });
                 if (!tickets.length) tickets.push('❓');
                 return tickets;
             }
 
             function updateTimerStrip(seconds) {
-                const maxTime = 3;
-                const percent = Math.max(0, (seconds / maxTime) * 100);
-                timerStripFill.style.width = percent + '%';
+                var maxTime = 3;
+                var percent = Math.max(0, (seconds / maxTime) * 100);
+                elements.timerStripFill.style.width = percent + '%';
             }
 
             function updateBalanceDisplay() {
-                if (state.user) sidebarBalance.textContent = `💰 ${state.user.balance}`;
+                if (state.user) elements.sidebarBalance.textContent = '💰 ' + state.user.balance;
+            }
+
+            function checkIsInGame() {
+                var userInClassic = state.classicBets.some(function(b) { return b.user.id === state.user.id; });
+                var userInRoom = state.rooms.some(function(r) {
+                    return (r.creator.id === state.user.id || (r.opponent && r.opponent.id === state.user.id)) && r.status !== 'finished';
+                });
+                state.isInGame = userInClassic || userInRoom || state.classicSpinning;
             }
 
             function updateUI() {
                 if (!state.user) return;
-                profileAvatar.textContent = state.user.avatar;
-                profileName.textContent = state.user.username;
+                elements.profileAvatar.textContent = state.user.avatar;
+                elements.profileName.textContent = state.user.username;
                 updateBalanceDisplay();
-                classicBankDisplay.textContent = `Банк: ${totalBank()}`;
+                elements.classicBankDisplay.textContent = 'Банк: ' + totalBank();
+                checkIsInGame();
                 renderBetsTable();
                 renderRooms();
                 if (!state.classicSpinning && !state.classicInterval) {
                     updateTimerStrip(3);
-                    classicTimerDisplay.textContent = '⏳ 3';
+                    elements.classicTimerDisplay.textContent = '⏳ 3';
                 }
             }
 
             function renderBetsTable() {
-                const totalBankValue = totalBank() || 1;
-                const userBetsMap = new Map();
-                state.classicBets.forEach(b => {
-                    const key = b.user.id;
+                var totalBankValue = totalBank() || 1;
+                var userBetsMap = new Map();
+                state.classicBets.forEach(function(b) {
+                    var key = b.user.id;
                     if (userBetsMap.has(key)) {
                         userBetsMap.get(key).totalAmount += b.amount;
                     } else {
                         userBetsMap.set(key, { user: b.user, totalAmount: b.amount });
                     }
                 });
-                const aggregatedBets = Array.from(userBetsMap.values());
+                var aggregatedBets = [];
+                userBetsMap.forEach(function(v) { aggregatedBets.push(v); });
 
-                betsTable.innerHTML = aggregatedBets.map(b => {
-                    const percent = ((b.totalAmount / totalBankValue) * 100).toFixed(1);
-                    const isCurrentUser = state.user && b.user.id === state.user.id;
-                    return `<div class="bet-row" style="${isCurrentUser ? 'border: 1px solid #f0b34b;' : ''}">
-                        <div class="bet-user">
-                            <span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${b.user.avatar}</span> 
-                            <span>${b.user.username}${isCurrentUser ? ' (Вы)' : ''}</span>
-                        </div>
-                        <span>${b.totalAmount}💰</span>
-                        <span>Билеты: ${b.totalAmount}</span>
-                        <span style="color:#f0b34b;font-weight:bold;">${percent}%</span>
-                    </div>`;
+                elements.betsTable.innerHTML = aggregatedBets.map(function(b) {
+                    var percent = ((b.totalAmount / totalBankValue) * 100).toFixed(1);
+                    var isCurrentUser = state.user && b.user.id === state.user.id;
+                    return '<div class="bet-row" style="' + (isCurrentUser ? 'border: 1px solid #f0b34b;' : '') + '">' +
+                        '<div class="bet-user">' +
+                        '<span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + b.user.avatar + '</span> ' +
+                        '<span>' + b.user.username + (isCurrentUser ? ' (Вы)' : '') + '</span>' +
+                        '</div>' +
+                        '<span>' + b.totalAmount + '💰</span>' +
+                        '<span>Билеты: ' + b.totalAmount + '</span>' +
+                        '<span style="color:#f0b34b;font-weight:bold;">' + percent + '%</span>' +
+                        '</div>';
                 }).join('');
             }
 
             function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, callback) {
                 if (state.roomAnimations[trackElement.id]) cancelAnimationFrame(state.roomAnimations[trackElement.id]);
                 trackElement.innerHTML = '';
-                const allTickets = [];
-                for (let i = 0; i < 40; i++) tickets.forEach(av => allTickets.push(av));
-                allTickets.forEach(av => {
-                    const el = document.createElement('div');
+                var allTickets = [];
+                for (var i = 0; i < 40; i++) tickets.forEach(function(av) { allTickets.push(av); });
+                allTickets.forEach(function(av) {
+                    var el = document.createElement('div');
                     el.className = 'ticket-avatar-small';
                     el.textContent = av;
                     trackElement.appendChild(el);
                 });
-                let pos = 0, speed = 0.5;
-                const startTime = Date.now();
+                var pos = 0;
+                var speed = 0.5;
+                var startTime = Date.now();
 
                 function step() {
-                    const elapsed = Date.now() - startTime;
-                    if (elapsed < 2000) speed = 0.5 + (elapsed / 2000) * 4;
-                    else if (elapsed < 5000) speed = 4.5;
-                    else if (elapsed < 15000) speed = 4.5 * (1 - (elapsed - 5000) / 10000);
-                    else {
-                        const winnerEl = document.createElement('div');
+                    var elapsed = Date.now() - startTime;
+                    if (elapsed < 2000) {
+                        speed = 0.5 + (elapsed / 2000) * 4;
+                    } else if (elapsed < 5000) {
+                        speed = 4.5;
+                    } else if (elapsed < 15000) {
+                        speed = 4.5 * (1 - (elapsed - 5000) / 10000);
+                    } else {
+                        var winnerEl = document.createElement('div');
                         winnerEl.className = 'winner-avatar-center';
                         winnerEl.textContent = winnerAvatar;
                         viewportElement.appendChild(winnerEl);
@@ -729,7 +738,7 @@
                         return;
                     }
                     pos -= speed;
-                    trackElement.style.transform = `translateX(${pos}px)`;
+                    trackElement.style.transform = 'translateX(' + pos + 'px)';
                     state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
                 }
                 state.roomAnimations[trackElement.id] = requestAnimationFrame(step);
@@ -737,25 +746,25 @@
 
             async function placeBetClassic() {
                 if (state.classicSpinning || !state.user) return;
-                const amt = parseInt(classicBetInput.value, 10);
+                var amt = parseInt(elements.classicBetInput.value, 10);
                 if (isNaN(amt) || amt <= 0) return alert('Введите сумму ставки');
                 if (state.user.balance < amt) return alert('Недостаточно монет');
 
-                classicPlaceBetBtn.disabled = true;
-                const newBalance = state.user.balance - amt;
-                
-                const { error: updateError } = await supabase
+                elements.classicPlaceBetBtn.disabled = true;
+                var newBalance = state.user.balance - amt;
+
+                var updateResult = await supabase
                     .from('users')
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
 
-                if (updateError) {
-                    console.error('Ошибка баланса:', updateError);
-                    classicPlaceBetBtn.disabled = false;
+                if (updateResult.error) {
+                    console.error('Ошибка баланса:', updateResult.error);
+                    elements.classicPlaceBetBtn.disabled = false;
                     return alert('Ошибка обновления баланса');
                 }
 
-                const { data: betData, error: betError } = await supabase
+                var betResult = await supabase
                     .from('bets')
                     .insert([{
                         user_id: state.user.id,
@@ -767,19 +776,19 @@
                     }])
                     .select();
 
-                if (betError) {
-                    console.error('Ошибка ставки:', betError);
+                if (betResult.error) {
+                    console.error('Ошибка ставки:', betResult.error);
                     await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
-                    classicPlaceBetBtn.disabled = false;
+                    elements.classicPlaceBetBtn.disabled = false;
                     return alert('Ошибка размещения ставки');
                 }
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                if (betData && betData[0]) {
+                if (betResult.data && betResult.data[0]) {
                     state.classicBets.push({
-                        id: betData[0].id,
+                        id: betResult.data[0].id,
                         user: {
                             id: state.user.id,
                             username: state.user.username,
@@ -789,7 +798,7 @@
                     });
                 }
 
-                classicPlaceBetBtn.disabled = false;
+                elements.classicPlaceBetBtn.disabled = false;
                 updateUI();
 
                 if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
@@ -801,11 +810,11 @@
                 if (state.classicBets.length < 2) return;
                 clearClassicInterval();
                 state.classicTimer = 3;
-                classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
+                elements.classicTimerDisplay.textContent = '⏳ ' + state.classicTimer;
                 updateTimerStrip(state.classicTimer);
-                state.classicInterval = setInterval(() => {
+                state.classicInterval = setInterval(function() {
                     state.classicTimer--;
-                    classicTimerDisplay.textContent = `⏳ ${state.classicTimer}`;
+                    elements.classicTimerDisplay.textContent = '⏳ ' + state.classicTimer;
                     updateTimerStrip(state.classicTimer);
                     if (state.classicTimer <= 0) {
                         clearClassicInterval();
@@ -816,25 +825,26 @@
 
             async function runClassicGame() {
                 state.classicSpinning = true;
-                classicPlaceBetBtn.disabled = true;
+                elements.classicPlaceBetBtn.disabled = true;
                 updateTimerStrip(0);
-                classicTimerDisplay.style.display = 'none';
-                rouletteArrowAbove.style.display = 'none';
-                rouletteArrowTop.style.display = 'block';
-                const tickets = buildTicketArray(state.classicBets);
-                const allUsers = [];
-                state.classicBets.forEach(b => { for (let i = 0; i < b.amount; i++) allUsers.push(b.user); });
-                const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                elements.classicTimerDisplay.style.display = 'none';
+                elements.rouletteArrowAbove.style.display = 'none';
+                elements.rouletteArrowTop.style.display = 'block';
+                var tickets = buildTicketArray(state.classicBets);
+                var allUsers = [];
+                state.classicBets.forEach(function(b) { for (var i = 0; i < b.amount; i++) allUsers.push(b.user); });
+                var winner = allUsers[Math.floor(Math.random() * allUsers.length)];
 
-                animateRoulette(tickerTrack, tickerViewport, rouletteArrowTop, tickets, winner.avatar, async () => {
-                    const bank = totalBank();
+                animateRoulette(elements.tickerTrack, elements.tickerViewport, elements.rouletteArrowTop, tickets, winner.avatar, async function() {
+                    var bank = totalBank();
 
+                    var betIds = state.classicBets.map(function(b) { return b.id; });
                     await supabase
                         .from('bets')
                         .update({ status: 'completed', is_winner: false })
-                        .in('id', state.classicBets.map(b => b.id));
+                        .in('id', betIds);
 
-                    const winnerIds = state.classicBets.filter(b => b.user.id === winner.id).map(b => b.id);
+                    var winnerIds = state.classicBets.filter(function(b) { return b.user.id === winner.id; }).map(function(b) { return b.id; });
                     if (winnerIds.length) {
                         await supabase
                             .from('bets')
@@ -843,54 +853,55 @@
                     }
 
                     if (winner.id === state.user.id) {
-                        const newBalance = state.user.balance + bank;
+                        var newBalance = state.user.balance + bank;
                         await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                         state.user.balance = newBalance;
                     }
 
                     state.classicBets = [];
                     state.classicSpinning = false;
-                    classicPlaceBetBtn.disabled = false;
-                    classicTimerDisplay.style.display = 'block';
-                    classicTimerDisplay.textContent = '⏳ 3';
+                    elements.classicPlaceBetBtn.disabled = false;
+                    elements.classicTimerDisplay.style.display = 'block';
+                    elements.classicTimerDisplay.textContent = '⏳ 3';
                     updateTimerStrip(3);
-                    rouletteArrowTop.style.display = 'none';
-                    rouletteArrowAbove.style.display = 'none';
-                    const ew = document.querySelector('#tickerViewport .winner-avatar-center');
+                    elements.rouletteArrowTop.style.display = 'none';
+                    elements.rouletteArrowAbove.style.display = 'none';
+                    var ew = document.querySelector('#tickerViewport .winner-avatar-center');
                     if (ew) ew.remove();
-                    tickerTrack.innerHTML = '';
-                    tickerTrack.style.transform = 'translateX(0px)';
+                    elements.tickerTrack.innerHTML = '';
+                    elements.tickerTrack.style.transform = 'translateX(0px)';
                     updateBalanceDisplay();
                     updateUI();
                 });
             }
 
             function clearClassicInterval() {
-                if (state.classicInterval) { clearInterval(state.classicInterval); state.classicInterval = null; }
+                if (state.classicInterval) { clearInterval(state.classicInterval);
+                    state.classicInterval = null; }
             }
 
-            classicPlaceBetBtn.addEventListener('click', placeBetClassic);
+            elements.classicPlaceBetBtn.addEventListener('click', placeBetClassic);
 
             async function createRoom() {
                 if (!state.user) return;
-                const bet = parseInt(classicBetInput.value, 10);
+                var bet = parseInt(elements.classicBetInput.value, 10);
                 if (!bet || bet <= 0 || state.user.balance < bet) {
                     return alert(state.user.balance < bet ? 'Недостаточно средств' : 'Введите сумму ставки');
                 }
 
-                const newBalance = state.user.balance - bet;
-                const { error: updateError } = await supabase
+                var newBalance = state.user.balance - bet;
+                var updateResult = await supabase
                     .from('users')
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
 
-                if (updateError) return alert('Ошибка обновления баланса');
+                if (updateResult.error) return alert('Ошибка обновления баланса');
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                const roomId = Date.now();
-                const { data: betData, error: betError } = await supabase
+                var roomId = Date.now();
+                var betResult = await supabase
                     .from('bets')
                     .insert([{
                         user_id: state.user.id,
@@ -903,48 +914,49 @@
                     }])
                     .select();
 
-                if (betError) {
+                if (betResult.error) {
                     await supabase.from('users').update({ balance: state.user.balance + bet }).eq('id', state.user.id);
                     state.user.balance += bet;
                     updateBalanceDisplay();
-                    return alert('Ошибка создания комнаты');
+                    return alert('Ошибка создания комнаты: ' + betResult.error.message);
                 }
 
                 state.rooms.push({
                     id: roomId,
                     creator: { id: state.user.id, username: state.user.username, avatar: state.user.avatar },
-                    bet,
+                    bet: bet,
                     opponent: null,
                     status: 'waiting',
                     timer: 3,
                     intervalId: null,
                     winner: null,
-                    trackId: `rt${roomId}`,
-                    viewportId: `rv${roomId}`,
-                    arrowId: `ra${roomId}`,
-                    arrowAboveId: `raa${roomId}`,
-                    betIds: betData ? [betData[0].id] : []
+                    trackId: 'rt' + roomId,
+                    viewportId: 'rv' + roomId,
+                    arrowId: 'ra' + roomId,
+                    arrowAboveId: 'raa' + roomId,
+                    betIds: betResult.data ? [betResult.data[0].id] : []
                 });
                 updateUI();
+                alert('Комната создана! Ожидайте соперника.');
             }
 
             async function joinRoom(roomId) {
                 if (!state.user) return;
-                const room = state.rooms.find(r => r.id === roomId);
+                var room = state.rooms.find(function(r) { return r.id === roomId; });
                 if (!room || room.status !== 'waiting' || room.creator.id === state.user.id) return;
                 if (state.user.balance < room.bet) return alert('Недостаточно монет');
 
-                const newBalance = state.user.balance - room.bet;
-                const { error: updateError } = await supabase
+                var newBalance = state.user.balance - room.bet;
+                var updateResult = await supabase
                     .from('users')
                     .update({ balance: newBalance })
                     .eq('id', state.user.id);
-                if (updateError) return alert('Ошибка баланса');
+                if (updateResult.error) return alert('Ошибка баланса');
 
                 state.user.balance = newBalance;
                 updateBalanceDisplay();
 
-                const { data: betData, error: betError } = await supabase
+                var betResult = await supabase
                     .from('bets')
                     .insert([{
                         user_id: state.user.id,
@@ -957,7 +969,7 @@
                     }])
                     .select();
 
-                if (betError) {
+                if (betResult.error) {
                     await supabase.from('users').update({ balance: state.user.balance + room.bet }).eq('id', state.user.id);
                     state.user.balance += room.bet;
                     updateBalanceDisplay();
@@ -965,7 +977,7 @@
                 }
 
                 room.opponent = { id: state.user.id, username: state.user.username, avatar: state.user.avatar };
-                if (betData) room.betIds.push(betData[0].id);
+                if (betResult.data) room.betIds.push(betResult.data[0].id);
                 room.status = 'countdown';
                 room.timer = 3;
                 startRoomCountdown(room);
@@ -974,7 +986,7 @@
 
             function startRoomCountdown(room) {
                 clearRoomInterval(room);
-                room.intervalId = setInterval(() => {
+                room.intervalId = setInterval(function() {
                     room.timer--;
                     updateUI();
                     if (room.timer <= 0) {
@@ -987,25 +999,25 @@
             async function runRoomGame(room) {
                 room.status = 'spinning';
                 updateUI();
-                const tickets = buildTicketArray([
+                var tickets = buildTicketArray([
                     { user: room.creator, amount: room.bet },
                     { user: room.opponent, amount: room.bet }
                 ]);
-                const allUsers = [];
-                for (let i = 0; i < room.bet; i++) allUsers.push(room.creator);
-                for (let i = 0; i < room.bet; i++) allUsers.push(room.opponent);
-                const winner = allUsers[Math.floor(Math.random() * allUsers.length)];
+                var allUsers = [];
+                for (var i = 0; i < room.bet; i++) allUsers.push(room.creator);
+                for (var i = 0; i < room.bet; i++) allUsers.push(room.opponent);
+                var winner = allUsers[Math.floor(Math.random() * allUsers.length)];
                 room.winner = winner;
 
-                setTimeout(() => {
-                    const trackEl = document.getElementById(room.trackId);
-                    const viewportEl = document.getElementById(room.viewportId);
-                    const arrowEl = document.getElementById(room.arrowId);
-                    const arrowAboveEl = document.getElementById(room.arrowAboveId);
+                setTimeout(function() {
+                    var trackEl = document.getElementById(room.trackId);
+                    var viewportEl = document.getElementById(room.viewportId);
+                    var arrowEl = document.getElementById(room.arrowId);
+                    var arrowAboveEl = document.getElementById(room.arrowAboveId);
                     if (trackEl && viewportEl) {
                         if (arrowEl) arrowEl.style.display = 'block';
                         if (arrowAboveEl) arrowAboveEl.style.display = 'block';
-                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, async () => {
+                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, async function() {
                             room.status = 'finished';
 
                             await supabase
@@ -1020,15 +1032,15 @@
                                 .eq('user_id', winner.id);
 
                             if (room.winner.id === state.user.id) {
-                                const newBalance = state.user.balance + room.bet * 2;
+                                var newBalance = state.user.balance + room.bet * 2;
                                 await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
                                 state.user.balance = newBalance;
                             }
                             updateBalanceDisplay();
                             updateUI();
-                            setTimeout(() => {
+                            setTimeout(function() {
                                 if (arrowAboveEl) arrowAboveEl.style.display = 'none';
-                                state.rooms = state.rooms.filter(r => r.id !== room.id);
+                                state.rooms = state.rooms.filter(function(r) { return r.id !== room.id; });
                                 updateUI();
                             }, 5000);
                         });
@@ -1036,177 +1048,223 @@
                 }, 100);
             }
 
-            function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId); room.intervalId = null; } }
+            function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId);
+                    room.intervalId = null; } }
 
             function renderRooms() {
-                roomsList.innerHTML = state.rooms.length ? '' : '<div style="color:#7f8690;">Нет комнат</div>';
-                state.rooms.forEach(room => {
-                    const d = document.createElement('div');
+                elements.roomsList.innerHTML = state.rooms.length ? '' : '<div style="color:#7f8690;">Нет комнат</div>';
+                state.rooms.forEach(function(room) {
+                    var d = document.createElement('div');
                     d.className = 'room-card';
-                    const isCreator = state.user && room.creator.id === state.user.id;
-                    const isInitiator = state.user && room.opponent && room.opponent.id === state.user.id;
-                    const canJoin = !isCreator && !isInitiator && room.status === 'waiting';
-                    d.innerHTML = `
-                        <div class="room-header">
-                            <div>
-                                <span>${room.creator.avatar}</span> 
-                                <strong>${room.creator.username}${isCreator ? ' (Вы)' : ''}</strong> 
-                                (${room.bet}💰)
-                                ${room.opponent ? ` VS <span>${room.opponent.avatar}</span> <strong>${room.opponent.username}${isInitiator ? ' (Вы)' : ''}</strong>` : ''}
-                            </div>
-                            <div style="display:flex;gap:6px;align-items:center;">
-                                <span style="font-size:12px;">${room.status === 'waiting' ? '⏳ Ожидание' : room.status === 'countdown' ? `🔴 ${room.timer}с` : room.status === 'spinning' ? '🎰 Крутим...' : '✅ Завершено'}</span>
-                                <button class="btn join-btn" data-id="${room.id}" ${!canJoin ? 'disabled' : ''}>⚔️ Играть</button>
-                                <button class="btn watch-btn" data-id="${room.id}" style="background:#4a5068;">👁</button>
-                            </div>
-                        </div>
-                        <div class="roulette-wrapper" style="height:70px;border:1px solid #2f3748;">
-                            <div class="roulette-arrow-above" id="${room.arrowAboveId}" style="display:${room.status === 'spinning' ? 'block' : 'none'};">▼</div>
-                            <div class="roulette-arrow-top" id="${room.arrowId}" style="display:${room.status === 'spinning' ? 'block' : 'none'};">▼</div>
-                            <div class="ticker-viewport" id="${room.viewportId}">
-                                <div class="ticker-track" id="${room.trackId}"></div>
-                            </div>
-                        </div>`;
-                    roomsList.appendChild(d);
+                    var isCreator = state.user && room.creator.id === state.user.id;
+                    var isInitiator = state.user && room.opponent && room.opponent.id === state.user.id;
+                    var canJoin = !isCreator && !isInitiator && room.status === 'waiting';
+                    d.innerHTML =
+                        '<div class="room-header">' +
+                        '<div>' +
+                        '<span>' + room.creator.avatar + '</span> ' +
+                        '<strong>' + room.creator.username + (isCreator ? ' (Вы)' : '') + '</strong> ' +
+                        '(' + room.bet + '💰)' +
+                        (room.opponent ? ' VS <span>' + room.opponent.avatar + '</span> <strong>' + room.opponent.username + (isInitiator ? ' (Вы)' : '') + '</strong>' : '') +
+                        '</div>' +
+                        '<div style="display:flex;gap:6px;align-items:center;">' +
+                        '<span style="font-size:12px;">' + (room.status === 'waiting' ? '⏳ Ожидание' : room.status === 'countdown' ? '🔴 ' + room.timer + 'с' : room.status === 'spinning' ? '🎰 Крутим...' : '✅ Завершено') + '</span>' +
+                        '<button class="btn join-btn" data-id="' + room.id + '" ' + (!canJoin ? 'disabled' : '') + '>⚔️ Играть</button>' +
+                        '<button class="btn watch-btn" data-id="' + room.id + '" style="background:#4a5068;">👁</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="roulette-wrapper" style="height:70px;border:1px solid #2f3748;">' +
+                        '<div class="roulette-arrow-above" id="' + room.arrowAboveId + '" style="display:' + (room.status === 'spinning' ? 'block' : 'none') + ';">▼</div>' +
+                        '<div class="roulette-arrow-top" id="' + room.arrowId + '" style="display:' + (room.status === 'spinning' ? 'block' : 'none') + ';">▼</div>' +
+                        '<div class="ticker-viewport" id="' + room.viewportId + '">' +
+                        '<div class="ticker-track" id="' + room.trackId + '"></div>' +
+                        '</div>' +
+                        '</div>';
+                    elements.roomsList.appendChild(d);
                 });
-                document.querySelectorAll('.join-btn').forEach(b => b.addEventListener('click', e => joinRoom(Number(e.target.dataset.id))));
-                document.querySelectorAll('.watch-btn').forEach(b => b.addEventListener('click', e => {
-                    const room = state.rooms.find(r => r.id === Number(e.target.dataset.id));
-                    if (room) openSpectator(room);
-                }));
+
+                document.querySelectorAll('.join-btn').forEach(function(b) {
+                    b.addEventListener('click', function(e) { joinRoom(Number(e.target.dataset.id)); });
+                });
+                document.querySelectorAll('.watch-btn').forEach(function(b) {
+                    b.addEventListener('click', function(e) {
+                        var room = state.rooms.find(function(r) { return r.id === Number(e.target.dataset.id); });
+                        if (room) openSpectator(room);
+                    });
+                });
             }
 
             function openSpectator(room) {
-                const totalBet = room.bet * 2;
-                spectatorContainer.innerHTML = `<div class="spectator-overlay"><div class="spectator-card">
-                    <h2>👁 Комната #${room.id}</h2>
-                    <div class="spec-bet-row">
-                        <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.creator.avatar}</span> ${room.creator.username}</div>
-                        <span>${room.bet}</span>
-                        <span>Билеты: 1-${room.bet}</span>
-                        <span style="color:#f0b34b;">${((room.bet / totalBet) * 100).toFixed(1)}%</span>
-                    </div>
-                    ${room.opponent ? `<div class="spec-bet-row">
-                        <div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">${room.opponent.avatar}</span> ${room.opponent.username}</div>
-                        <span>${room.bet}</span>
-                        <span>Билеты: ${room.bet + 1}-${room.bet * 2}</span>
-                        <span style="color:#f0b34b;">${((room.bet / totalBet) * 100).toFixed(1)}%</span>
-                    </div>` : '<div style="color:#7f8690;">Ожидание второго игрока...</div>'}
-                    <button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>
-                </div></div>`;
+                var totalBet = room.bet * 2;
+                elements.spectatorContainer.innerHTML =
+                    '<div class="spectator-overlay"><div class="spectator-card">' +
+                    '<h2>👁 Комната #' + room.id + '</h2>' +
+                    '<div class="spec-bet-row">' +
+                    '<div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.creator.avatar + '</span> ' + room.creator.username + '</div>' +
+                    '<span>' + room.bet + '</span>' +
+                    '<span>Билеты: 1-' + room.bet + '</span>' +
+                    '<span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span>' +
+                    '</div>' +
+                    (room.opponent ? '<div class="spec-bet-row">' +
+                        '<div class="bet-user"><span class="avatar-circle" style="width:30px;height:30px;font-size:16px;">' + room.opponent.avatar + '</span> ' + room.opponent.username + '</div>' +
+                        '<span>' + room.bet + '</span>' +
+                        '<span>Билеты: ' + (room.bet + 1) + '-' + (room.bet * 2) + '</span>' +
+                        '<span style="color:#f0b34b;">' + ((room.bet / totalBet) * 100).toFixed(1) + '%</span>' +
+                        '</div>' : '<div style="color:#7f8690;">Ожидание второго игрока...</div>') +
+                    '<button class="btn" onclick="this.parentElement.parentElement.remove()">Закрыть</button>' +
+                    '</div></div>';
             }
 
             function showProfileModal() {
-                const currentAvatar = state.user ? state.user.avatar : '🐺';
-                profileModalContainer.innerHTML = `
-                    <div class="profile-modal" id="profileModalOverlay">
-                        <div class="profile-modal-content">
-                            <h2 style="text-align:center;color:#f0b34b;">👤 Профиль</h2>
-                            <div style="text-align:center;">
-                                <div style="font-size:60px;margin:10px 0;">${currentAvatar}</div>
-                                <h3>${state.user ? state.user.username : ''}</h3>
-                                <p style="color:#3acf6e;">💰 Баланс: ${state.user ? state.user.balance : 0}</p>
-                            </div>
-                            <div><h4 style="margin-bottom:10px;">Выберите аватар:</h4>
-                                <div class="avatar-selector">
-                                    ${AVAILABLE_AVATARS.map(av => `<div class="avatar-option ${av === currentAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</div>`).join('')}
-                                </div>
-                            </div>
-                            <button class="btn" id="saveAvatarBtn" style="padding:12px;">💾 Сохранить</button>
-                            <button class="btn" id="logoutProfileBtn" style="padding:12px;background:#ff4444;color:white;">🚪 Выйти</button>
-                            <button class="btn" id="closeProfileBtn" style="padding:12px;background:#4a5068;">✖ Закрыть</button>
-                        </div>
-                    </div>`;
+                var currentAvatar = state.user ? state.user.avatar : '🐺';
+                var canChangeAvatar = !state.isInGame;
+                elements.profileModalContainer.innerHTML =
+                    '<div class="profile-modal" id="profileModalOverlay">' +
+                    '<div class="profile-modal-content">' +
+                    '<h2 style="text-align:center;color:#f0b34b;">👤 Профиль</h2>' +
+                    '<div style="text-align:center;">' +
+                    '<div style="font-size:60px;margin:10px 0;" id="profileModalAvatar">' + currentAvatar + '</div>' +
+                    '<h3>' + (state.user ? state.user.username : '') + '</h3>' +
+                    '<p style="color:#3acf6e;">💰 Баланс: ' + (state.user ? state.user.balance : 0) + '</p>' +
+                    (state.isInGame ? '<p style="color:#ffaa00;">🔒 Аватар заблокирован во время игры</p>' : '') +
+                    '</div>' +
+                    '<div>' +
+                    '<h4 style="margin-bottom:10px;">Выберите аватар:</h4>' +
+                    '<div class="avatar-selector" id="avatarSelector" style="' + (!canChangeAvatar ? 'pointer-events:none;opacity:0.5;' : '') + '">' +
+                    AVAILABLE_AVATARS.map(function(av) { return '<div class="avatar-option' + (av === currentAvatar ? ' selected' : '') + '" data-avatar="' + av + '">' + av + '</div>'; }).join('') +
+                    '</div>' +
+                    '</div>' +
+                    '<button class="btn" id="saveAvatarBtn" style="padding:12px;" ' + (!canChangeAvatar ? 'disabled' : '') + '>💾 Сохранить</button>' +
+                    '<button class="btn" id="logoutProfileBtn" style="padding:12px;background:#ff4444;color:white;">🚪 Выйти</button>' +
+                    '<button class="btn" id="closeProfileBtn" style="padding:12px;background:#4a5068;">✖ Закрыть</button>' +
+                    '</div></div>';
 
-                let selected = currentAvatar;
-                document.getElementById('avatarSelector').addEventListener('click', e => {
-                    const opt = e.target.closest('.avatar-option');
-                    if (opt) {
-                        document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
-                        opt.classList.add('selected');
-                        selected = opt.dataset.avatar;
-                    }
-                });
-                document.getElementById('saveAvatarBtn').addEventListener('click', async () => {
-                    if (state.user && selected !== state.user.avatar) {
-                        await supabase.from('users').update({ avatar: selected }).eq('id', state.user.id);
-                        state.user.avatar = selected;
-                        updateUI();
-                    }
-                    profileModalContainer.innerHTML = '';
-                });
-                document.getElementById('logoutProfileBtn').addEventListener('click', () => {
-                    localStorage.removeItem('casewins_session');
-                    if (state.classicChannel) supabase.removeChannel(state.classicChannel);
-                    if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
-                    if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
-                    state.user = null;
-                    state.classicBets = [];
-                    state.rooms = [];
-                    state.classicSpinning = false;
-                    clearClassicInterval();
-                    profileModalContainer.innerHTML = '';
-                    mainApp.style.display = 'none';
-                    showAuthForm();
-                });
-                document.getElementById('closeProfileBtn').addEventListener('click', () => { profileModalContainer.innerHTML = ''; });
-                document.getElementById('profileModalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) profileModalContainer.innerHTML = ''; });
+                var selected = currentAvatar;
+
+                var avatarSelector = document.getElementById('avatarSelector');
+                if (avatarSelector && canChangeAvatar) {
+                    avatarSelector.addEventListener('click', function(e) {
+                        var opt = e.target.closest('.avatar-option');
+                        if (opt) {
+                            var allOpts = document.querySelectorAll('#avatarSelector .avatar-option');
+                            allOpts.forEach(function(el) { el.classList.remove('selected'); });
+                            opt.classList.add('selected');
+                            selected = opt.dataset.avatar;
+                            var modalAvatar = document.getElementById('profileModalAvatar');
+                            if (modalAvatar) modalAvatar.textContent = selected;
+                        }
+                    });
+                }
+
+                var saveBtn = document.getElementById('saveAvatarBtn');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', async function() {
+                        if (state.user && selected !== state.user.avatar && !state.isInGame) {
+                            var updateResult = await supabase.from('users').update({ avatar: selected }).eq('id', state.user.id);
+                            if (!updateResult.error) {
+                                state.user.avatar = selected;
+                                updateUI();
+                            }
+                        }
+                        elements.profileModalContainer.innerHTML = '';
+                    });
+                }
+
+                var logoutBtn = document.getElementById('logoutProfileBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function() {
+                        localStorage.removeItem('casewins_session');
+                        if (state.classicChannel) supabase.removeChannel(state.classicChannel);
+                        if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
+                        if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
+                        if (state.avatarChannel) supabase.removeChannel(state.avatarChannel);
+                        state.user = null;
+                        state.classicBets = [];
+                        state.rooms = [];
+                        state.classicSpinning = false;
+                        state.isInGame = false;
+                        clearClassicInterval();
+                        elements.profileModalContainer.innerHTML = '';
+                        elements.mainApp.style.display = 'none';
+                        showAuthForm();
+                    });
+                }
+
+                var closeBtn = document.getElementById('closeProfileBtn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() { elements.profileModalContainer.innerHTML = ''; });
+                }
+
+                var overlay = document.getElementById('profileModalOverlay');
+                if (overlay) {
+                    overlay.addEventListener('click', function(e) { if (e.target === e.currentTarget) elements.profileModalContainer.innerHTML = ''; });
+                }
             }
 
             async function registerByNickname(nickname, password) {
-                const { data: exist } = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
-                if (exist) return { success: false, message: 'Никнейм уже занят' };
+                var existResult = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
+                if (existResult.data) return { success: false, message: 'Никнейм уже занят' };
 
-                const newId = crypto.randomUUID();
-                const { error: ue } = await supabase.from('users').insert([{ id: newId, username: nickname, balance: 1000, avatar: '🐺' }]);
-                if (ue) return { success: false, message: 'Ошибка: ' + ue.message };
+                var newId = crypto.randomUUID();
+                var userResult = await supabase.from('users').insert([{ id: newId, username: nickname, balance: 1000, avatar: '🐺' }]);
+                if (userResult.error) return { success: false, message: 'Ошибка: ' + userResult.error.message };
 
-                const { error: ne } = await supabase.from('user_nicknames').insert([{ user_id: newId, nickname, password_hash: password }]);
-                if (ne) {
+                var nickResult = await supabase.from('user_nicknames').insert([{ user_id: newId, nickname: nickname, password_hash: password }]);
+                if (nickResult.error) {
                     await supabase.from('users').delete().eq('id', newId);
-                    return { success: false, message: 'Ошибка: ' + ne.message };
+                    return { success: false, message: 'Ошибка: ' + nickResult.error.message };
                 }
                 return { success: true, user: { id: newId, username: nickname, balance: 1000, avatar: '🐺' } };
             }
 
             async function loginByNickname(nickname, password) {
-                const { data: nick } = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
-                if (!nick || nick.password_hash !== password) return { success: false, message: 'Неверный никнейм или пароль' };
+                var nickResult = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
+                if (!nickResult.data || nickResult.data.password_hash !== password) return { success: false, message: 'Неверный никнейм или пароль' };
 
-                const { data: user } = await supabase.from('users').select('*').eq('id', nick.user_id).single();
-                if (!user) return { success: false, message: 'Пользователь не найден' };
+                var userResult = await supabase.from('users').select('*').eq('id', nickResult.data.user_id).single();
+                if (!userResult.data) return { success: false, message: 'Пользователь не найден' };
 
-                return { success: true, user: { id: user.id, username: user.username, balance: user.balance, avatar: user.avatar } };
+                return {
+                    success: true,
+                    user: {
+                        id: userResult.data.id,
+                        username: userResult.data.username,
+                        balance: userResult.data.balance,
+                        avatar: userResult.data.avatar
+                    }
+                };
             }
 
             function showAuthForm() {
-                authContainer.innerHTML = `
-                    <div class="auth-overlay"><div class="auth-card">
-                        <h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>
-                        <p style="text-align:center;color:#7f8690;font-size:14px;">Вход по никнейму</p>
-                        <div class="auth-error" id="authError"></div>
-                        <input type="text" class="auth-input" id="authNickname" placeholder="Никнейм" autocomplete="off" maxlength="20">
-                        <input type="password" class="auth-input" id="authPassword" placeholder="Пароль" maxlength="50">
-                        <button class="btn" id="authSignUpBtn" style="padding:12px;font-size:16px;">📝 Регистрация</button>
-                        <button class="btn" id="authSignInBtn" style="padding:12px;font-size:16px;background:#4a5068;">🔑 Войти</button>
-                    </div></div>`;
+                elements.authContainer.innerHTML =
+                    '<div class="auth-overlay"><div class="auth-card">' +
+                    '<h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>' +
+                    '<p style="text-align:center;color:#7f8690;font-size:14px;">Вход по никнейму</p>' +
+                    '<div class="auth-error" id="authError"></div>' +
+                    '<input type="text" class="auth-input" id="authNickname" placeholder="Никнейм" autocomplete="off" maxlength="20">' +
+                    '<input type="password" class="auth-input" id="authPassword" placeholder="Пароль" maxlength="50">' +
+                    '<button class="btn" id="authSignUpBtn" style="padding:12px;font-size:16px;">📝 Регистрация</button>' +
+                    '<button class="btn" id="authSignInBtn" style="padding:12px;font-size:16px;background:#4a5068;">🔑 Войти</button>' +
+                    '</div></div>';
 
-                const errDiv = document.getElementById('authError');
-                const showErr = (m) => { errDiv.textContent = m; errDiv.classList.add('show'); setTimeout(() => errDiv.classList.remove('show'), 3000); };
+                var errDiv = document.getElementById('authError');
+                var showErr = function(m) { errDiv.textContent = m;
+                    errDiv.classList.add('show');
+                    setTimeout(function() { errDiv.classList.remove('show'); }, 3000); };
 
-                const doAuth = async (isReg) => {
-                    const nick = document.getElementById('authNickname').value.trim();
-                    const pass = document.getElementById('authPassword').value;
+                var doAuth = async function(isReg) {
+                    var nick = document.getElementById('authNickname').value.trim();
+                    var pass = document.getElementById('authPassword').value;
                     if (!nick || !pass) return showErr('Заполните все поля');
                     if (isReg && nick.length < 3) return showErr('Никнейм от 3 символов');
                     if (isReg && pass.length < 4) return showErr('Пароль от 4 символов');
 
-                    const result = isReg ? await registerByNickname(nick, pass) : await loginByNickname(nick, pass);
+                    var result = isReg ? await registerByNickname(nick, pass) : await loginByNickname(nick, pass);
                     if (result.success) {
                         state.user = result.user;
                         localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password: pass }));
-                        authContainer.innerHTML = '';
-                        mainApp.style.display = 'flex';
+                        elements.authContainer.innerHTML = '';
+                        elements.mainApp.style.display = 'flex';
                         await loadGameData();
                         initRealtime();
                         updateUI();
@@ -1215,53 +1273,76 @@
                     }
                 };
 
-                document.getElementById('authSignUpBtn').addEventListener('click', () => doAuth(true));
-                document.getElementById('authSignInBtn').addEventListener('click', () => doAuth(false));
+                document.getElementById('authSignUpBtn').addEventListener('click', function() { doAuth(true); });
+                document.getElementById('authSignInBtn').addEventListener('click', function() { doAuth(false); });
+
+                var nickInput = document.getElementById('authNickname');
+                var passInput = document.getElementById('authPassword');
+                if (nickInput) nickInput.focus();
+                if (passInput) {
+                    passInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') doAuth(false); });
+                }
             }
 
             async function loadGameData() {
-                const { data: bets } = await supabase.from('bets').select('*').eq('status', 'active');
-                if (!bets) return;
+                try {
+                    var betsResult = await supabase.from('bets').select('*').eq('status', 'active');
+                    if (!betsResult.data) return;
 
-                state.classicBets = [];
-                const roomMap = new Map();
+                    state.classicBets = [];
+                    var roomMap = new Map();
 
-                bets.forEach(bet => {
-                    if (bet.game_type === 'classic') {
-                        state.classicBets.push({
-                            id: bet.id,
-                            user: { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar },
-                            amount: bet.amount
-                        });
-                    } else if (bet.game_type === '1v1') {
-                        const rid = bet.room_id;
-                        if (!roomMap.has(rid)) {
-                            roomMap.set(rid, {
-                                id: rid, bet: bet.amount, betIds: [], status: 'waiting',
-                                creator: null, opponent: null, timer: 3, intervalId: null, winner: null,
-                                trackId: `rt${rid}`, viewportId: `rv${rid}`, arrowId: `ra${rid}`, arrowAboveId: `raa${rid}`
+                    betsResult.data.forEach(function(bet) {
+                        if (bet.game_type === 'classic') {
+                            state.classicBets.push({
+                                id: bet.id,
+                                user: { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar },
+                                amount: bet.amount
                             });
+                        } else if (bet.game_type === '1v1') {
+                            var rid = bet.room_id;
+                            if (!roomMap.has(rid)) {
+                                roomMap.set(rid, {
+                                    id: rid,
+                                    bet: bet.amount,
+                                    betIds: [],
+                                    status: 'waiting',
+                                    creator: null,
+                                    opponent: null,
+                                    timer: 3,
+                                    intervalId: null,
+                                    winner: null,
+                                    trackId: 'rt' + rid,
+                                    viewportId: 'rv' + rid,
+                                    arrowId: 'ra' + rid,
+                                    arrowAboveId: 'raa' + rid
+                                });
+                            }
+                            var room = roomMap.get(rid);
+                            room.betIds.push(bet.id);
+                            if (!room.creator) {
+                                room.creator = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
+                            } else if (!room.opponent && room.creator.id !== bet.user_id) {
+                                room.opponent = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
+                                room.status = 'countdown';
+                            }
                         }
-                        const room = roomMap.get(rid);
-                        room.betIds.push(bet.id);
-                        if (!room.creator) {
-                            room.creator = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
-                        } else if (!room.opponent && room.creator.id !== bet.user_id) {
-                            room.opponent = { id: bet.user_id, username: bet.user_name, avatar: bet.user_avatar };
-                            room.status = 'countdown';
-                        }
+                    });
+
+                    state.rooms = Array.from(roomMap.values());
+                    var maxRoomId = 0;
+                    state.rooms.forEach(function(r) { if (r.id > maxRoomId) maxRoomId = r.id; });
+                    state.nextRoomId = maxRoomId + 1;
+
+                    state.rooms.forEach(function(room) {
+                        if (room.opponent && room.status === 'countdown') startRoomCountdown(room);
+                    });
+
+                    if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
+                        startClassicCountdown();
                     }
-                });
-
-                state.rooms = Array.from(roomMap.values());
-                state.nextRoomId = Math.max(1, ...state.rooms.map(r => r.id)) + 1;
-
-                state.rooms.forEach(room => {
-                    if (room.opponent && room.status === 'countdown') startRoomCountdown(room);
-                });
-
-                if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
-                    startClassicCountdown();
+                } catch (e) {
+                    console.error('Ошибка загрузки данных:', e);
                 }
             }
 
@@ -1269,34 +1350,35 @@
                 if (state.classicChannel) supabase.removeChannel(state.classicChannel);
                 if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
                 if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
+                if (state.avatarChannel) supabase.removeChannel(state.avatarChannel);
 
                 state.classicChannel = supabase
                     .channel('cb')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, payload => {
-                        const b = payload.new;
-                        if (b.status === 'active' && !state.classicBets.some(x => x.id === b.id)) {
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, function(payload) {
+                        var b = payload.new;
+                        if (b.status === 'active' && !state.classicBets.some(function(x) { return x.id === b.id; })) {
                             state.classicBets.push({ id: b.id, user: { id: b.user_id, username: b.user_name, avatar: b.user_avatar }, amount: b.amount });
                             updateUI();
                             if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) startClassicCountdown();
                         }
                     })
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, payload => {
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, function(payload) {
                         if (payload.new.status === 'completed') {
-                            state.classicBets = state.classicBets.filter(b => b.id !== payload.new.id);
+                            state.classicBets = state.classicBets.filter(function(b) { return b.id !== payload.new.id; });
                             updateUI();
                             if (!state.classicBets.length) {
                                 clearClassicInterval();
                                 state.classicSpinning = false;
-                                classicPlaceBetBtn.disabled = false;
-                                classicTimerDisplay.style.display = 'block';
-                                classicTimerDisplay.textContent = '⏳ 3';
+                                elements.classicPlaceBetBtn.disabled = false;
+                                elements.classicTimerDisplay.style.display = 'block';
+                                elements.classicTimerDisplay.textContent = '⏳ 3';
                                 updateTimerStrip(3);
-                                rouletteArrowTop.style.display = 'none';
-                                rouletteArrowAbove.style.display = 'none';
-                                const ew = document.querySelector('#tickerViewport .winner-avatar-center');
+                                elements.rouletteArrowTop.style.display = 'none';
+                                elements.rouletteArrowAbove.style.display = 'none';
+                                var ew = document.querySelector('#tickerViewport .winner-avatar-center');
                                 if (ew) ew.remove();
-                                tickerTrack.innerHTML = '';
-                                tickerTrack.style.transform = 'translateX(0px)';
+                                elements.tickerTrack.innerHTML = '';
+                                elements.tickerTrack.style.transform = 'translateX(0px)';
                             }
                         }
                     })
@@ -1304,16 +1386,25 @@
 
                 state.roomsChannel = supabase
                     .channel('rv')
-                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
-                        const b = payload.new;
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, function(payload) {
+                        var b = payload.new;
                         if (b.status !== 'active') return;
-                        const room = state.rooms.find(r => r.id === b.room_id);
+                        var room = state.rooms.find(function(r) { return r.id === b.room_id; });
                         if (!room) {
                             state.rooms.push({
-                                id: b.room_id, bet: b.amount, betIds: [b.id], status: 'waiting',
+                                id: b.room_id,
+                                bet: b.amount,
+                                betIds: [b.id],
+                                status: 'waiting',
                                 creator: { id: b.user_id, username: b.user_name, avatar: b.user_avatar },
-                                opponent: null, timer: 3, intervalId: null, winner: null,
-                                trackId: `rt${b.room_id}`, viewportId: `rv${b.room_id}`, arrowId: `ra${b.room_id}`, arrowAboveId: `raa${b.room_id}`
+                                opponent: null,
+                                timer: 3,
+                                intervalId: null,
+                                winner: null,
+                                trackId: 'rt' + b.room_id,
+                                viewportId: 'rv' + b.room_id,
+                                arrowId: 'ra' + b.room_id,
+                                arrowAboveId: 'raa' + b.room_id
                             });
                             state.nextRoomId = Math.max(state.nextRoomId, b.room_id + 1);
                             updateUI();
@@ -1326,11 +1417,11 @@
                             updateUI();
                         }
                     })
-                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, function(payload) {
                         if (payload.new.status === 'completed') {
-                            const room = state.rooms.find(r => r.betIds.includes(payload.new.id));
+                            var room = state.rooms.find(function(r) { return r.betIds.includes(payload.new.id); });
                             if (room && room.status === 'finished') {
-                                state.rooms = state.rooms.filter(r => r.id !== room.id);
+                                state.rooms = state.rooms.filter(function(r) { return r.id !== room.id; });
                                 updateUI();
                             }
                         }
@@ -1340,10 +1431,20 @@
                 if (state.user) {
                     state.balanceChannel = supabase
                         .channel('bl')
-                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${state.user.id}` }, payload => {
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: 'id=eq.' + state.user.id }, function(payload) {
                             if (payload.new.balance !== state.user.balance) {
                                 state.user.balance = payload.new.balance;
                                 updateBalanceDisplay();
+                            }
+                        })
+                        .subscribe();
+
+                    state.avatarChannel = supabase
+                        .channel('av')
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: 'id=eq.' + state.user.id }, function(payload) {
+                            if (payload.new.avatar !== state.user.avatar) {
+                                state.user.avatar = payload.new.avatar;
+                                elements.profileAvatar.textContent = state.user.avatar;
                             }
                         })
                         .subscribe();
@@ -1351,14 +1452,14 @@
             }
 
             async function restoreSession() {
-                const saved = localStorage.getItem('casewins_session');
+                var saved = localStorage.getItem('casewins_session');
                 if (!saved) return false;
                 try {
-                    const data = JSON.parse(saved);
-                    const result = await loginByNickname(data.username, data.password);
+                    var data = JSON.parse(saved);
+                    var result = await loginByNickname(data.username, data.password);
                     if (result.success) {
                         state.user = result.user;
-                        mainApp.style.display = 'flex';
+                        elements.mainApp.style.display = 'flex';
                         await loadGameData();
                         initRealtime();
                         updateUI();
@@ -1369,11 +1470,11 @@
                 return false;
             }
 
-            document.getElementById('createRoomBtn').addEventListener('click', createRoom);
-            document.getElementById('profileButton').addEventListener('click', showProfileModal);
+            elements.createRoomBtn.addEventListener('click', createRoom);
+            elements.profileButton.addEventListener('click', showProfileModal);
 
             updateTimerStrip(3);
-            (async () => { if (!await restoreSession()) showAuthForm(); })();
+            (async function() { if (!await restoreSession()) showAuthForm(); })();
         })();
     </script>
 </body>
