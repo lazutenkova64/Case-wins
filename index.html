@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>case-wins · Классический раунд & 1 на 1</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
         :root {
             --bg: #06080c;
@@ -121,6 +122,14 @@
             font-weight: 800;
             color: var(--gold);
         }
+        .last-winner-display {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0b34b;
+            min-height: 20px;
+            margin-bottom: 4px;
+        }
         .balance-display {
             font-size: 14px;
             font-weight: 700;
@@ -136,11 +145,13 @@
             border-radius: 25px;
             cursor: pointer;
             font-size: 15px;
+            transition: background 0.2s, opacity 0.2s;
         }
         .place-bet-btn:disabled {
             background: #5c6170;
             color: #222;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .roulette-wrapper {
             position: relative;
@@ -349,11 +360,13 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 12px;
+            transition: background 0.2s, opacity 0.2s;
         }
         .btn:disabled {
             background: #5c6170;
             color: #222;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .inventory-panel {
             width: 200px;
@@ -566,6 +579,7 @@
         <div class="main-area">
             <div class="classic-section" id="classicBlock">
                 <div class="classic-header">🏆 КЛАССИЧЕСКИЙ РАУНД</div>
+                <div class="last-winner-display" id="classicLastWinnerDisplay"></div>
                 <div class="bank-display" id="classicBankDisplay">Банк: 0</div>
                 <button class="place-bet-btn" id="classicPlaceBetBtn">🎯 ПОСТАВИТЬ</button>
                 <div class="roulette-wrapper" id="rouletteWrapper">
@@ -626,6 +640,7 @@
                 classicTimer: 3,
                 classicInterval: null,
                 classicSpinning: false,
+                classicBettingLock: false,
                 rooms: [],
                 nextRoomId: 1,
                 roomAnimations: {},
@@ -633,7 +648,8 @@
                 roomsChannel: null,
                 balanceChannel: null,
                 avatarChannel: null,
-                isInGame: false
+                isInGame: false,
+                lastClassicWinner: null
             };
 
             const $ = function(id) { return document.getElementById(id); };
@@ -656,10 +672,17 @@
                 return ticketMap;
             }
 
-            function buildTicketArray(bets) {
+            function buildWeightedTicketArray(bets) {
                 var tickets = [];
-                bets.forEach(function(b) { for (var i = 0; i < b.amount; i++) tickets.push(b.user.avatar); });
-                if (!tickets.length) tickets.push('❓');
+                if (!bets.length) {
+                    tickets.push({ avatar: '❓', userId: null });
+                    return tickets;
+                }
+                bets.forEach(function(b) {
+                    for (var i = 0; i < b.amount; i++) {
+                        tickets.push({ avatar: b.user.avatar, userId: b.user.id });
+                    }
+                });
                 return tickets;
             }
 
@@ -671,12 +694,21 @@
                 if (state.user) $('sidebarBalance').textContent = '💰 ' + state.user.balance;
             }
 
+            function updateLastWinnerDisplay() {
+                var displayEl = $('classicLastWinnerDisplay');
+                if (state.lastClassicWinner) {
+                    displayEl.textContent = '🏆 Последний победитель: ' + state.lastClassicWinner.username + ' (+' + state.lastClassicWinner.wonAmount + '💰)';
+                } else {
+                    displayEl.textContent = '';
+                }
+            }
+
             function checkIsInGame() {
                 var userInClassic = state.classicBets.some(function(b) { return b.user.id === state.user.id; });
                 var userInRoom = state.rooms.some(function(r) {
                     return (r.creator.id === state.user.id || (r.opponent && r.opponent.id === state.user.id)) && r.status !== 'finished';
                 });
-                state.isInGame = userInClassic || userInRoom || state.classicSpinning;
+                state.isInGame = userInClassic || userInRoom || state.classicSpinning || state.classicBettingLock;
             }
 
             function updateUI() {
@@ -684,6 +716,7 @@
                 $('profileAvatar').textContent = state.user.avatar;
                 $('profileName').textContent = state.user.username;
                 updateBalanceDisplay();
+                updateLastWinnerDisplay();
                 $('classicBankDisplay').textContent = 'Банк: ' + totalBank();
                 checkIsInGame();
                 renderBetsTable();
@@ -692,6 +725,7 @@
                     updateTimerStrip(3);
                     $('classicTimerDisplay').textContent = '⏳ 3';
                 }
+                $('classicPlaceBetBtn').disabled = state.classicBettingLock || state.classicSpinning;
             }
 
             function renderBetsTable() {
@@ -733,12 +767,14 @@
                 }).join('');
             }
 
-            function animateRoulette(trackElement, viewportElement, arrowElement, tickets, winnerAvatar, winnerName, winningTicket, callback) {
+            function animateRoulette(trackElement, viewportElement, arrowElement, weightedTickets, winnerAvatar, winnerName, winningTicket, callback) {
                 if (state.roomAnimations[trackElement.id]) cancelAnimationFrame(state.roomAnimations[trackElement.id]);
                 trackElement.innerHTML = '';
-                var allTickets = [];
-                for (var i = 0; i < 40; i++) tickets.forEach(function(av) { allTickets.push(av); });
-                allTickets.forEach(function(av) {
+                var allDisplayTickets = [];
+                for (var i = 0; i < 40; i++) {
+                    weightedTickets.forEach(function(t) { allDisplayTickets.push(t.avatar); });
+                }
+                allDisplayTickets.forEach(function(av) {
                     var el = document.createElement('div');
                     el.className = 'ticket-avatar-small';
                     el.textContent = av;
@@ -757,6 +793,8 @@
                     } else if (elapsed < 15000) {
                         speed = 4.5 * (1 - (elapsed - 5000) / 10000);
                     } else {
+                        var ew = document.querySelector('#' + viewportElement.id + ' .winner-avatar-center');
+                        if (ew) ew.remove();
                         var winnerEl = document.createElement('div');
                         winnerEl.className = 'winner-avatar-center';
                         winnerEl.textContent = winnerAvatar;
@@ -774,48 +812,61 @@
             }
 
             async function placeBetClassic() {
-                if (state.classicSpinning || !state.user) return;
+                if (state.classicSpinning || state.classicBettingLock || !state.user) return;
                 var amt = parseInt($('classicBetInput').value, 10);
                 if (isNaN(amt) || amt <= 0) return alert('Введите сумму ставки');
                 if (state.user.balance < amt) return alert('Недостаточно монет');
 
+                state.classicBettingLock = true;
                 $('classicPlaceBetBtn').disabled = true;
-                var newBalance = state.user.balance - amt;
 
-                var updateResult = await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
-                if (updateResult.error) { $('classicPlaceBetBtn').disabled = false; return alert('Ошибка баланса'); }
+                try {
+                    var newBalance = state.user.balance - amt;
 
-                var betResult = await supabase.from('bets').insert([{
-                    user_id: state.user.id,
-                    user_name: state.user.username,
-                    user_avatar: state.user.avatar,
-                    amount: amt,
-                    game_type: 'classic',
-                    status: 'active'
-                }]).select();
+                    var updateResult = await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
+                    if (updateResult.error) {
+                        state.classicBettingLock = false;
+                        updateUI();
+                        return alert('Ошибка баланса: ' + updateResult.error.message);
+                    }
 
-                if (betResult.error) {
-                    await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
-                    $('classicPlaceBetBtn').disabled = false;
-                    return alert('Ошибка ставки');
-                }
+                    var betResult = await supabase.from('bets').insert([{
+                        user_id: state.user.id,
+                        user_name: state.user.username,
+                        user_avatar: state.user.avatar,
+                        amount: amt,
+                        game_type: 'classic',
+                        status: 'active'
+                    }]).select();
 
-                state.user.balance = newBalance;
-                updateBalanceDisplay();
+                    if (betResult.error) {
+                        await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
+                        state.classicBettingLock = false;
+                        updateUI();
+                        return alert('Ошибка ставки: ' + betResult.error.message);
+                    }
 
-                if (betResult.data && betResult.data[0]) {
-                    state.classicBets.push({
-                        id: betResult.data[0].id,
-                        user: { id: state.user.id, username: state.user.username, avatar: state.user.avatar },
-                        amount: amt
-                    });
-                }
+                    state.user.balance = newBalance;
+                    updateBalanceDisplay();
 
-                $('classicPlaceBetBtn').disabled = false;
-                updateUI();
+                    if (betResult.data && betResult.data[0]) {
+                        state.classicBets.push({
+                            id: betResult.data[0].id,
+                            user: { id: state.user.id, username: state.user.username, avatar: state.user.avatar },
+                            amount: amt
+                        });
+                    }
 
-                if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
-                    startClassicCountdown();
+                    state.classicBettingLock = false;
+                    updateUI();
+
+                    if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
+                        startClassicCountdown();
+                    }
+                } catch (e) {
+                    state.classicBettingLock = false;
+                    updateUI();
+                    alert('Ошибка сети: ' + e.message);
                 }
             }
 
@@ -838,6 +889,7 @@
 
             async function runClassicGame() {
                 state.classicSpinning = true;
+                state.classicBettingLock = true;
                 $('classicPlaceBetBtn').disabled = true;
                 $('classicWinnerInfo').classList.remove('show');
                 updateTimerStrip(0);
@@ -845,10 +897,11 @@
                 $('rouletteArrowAbove').style.display = 'none';
                 $('rouletteArrowTop').style.display = 'block';
                 var ticketMap = buildTicketMap(state.classicBets);
-                var tickets = buildTicketArray(state.classicBets);
-                var winner = ticketMap[Math.floor(Math.random() * ticketMap.length)];
+                var weightedTickets = buildWeightedTicketArray(state.classicBets);
+                var winnerTicketIndex = Math.floor(Math.random() * ticketMap.length);
+                var winner = ticketMap[winnerTicketIndex];
 
-                animateRoulette($('tickerTrack'), $('tickerViewport'), $('rouletteArrowTop'), tickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
+                animateRoulette($('tickerTrack'), $('tickerViewport'), $('rouletteArrowTop'), weightedTickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
                     var bank = totalBank();
                     var betIds = state.classicBets.map(function(b) { return b.id; });
                     await supabase.from('bets').update({ status: 'completed', is_winner: false }).in('id', betIds);
@@ -864,11 +917,19 @@
                         state.user.balance = newBalance;
                     }
 
-                    $('classicWinnerInfo').textContent = '🏆 Победитель: ' + winner.user.username + ' | Билет #' + winner.ticketNumber + ' | Выигрыш: ' + bank + '💰';
+                    state.lastClassicWinner = {
+                        username: winner.user.username,
+                        avatar: winner.user.avatar,
+                        wonAmount: bank,
+                        ticketNumber: winner.ticketNumber
+                    };
+
+                    $('classicWinnerInfo').textContent = '🏆 Победитель: ' + winner.user.username + ' (' + winner.user.avatar + ') | Билет #' + winner.ticketNumber + ' | Выигрыш: ' + bank + '💰';
                     $('classicWinnerInfo').classList.add('show');
 
                     state.classicBets = [];
                     state.classicSpinning = false;
+                    state.classicBettingLock = false;
                     $('classicPlaceBetBtn').disabled = false;
                     $('classicTimerDisplay').style.display = 'block';
                     $('classicTimerDisplay').textContent = '⏳ 3';
@@ -881,6 +942,10 @@
                     $('tickerTrack').style.transform = 'translateX(0px)';
                     updateBalanceDisplay();
                     updateUI();
+
+                    setTimeout(function() {
+                        $('classicWinnerInfo').classList.remove('show');
+                    }, 8000);
                 });
             }
 
@@ -997,11 +1062,12 @@
                     { user: room.creator, amount: room.bet },
                     { user: room.opponent, amount: room.bet }
                 ]);
-                var tickets = buildTicketArray([
+                var weightedTickets = buildWeightedTicketArray([
                     { user: room.creator, amount: room.bet },
                     { user: room.opponent, amount: room.bet }
                 ]);
-                var winner = ticketMap[Math.floor(Math.random() * ticketMap.length)];
+                var winnerTicketIndex = Math.floor(Math.random() * ticketMap.length);
+                var winner = ticketMap[winnerTicketIndex];
                 room.winner = winner;
 
                 setTimeout(function() {
@@ -1012,7 +1078,7 @@
                     if (trackEl && viewportEl) {
                         if (arrowEl) arrowEl.style.display = 'block';
                         if (arrowAboveEl) arrowAboveEl.style.display = 'block';
-                        animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
+                        animateRoulette(trackEl, viewportEl, arrowEl, weightedTickets, winner.user.avatar, winner.user.username, winner.ticketNumber, async function() {
                             room.status = 'finished';
                             await supabase.from('bets').update({ status: 'completed', is_winner: false }).in('id', room.betIds);
                             await supabase.from('bets').update({ is_winner: true, won_amount: room.bet * 2 }).eq('room_id', room.id).eq('user_id', winner.user.id);
@@ -1142,7 +1208,9 @@
                     state.classicBets = [];
                     state.rooms = [];
                     state.classicSpinning = false;
+                    state.classicBettingLock = false;
                     state.isInGame = false;
+                    state.lastClassicWinner = null;
                     clearClassicInterval();
                     $('profileModalContainer').innerHTML = '';
                     $('mainApp').style.display = 'none';
@@ -1185,81 +1253,99 @@
             }
 
             async function openAdminPanel() {
-                var usersResult = await supabase.from('users').select('*').order('username');
-                if (usersResult.error) return alert('Ошибка загрузки пользователей');
+                try {
+                    var usersResult = await supabase.from('users').select('*').order('username');
+                    if (usersResult.error) return alert('Ошибка загрузки пользователей: ' + usersResult.error.message);
 
-                var users = usersResult.data;
-                $('adminContainer').innerHTML =
-                    '<div class="admin-overlay"><div class="admin-card">' +
-                    '<h2 style="text-align:center;color:#f0b34b;">🔧 Админ панель</h2>' +
-                    '<div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">' +
-                    users.map(function(u) {
-                        return '<div class="admin-row" id="adminRow_' + u.id + '">' +
-                            '<div><span style="font-size:20px;">' + (u.avatar || '🐺') + '</span> <strong>' + u.username + '</strong></div>' +
-                            '<div style="display:flex;gap:6px;align-items:center;">' +
-                            '<span style="color:#3acf6e;">💰</span>' +
-                            '<input type="number" class="auth-input" id="balance_' + u.id + '" value="' + u.balance + '" style="width:100px;padding:6px;">' +
-                            '<button class="btn save-balance-btn" data-id="' + u.id + '" style="font-size:11px;padding:5px 10px;">💾</button>' +
-                            '</div></div>';
-                    }).join('') +
-                    '</div>' +
-                    '<button class="btn" id="adminRefreshBtn" style="padding:12px;">🔄 Обновить</button>' +
-                    '<button class="btn" id="adminClosePanelBtn" style="padding:12px;background:#ff4444;color:white;">Закрыть</button>' +
-                    '</div></div>';
+                    var users = usersResult.data;
+                    $('adminContainer').innerHTML =
+                        '<div class="admin-overlay"><div class="admin-card">' +
+                        '<h2 style="text-align:center;color:#f0b34b;">🔧 Админ панель</h2>' +
+                        '<div style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">' +
+                        users.map(function(u) {
+                            return '<div class="admin-row" id="adminRow_' + u.id + '">' +
+                                '<div><span style="font-size:20px;">' + (u.avatar || '🐺') + '</span> <strong>' + u.username + '</strong></div>' +
+                                '<div style="display:flex;gap:6px;align-items:center;">' +
+                                '<span style="color:#3acf6e;">💰</span>' +
+                                '<input type="number" class="auth-input admin-balance-input" id="balance_' + u.id + '" value="' + u.balance + '" style="width:100px;padding:6px;">' +
+                                '<button class="btn save-balance-btn" data-id="' + u.id + '" style="font-size:11px;padding:5px 10px;">💾</button>' +
+                                '</div></div>';
+                        }).join('') +
+                        '</div>' +
+                        '<button class="btn" id="adminRefreshBtn" style="padding:12px;">🔄 Обновить</button>' +
+                        '<button class="btn" id="adminClosePanelBtn" style="padding:12px;background:#ff4444;color:white;">Закрыть</button>' +
+                        '</div></div>';
 
-                document.querySelectorAll('.save-balance-btn').forEach(function(btn) {
-                    btn.addEventListener('click', async function() {
-                        var userId = this.dataset.id;
-                        var newBalance = parseInt(document.getElementById('balance_' + userId).value, 10);
-                        if (isNaN(newBalance) || newBalance < 0) return alert('Некорректная сумма');
-                        var r = await supabase.from('users').update({ balance: newBalance }).eq('id', userId);
-                        if (!r.error) {
-                            if (state.user && state.user.id === userId) {
-                                state.user.balance = newBalance;
-                                updateBalanceDisplay();
+                    document.querySelectorAll('.save-balance-btn').forEach(function(btn) {
+                        btn.addEventListener('click', async function() {
+                            var userId = this.dataset.id;
+                            var inputEl = document.getElementById('balance_' + userId);
+                            if (!inputEl) return;
+                            var newBalance = parseInt(inputEl.value, 10);
+                            if (isNaN(newBalance) || newBalance < 0) return alert('Некорректная сумма');
+                            try {
+                                var r = await supabase.from('users').update({ balance: newBalance }).eq('id', userId);
+                                if (!r.error) {
+                                    if (state.user && state.user.id === userId) {
+                                        state.user.balance = newBalance;
+                                        updateBalanceDisplay();
+                                    }
+                                    alert('Баланс обновлён!');
+                                } else {
+                                    alert('Ошибка: ' + r.error.message);
+                                }
+                            } catch (e) {
+                                alert('Ошибка сети: ' + e.message);
                             }
-                            alert('Баланс обновлён!');
-                        } else {
-                            alert('Ошибка: ' + r.error.message);
-                        }
+                        });
                     });
-                });
 
-                document.getElementById('adminRefreshBtn').addEventListener('click', function() {
-                    $('adminContainer').innerHTML = '';
-                    openAdminPanel();
-                });
+                    document.getElementById('adminRefreshBtn').addEventListener('click', function() {
+                        $('adminContainer').innerHTML = '';
+                        openAdminPanel();
+                    });
 
-                document.getElementById('adminClosePanelBtn').addEventListener('click', function() { $('adminContainer').innerHTML = ''; });
+                    document.getElementById('adminClosePanelBtn').addEventListener('click', function() { $('adminContainer').innerHTML = ''; });
+                } catch (e) {
+                    alert('Ошибка загрузки админ панели: ' + e.message);
+                }
             }
 
             async function registerByNickname(nickname, password) {
-                var existResult = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
-                if (existResult.data) return { success: false, message: 'Никнейм уже занят' };
+                try {
+                    var existResult = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
+                    if (existResult.data) return { success: false, message: 'Никнейм уже занят' };
 
-                var newId = crypto.randomUUID();
-                var userResult = await supabase.from('users').insert([{ id: newId, username: nickname, balance: 1000, avatar: '🐺' }]);
-                if (userResult.error) return { success: false, message: 'Ошибка: ' + userResult.error.message };
+                    var newId = crypto.randomUUID();
+                    var userResult = await supabase.from('users').insert([{ id: newId, username: nickname, balance: 1000, avatar: '🐺' }]);
+                    if (userResult.error) return { success: false, message: 'Ошибка: ' + userResult.error.message };
 
-                var nickResult = await supabase.from('user_nicknames').insert([{ user_id: newId, nickname: nickname, password_hash: password }]);
-                if (nickResult.error) {
-                    await supabase.from('users').delete().eq('id', newId);
-                    return { success: false, message: 'Ошибка: ' + nickResult.error.message };
+                    var nickResult = await supabase.from('user_nicknames').insert([{ user_id: newId, nickname: nickname, password_hash: password }]);
+                    if (nickResult.error) {
+                        await supabase.from('users').delete().eq('id', newId);
+                        return { success: false, message: 'Ошибка: ' + nickResult.error.message };
+                    }
+                    return { success: true, user: { id: newId, username: nickname, balance: 1000, avatar: '🐺' } };
+                } catch (e) {
+                    return { success: false, message: 'Ошибка сети: ' + e.message };
                 }
-                return { success: true, user: { id: newId, username: nickname, balance: 1000, avatar: '🐺' } };
             }
 
             async function loginByNickname(nickname, password) {
-                var nickResult = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
-                if (!nickResult.data || nickResult.data.password_hash !== password) return { success: false, message: 'Неверный никнейм или пароль' };
+                try {
+                    var nickResult = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
+                    if (!nickResult.data || nickResult.data.password_hash !== password) return { success: false, message: 'Неверный никнейм или пароль' };
 
-                var userResult = await supabase.from('users').select('*').eq('id', nickResult.data.user_id).single();
-                if (!userResult.data) return { success: false, message: 'Пользователь не найден' };
+                    var userResult = await supabase.from('users').select('*').eq('id', nickResult.data.user_id).single();
+                    if (!userResult.data) return { success: false, message: 'Пользователь не найден' };
 
-                return {
-                    success: true,
-                    user: { id: userResult.data.id, username: userResult.data.username, balance: userResult.data.balance, avatar: userResult.data.avatar }
-                };
+                    return {
+                        success: true,
+                        user: { id: userResult.data.id, username: userResult.data.username, balance: userResult.data.balance, avatar: userResult.data.avatar }
+                    };
+                } catch (e) {
+                    return { success: false, message: 'Ошибка сети: ' + e.message };
+                }
             }
 
             function showAuthForm() {
@@ -1394,6 +1480,7 @@
                             if (!state.classicBets.length) {
                                 clearClassicInterval();
                                 state.classicSpinning = false;
+                                state.classicBettingLock = false;
                                 $('classicPlaceBetBtn').disabled = false;
                                 $('classicTimerDisplay').style.display = 'block';
                                 $('classicTimerDisplay').textContent = '⏳ 3';
