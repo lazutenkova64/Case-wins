@@ -520,6 +520,9 @@
             font-size: 14px;
             text-align: center;
             display: none;
+            padding: 8px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 8px;
         }
         .auth-error.show {
             display: block;
@@ -802,10 +805,7 @@
 
                 if (betError) {
                     console.error('Ошибка при размещении ставки:', betError);
-                    const { error: revertError } = await supabase
-                        .from('users')
-                        .update({ balance: state.user.balance })
-                        .eq('id', state.user.id);
+                    await supabase.from('users').update({ balance: state.user.balance }).eq('id', state.user.id);
                     return;
                 }
 
@@ -842,19 +842,19 @@
                 }
 
                 if (activeBets && activeBets.length > 0) {
-                    state.classicBets = [];
-                    activeBets.forEach(bet => {
-                        state.classicBets.push({
-                            id: bet.id,
-                            user: {
-                                id: bet.user_id,
-                                username: bet.user_name,
-                                avatar: bet.user_avatar
-                            },
-                            amount: bet.amount
-                        });
-                    });
+                    state.classicBets = activeBets.map(bet => ({
+                        id: bet.id,
+                        user: {
+                            id: bet.user_id,
+                            username: bet.user_name,
+                            avatar: bet.user_avatar
+                        },
+                        amount: bet.amount
+                    }));
                     updateUI();
+                    if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
+                        startClassicCountdown();
+                    }
                 }
             }
 
@@ -918,7 +918,6 @@
                         if (state.nextRoomId <= roomId) {
                             state.nextRoomId = roomId + 1;
                         }
-
                         if (room.opponent && room.status === 'countdown') {
                             startRoomCountdown(room);
                         }
@@ -960,41 +959,25 @@
                 animateRoulette(tickerTrack, tickerViewport, rouletteArrowTop, tickets, winner.avatar, async () => {
                     const bank = totalBank();
 
-                    const { error: updateBetsError } = await supabase
+                    await supabase
                         .from('bets')
                         .update({ status: 'completed', is_winner: false })
                         .eq('game_type', 'classic')
                         .eq('status', 'active');
 
-                    if (updateBetsError) {
-                        console.error('Ошибка обновления ставок:', updateBetsError);
-                    }
-
-                    const winnerBetIds = state.classicBets
-                        .filter(b => b.user.id === winner.id)
-                        .map(b => b.id);
+                    const winnerBetIds = state.classicBets.filter(b => b.user.id === winner.id).map(b => b.id);
 
                     if (winnerBetIds.length > 0) {
-                        const { error: updateWinnerError } = await supabase
+                        await supabase
                             .from('bets')
                             .update({ is_winner: true, won_amount: bank })
                             .in('id', winnerBetIds);
-
-                        if (updateWinnerError) {
-                            console.error('Ошибка обновления выигрышных ставок:', updateWinnerError);
-                        }
                     }
 
                     if (winner.id === state.user.id) {
                         const newBalance = state.user.balance + bank;
-                        const { error: balanceError } = await supabase
-                            .from('users')
-                            .update({ balance: newBalance })
-                            .eq('id', state.user.id);
-
-                        if (!balanceError) {
-                            state.user.balance = newBalance;
-                        }
+                        await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
+                        state.user.balance = newBalance;
                     }
 
                     state.classicBets = [];
@@ -1014,8 +997,7 @@
             }
 
             function clearClassicInterval() {
-                if (state.classicInterval) { clearInterval(state.classicInterval);
-                    state.classicInterval = null; }
+                if (state.classicInterval) { clearInterval(state.classicInterval); state.classicInterval = null; }
             }
 
             classicPlaceBetBtn.addEventListener('click', placeBetClassic);
@@ -1059,22 +1041,15 @@
 
                 if (betError) {
                     console.error('Ошибка создания комнаты:', betError);
-                    const { error: revertError } = await supabase
-                        .from('users')
-                        .update({ balance: state.user.balance + bet })
-                        .eq('id', state.user.id);
+                    await supabase.from('users').update({ balance: state.user.balance + bet }).eq('id', state.user.id);
                     state.user.balance += bet;
                     updateBalanceDisplay();
                     return;
                 }
 
-                const room = {
+                state.rooms.push({
                     id: roomId,
-                    creator: {
-                        id: state.user.id,
-                        username: state.user.username,
-                        avatar: state.user.avatar
-                    },
+                    creator: { id: state.user.id, username: state.user.username, avatar: state.user.avatar },
                     bet,
                     opponent: null,
                     status: 'waiting',
@@ -1086,9 +1061,8 @@
                     arrowId: `roomArrow${roomId}`,
                     arrowAboveId: `roomArrowAbove${roomId}`,
                     betIds: betData ? [betData[0].id] : []
-                };
+                });
 
-                state.rooms.push(room);
                 updateUI();
             }
 
@@ -1126,24 +1100,15 @@
                     .select();
 
                 if (betError) {
-                    console.error('Ошибка присоединения к комнате:', betError);
-                    const { error: revertError } = await supabase
-                        .from('users')
-                        .update({ balance: state.user.balance + room.bet })
-                        .eq('id', state.user.id);
+                    console.error('Ошибка присоединения:', betError);
+                    await supabase.from('users').update({ balance: state.user.balance + room.bet }).eq('id', state.user.id);
                     state.user.balance += room.bet;
                     updateBalanceDisplay();
                     return;
                 }
 
-                room.opponent = {
-                    id: state.user.id,
-                    username: state.user.username,
-                    avatar: state.user.avatar
-                };
-                if (betData) {
-                    room.betIds.push(betData[0].id);
-                }
+                room.opponent = { id: state.user.id, username: state.user.username, avatar: state.user.avatar };
+                if (betData) room.betIds.push(betData[0].id);
                 room.status = 'countdown';
                 room.timer = 3;
                 startRoomCountdown(room);
@@ -1165,11 +1130,10 @@
             async function runRoomGame(room) {
                 room.status = 'spinning';
                 updateUI();
-                const bets = [
+                const tickets = buildTicketArray([
                     { user: room.creator, amount: room.bet },
                     { user: room.opponent, amount: room.bet }
-                ];
-                const tickets = buildTicketArray(bets);
+                ]);
                 const allUsers = [];
                 for (let i = 0; i < room.bet; i++) allUsers.push(room.creator);
                 for (let i = 0; i < room.bet; i++) allUsers.push(room.opponent);
@@ -1187,18 +1151,14 @@
                         animateRoulette(trackEl, viewportEl, arrowEl, tickets, winner.avatar, async () => {
                             room.status = 'finished';
 
-                            const { error: updateBetsError } = await supabase
+                            await supabase
                                 .from('bets')
                                 .update({ status: 'completed', is_winner: false })
                                 .eq('room_id', room.id)
                                 .eq('game_type', '1v1')
                                 .eq('status', 'active');
 
-                            if (updateBetsError) {
-                                console.error('Ошибка обновления ставок:', updateBetsError);
-                            }
-
-                            const { error: updateWinnerError } = await supabase
+                            await supabase
                                 .from('bets')
                                 .update({ is_winner: true, won_amount: room.bet * 2 })
                                 .eq('room_id', room.id)
@@ -1206,20 +1166,10 @@
                                 .eq('game_type', '1v1')
                                 .eq('status', 'completed');
 
-                            if (updateWinnerError) {
-                                console.error('Ошибка обновления победителя:', updateWinnerError);
-                            }
-
                             if (room.winner.id === state.user.id) {
                                 const newBalance = state.user.balance + room.bet * 2;
-                                const { error: balanceError } = await supabase
-                                    .from('users')
-                                    .update({ balance: newBalance })
-                                    .eq('id', state.user.id);
-
-                                if (!balanceError) {
-                                    state.user.balance = newBalance;
-                                }
+                                await supabase.from('users').update({ balance: newBalance }).eq('id', state.user.id);
+                                state.user.balance = newBalance;
                             }
                             updateUI();
                             setTimeout(() => {
@@ -1232,8 +1182,7 @@
                 }, 100);
             }
 
-            function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId);
-                    room.intervalId = null; } }
+            function clearRoomInterval(room) { if (room.intervalId) { clearInterval(room.intervalId); room.intervalId = null; } }
 
             function renderRooms() {
                 roomsList.innerHTML = '';
@@ -1277,13 +1226,7 @@
                     roomsList.appendChild(d);
                 });
 
-                document.querySelectorAll('.join-btn').forEach(b => {
-                    b.addEventListener('click', (e) => {
-                        const roomId = parseInt(e.target.dataset.id);
-                        joinRoom(roomId);
-                    });
-                });
-
+                document.querySelectorAll('.join-btn').forEach(b => b.addEventListener('click', e => joinRoom(parseInt(e.target.dataset.id))));
                 document.querySelectorAll('.watch-btn').forEach(b => b.addEventListener('click', e => {
                     const room = state.rooms.find(r => r.id === parseInt(e.target.dataset.id));
                     if (room) openSpectator(room);
@@ -1326,9 +1269,7 @@
                             <div>
                                 <h4 style="margin-bottom:10px;">Выберите аватар:</h4>
                                 <div class="avatar-selector" id="avatarSelector">
-                                    ${AVAILABLE_AVATARS.map(av => 
-                                        `<div class="avatar-option ${av === currentAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</div>`
-                                    ).join('')}
+                                    ${AVAILABLE_AVATARS.map(av => `<div class="avatar-option ${av === currentAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</div>`).join('')}
                                 </div>
                             </div>
                             <button class="btn" id="saveAvatarBtn" style="padding:12px;font-size:14px;">💾 Сохранить аватар</button>
@@ -1339,7 +1280,7 @@
 
                 let selectedAvatar = currentAvatar;
 
-                document.getElementById('avatarSelector').addEventListener('click', (e) => {
+                document.getElementById('avatarSelector').addEventListener('click', e => {
                     const avatarOption = e.target.closest('.avatar-option');
                     if (avatarOption) {
                         document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
@@ -1351,11 +1292,7 @@
 
                 document.getElementById('saveAvatarBtn').addEventListener('click', async () => {
                     if (state.user && selectedAvatar !== state.user.avatar) {
-                        const { error } = await supabase
-                            .from('users')
-                            .update({ avatar: selectedAvatar })
-                            .eq('id', state.user.id);
-
+                        const { error } = await supabase.from('users').update({ avatar: selectedAvatar }).eq('id', state.user.id);
                         if (!error) {
                             state.user.avatar = selectedAvatar;
                             updateUI();
@@ -1367,7 +1304,7 @@
                     }
                 });
 
-                document.getElementById('logoutProfileBtn').addEventListener('click', async () => {
+                document.getElementById('logoutProfileBtn').addEventListener('click', () => {
                     localStorage.removeItem('casewins_session');
                     if (state.classicChannel) supabase.removeChannel(state.classicChannel);
                     if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
@@ -1383,154 +1320,41 @@
                     showAuthForm();
                 });
 
-                document.getElementById('closeProfileBtn').addEventListener('click', () => {
-                    profileModalContainer.innerHTML = '';
-                });
-
-                document.getElementById('profileModalOverlay').addEventListener('click', (e) => {
-                    if (e.target === e.currentTarget) {
-                        profileModalContainer.innerHTML = '';
-                    }
-                });
+                document.getElementById('closeProfileBtn').addEventListener('click', () => { profileModalContainer.innerHTML = ''; });
+                document.getElementById('profileModalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) profileModalContainer.innerHTML = ''; });
             }
 
             async function registerByNickname(nickname, password) {
-                try {
-                    const { data: existingUser } = await supabase
-                        .from('user_nicknames')
-                        .select('user_id')
-                        .eq('nickname', nickname)
-                        .single();
+                const newUserId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); });
 
-                    if (existingUser) {
-                        return { success: false, message: 'Никнейм уже занят' };
-                    }
-                } catch (e) {}
+                const { data: existingCheck } = await supabase.from('user_nicknames').select('user_id').eq('nickname', nickname).maybeSingle();
+                if (existingCheck) return { success: false, message: 'Никнейм уже занят' };
 
-                try {
-                    const { data, error } = await supabase
-                        .rpc('register_by_nickname', {
-                            nick: nickname,
-                            pass: password
-                        });
-
-                    if (error) {
-                        console.error('Ошибка RPC:', error);
-                        return await fallbackRegister(nickname, password);
-                    }
-
-                    if (data && data.length > 0 && data[0].success) {
-                        return {
-                            success: true,
-                            user: {
-                                id: data[0].user_id,
-                                username: nickname,
-                                balance: 1000,
-                                avatar: '🐺'
-                            }
-                        };
-                    } else if (data && data.length > 0) {
-                        return { success: false, message: data[0].message };
-                    }
-
-                    return await fallbackRegister(nickname, password);
-                } catch (err) {
-                    console.error('Ошибка RPC:', err);
-                    return await fallbackRegister(nickname, password);
+                const { error: insertUserError } = await supabase.from('users').insert([{ id: newUserId, username: nickname, balance: 1000, avatar: '🐺' }]);
+                if (insertUserError) {
+                    if (insertUserError.message.includes('duplicate')) return { success: false, message: 'Ошибка: пользователь уже существует' };
+                    return { success: false, message: 'Ошибка создания пользователя: ' + insertUserError.message };
                 }
-            }
 
-            async function fallbackRegister(nickname, password) {
-                try {
-                    const newUserId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-
-                    const { data: newUser, error: insertError } = await supabase
-                        .from('users')
-                        .insert([{
-                            id: newUserId,
-                            username: nickname,
-                            balance: 1000,
-                            avatar: '🐺'
-                        }])
-                        .select();
-
-                    if (insertError) {
-                        if (insertError.message.includes('duplicate')) {
-                            return { success: false, message: 'Никнейм уже занят' };
-                        }
-                        return { success: false, message: 'Ошибка создания пользователя' };
-                    }
-
-                    const { error: nicknameError } = await supabase
-                        .from('user_nicknames')
-                        .insert([{
-                            user_id: newUserId,
-                            nickname: nickname,
-                            password_hash: password
-                        }]);
-
-                    if (nicknameError) {
-                        await supabase.from('users').delete().eq('id', newUserId);
-                        if (nicknameError.message.includes('duplicate')) {
-                            return { success: false, message: 'Никнейм уже занят' };
-                        }
-                        return { success: false, message: 'Ошибка сохранения данных' };
-                    }
-
-                    return {
-                        success: true,
-                        user: {
-                            id: newUserId,
-                            username: nickname,
-                            balance: 1000,
-                            avatar: '🐺'
-                        }
-                    };
-                } catch (err) {
-                    console.error('Fallback регистрация:', err);
-                    return { success: false, message: 'Ошибка сервера' };
+                const { error: insertNickError } = await supabase.from('user_nicknames').insert([{ user_id: newUserId, nickname, password_hash: password }]);
+                if (insertNickError) {
+                    await supabase.from('users').delete().eq('id', newUserId);
+                    if (insertNickError.message.includes('duplicate')) return { success: false, message: 'Никнейм уже занят' };
+                    return { success: false, message: 'Ошибка сохранения: ' + insertNickError.message };
                 }
+
+                return { success: true, user: { id: newUserId, username: nickname, balance: 1000, avatar: '🐺' } };
             }
 
             async function loginByNickname(nickname, password) {
-                try {
-                    const { data: nicknameData, error: nickError } = await supabase
-                        .from('user_nicknames')
-                        .select('user_id, password_hash')
-                        .eq('nickname', nickname)
-                        .single();
+                const { data: nickData, error: nickError } = await supabase.from('user_nicknames').select('user_id, password_hash').eq('nickname', nickname).maybeSingle();
+                if (nickError || !nickData) return { success: false, message: 'Неверный никнейм или пароль' };
+                if (nickData.password_hash !== password) return { success: false, message: 'Неверный пароль' };
 
-                    if (nickError || !nicknameData) {
-                        return { success: false, message: 'Неверный никнейм или пароль' };
-                    }
+                const { data: userData, error: userError } = await supabase.from('users').select('*').eq('id', nickData.user_id).single();
+                if (userError || !userData) return { success: false, message: 'Пользователь не найден' };
 
-                    if (nicknameData.password_hash !== password) {
-                        return { success: false, message: 'Неверный пароль' };
-                    }
-
-                    const { data: userData, error: userError } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('id', nicknameData.user_id)
-                        .single();
-
-                    if (userError || !userData) {
-                        return { success: false, message: 'Пользователь не найден' };
-                    }
-
-                    return {
-                        success: true,
-                        user: {
-                            id: userData.id,
-                            username: userData.username,
-                            balance: userData.balance,
-                            avatar: userData.avatar
-                        }
-                    };
-                } catch (err) {
-                    console.error('Ошибка входа:', err);
-                    return { success: false, message: 'Ошибка сервера при входе' };
-                }
+                return { success: true, user: { id: userData.id, username: userData.username, balance: userData.balance, avatar: userData.avatar } };
             }
 
             function showAuthForm() {
@@ -1548,34 +1372,20 @@
                     </div>`;
 
                 const errorDiv = document.getElementById('authError');
-                const nicknameInput = document.getElementById('authNickname');
-                const passwordInput = document.getElementById('authPassword');
-
-                function showError(msg) {
-                    errorDiv.textContent = msg;
-                    errorDiv.classList.add('show');
-                    setTimeout(() => errorDiv.classList.remove('show'), 3000);
-                }
+                const showError = (msg) => { errorDiv.textContent = msg; errorDiv.classList.add('show'); setTimeout(() => errorDiv.classList.remove('show'), 3000); };
 
                 document.getElementById('authSignUpBtn').addEventListener('click', async () => {
-                    const nickname = nicknameInput.value.trim();
-                    const password = passwordInput.value;
-
+                    const nickname = document.getElementById('authNickname').value.trim();
+                    const password = document.getElementById('authPassword').value;
                     if (!nickname || !password) return showError('Заполните все поля');
-                    if (nickname.length < 3) return showError('Никнейм должен быть не менее 3 символов');
-                    if (password.length < 4) return showError('Пароль должен быть не менее 4 символов');
+                    if (nickname.length < 3) return showError('Никнейм от 3 символов');
+                    if (password.length < 4) return showError('Пароль от 4 символов');
 
                     const result = await registerByNickname(nickname, password);
-
                     if (result.success) {
                         state.user = result.user;
                         state.sessionToken = generateSessionToken();
-                        localStorage.setItem('casewins_session', JSON.stringify({
-                            userId: state.user.id,
-                            username: state.user.username,
-                            password: password,
-                            token: state.sessionToken
-                        }));
+                        localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password, token: state.sessionToken }));
                         authContainer.innerHTML = '';
                         mainApp.style.display = 'flex';
                         await initializeGameData();
@@ -1587,22 +1397,15 @@
                 });
 
                 document.getElementById('authSignInBtn').addEventListener('click', async () => {
-                    const nickname = nicknameInput.value.trim();
-                    const password = passwordInput.value;
-
+                    const nickname = document.getElementById('authNickname').value.trim();
+                    const password = document.getElementById('authPassword').value;
                     if (!nickname || !password) return showError('Заполните все поля');
 
                     const result = await loginByNickname(nickname, password);
-
                     if (result.success) {
                         state.user = result.user;
                         state.sessionToken = generateSessionToken();
-                        localStorage.setItem('casewins_session', JSON.stringify({
-                            userId: state.user.id,
-                            username: state.user.username,
-                            password: password,
-                            token: state.sessionToken
-                        }));
+                        localStorage.setItem('casewins_session', JSON.stringify({ userId: state.user.id, username: state.user.username, password, token: state.sessionToken }));
                         authContainer.innerHTML = '';
                         mainApp.style.display = 'flex';
                         await initializeGameData();
@@ -1620,187 +1423,110 @@
             }
 
             function initRealtimeChannels() {
-                if (state.classicChannel) {
-                    supabase.removeChannel(state.classicChannel);
-                }
-                if (state.roomsChannel) {
-                    supabase.removeChannel(state.roomsChannel);
-                }
-                if (state.balanceChannel) {
-                    supabase.removeChannel(state.balanceChannel);
-                }
+                if (state.classicChannel) { supabase.removeChannel(state.classicChannel); }
+                if (state.roomsChannel) { supabase.removeChannel(state.roomsChannel); }
+                if (state.balanceChannel) { supabase.removeChannel(state.balanceChannel); }
 
                 state.classicChannel = supabase
                     .channel('classic-bets-channel')
-                    .on('postgres_changes',
-                        { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' },
-                        (payload) => {
-                            const newBet = payload.new;
-                            const alreadyExists = state.classicBets.some(b => b.id === newBet.id);
-                            if (!alreadyExists && newBet.status === 'active') {
-                                state.classicBets.push({
-                                    id: newBet.id,
-                                    user: {
-                                        id: newBet.user_id,
-                                        username: newBet.user_name,
-                                        avatar: newBet.user_avatar
-                                    },
-                                    amount: newBet.amount
-                                });
-                                updateUI();
-                                if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) {
-                                    startClassicCountdown();
-                                }
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, payload => {
+                        const newBet = payload.new;
+                        if (!state.classicBets.some(b => b.id === newBet.id) && newBet.status === 'active') {
+                            state.classicBets.push({ id: newBet.id, user: { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar }, amount: newBet.amount });
+                            updateUI();
+                            if (state.classicBets.length >= 2 && !state.classicInterval && !state.classicSpinning) startClassicCountdown();
+                        }
+                    })
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' }, payload => {
+                        if (payload.new.status === 'completed') {
+                            state.classicBets = state.classicBets.filter(b => b.id !== payload.new.id);
+                            updateUI();
+                            if (state.classicBets.length === 0) {
+                                clearClassicInterval();
+                                state.classicSpinning = false;
+                                classicPlaceBetBtn.disabled = false;
+                                classicTimerDisplay.style.display = 'block';
+                                classicTimerDisplay.textContent = '⏳ 3';
+                                updateTimerStrip(3);
+                                rouletteArrowTop.style.display = 'none';
+                                rouletteArrowAbove.style.display = 'none';
+                                const ew = document.querySelector('#tickerViewport .winner-avatar-center');
+                                if (ew) ew.remove();
+                                tickerTrack.innerHTML = '';
+                                tickerTrack.style.transform = 'translateX(0px)';
                             }
-                        })
-                    .on('postgres_changes',
-                        { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.classic' },
-                        (payload) => {
-                            const updatedBet = payload.new;
-                            if (updatedBet.status === 'completed') {
-                                state.classicBets = state.classicBets.filter(b => b.id !== updatedBet.id);
-                                updateUI();
-                                if (state.classicBets.length === 0) {
-                                    clearClassicInterval();
-                                    state.classicSpinning = false;
-                                    classicPlaceBetBtn.disabled = false;
-                                    classicTimerDisplay.style.display = 'block';
-                                    classicTimerDisplay.textContent = '⏳ 3';
-                                    updateTimerStrip(3);
-                                    rouletteArrowTop.style.display = 'none';
-                                    rouletteArrowAbove.style.display = 'none';
-                                    const existingWinner = document.querySelector('#tickerViewport .winner-avatar-center');
-                                    if (existingWinner) existingWinner.remove();
-                                    tickerTrack.innerHTML = '';
-                                    tickerTrack.style.transform = 'translateX(0px)';
-                                }
-                            }
-                        })
-                    .subscribe((status) => {
-                        console.log('Classic channel status:', status);
-                    });
+                        }
+                    })
+                    .subscribe();
 
                 state.roomsChannel = supabase
                     .channel('rooms-channel')
-                    .on('postgres_changes',
-                        { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' },
-                        (payload) => {
-                            const newBet = payload.new;
-                            const existingRoom = state.rooms.find(r => r.id === newBet.room_id);
-
-                            if (!existingRoom && newBet.status === 'active') {
-                                const newRoom = {
-                                    id: newBet.room_id,
-                                    creator: {
-                                        id: newBet.user_id,
-                                        username: newBet.user_name,
-                                        avatar: newBet.user_avatar
-                                    },
-                                    opponent: null,
-                                    bet: newBet.amount,
-                                    status: 'waiting',
-                                    timer: 3,
-                                    intervalId: null,
-                                    winner: null,
-                                    trackId: `roomTrack${newBet.room_id}`,
-                                    viewportId: `roomViewport${newBet.room_id}`,
-                                    arrowId: `roomArrow${newBet.room_id}`,
-                                    arrowAboveId: `roomArrowAbove${newBet.room_id}`,
-                                    betIds: [newBet.id]
-                                };
-                                state.rooms.push(newRoom);
-                                if (state.nextRoomId <= newBet.room_id) {
-                                    state.nextRoomId = newBet.room_id + 1;
-                                }
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
+                        const newBet = payload.new;
+                        const existingRoom = state.rooms.find(r => r.id === newBet.room_id);
+                        if (!existingRoom && newBet.status === 'active') {
+                            state.rooms.push({ id: newBet.room_id, creator: { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar }, opponent: null, bet: newBet.amount, status: 'waiting', timer: 3, intervalId: null, winner: null, trackId: `roomTrack${newBet.room_id}`, viewportId: `roomViewport${newBet.room_id}`, arrowId: `roomArrow${newBet.room_id}`, arrowAboveId: `roomArrowAbove${newBet.room_id}`, betIds: [newBet.id] });
+                            if (state.nextRoomId <= newBet.room_id) state.nextRoomId = newBet.room_id + 1;
+                            updateUI();
+                        } else if (existingRoom && existingRoom.status === 'waiting' && existingRoom.creator.id !== newBet.user_id) {
+                            existingRoom.opponent = { id: newBet.user_id, username: newBet.user_name, avatar: newBet.user_avatar };
+                            existingRoom.betIds.push(newBet.id);
+                            existingRoom.status = 'countdown';
+                            existingRoom.timer = 3;
+                            startRoomCountdown(existingRoom);
+                            updateUI();
+                        }
+                    })
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' }, payload => {
+                        if (payload.new.status === 'completed') {
+                            const roomToRemove = state.rooms.find(r => r.betIds.includes(payload.new.id));
+                            if (roomToRemove && roomToRemove.status === 'finished') {
+                                state.rooms = state.rooms.filter(r => r.id !== roomToRemove.id);
                                 updateUI();
-                            } else if (existingRoom && existingRoom.status === 'waiting') {
-                                const isNewPlayer = existingRoom.creator.id !== newBet.user_id;
-                                if (isNewPlayer) {
-                                    existingRoom.opponent = {
-                                        id: newBet.user_id,
-                                        username: newBet.user_name,
-                                        avatar: newBet.user_avatar
-                                    };
-                                    existingRoom.betIds.push(newBet.id);
-                                    existingRoom.status = 'countdown';
-                                    existingRoom.timer = 3;
-                                    startRoomCountdown(existingRoom);
-                                    updateUI();
-                                }
                             }
-                        })
-                    .on('postgres_changes',
-                        { event: 'UPDATE', schema: 'public', table: 'bets', filter: 'game_type=eq.1v1' },
-                        (payload) => {
-                            const updatedBet = payload.new;
-                            if (updatedBet.status === 'completed') {
-                                const roomToRemove = state.rooms.find(r => r.betIds.includes(updatedBet.id));
-                                if (roomToRemove && roomToRemove.status === 'finished') {
-                                    state.rooms = state.rooms.filter(r => r.id !== roomToRemove.id);
-                                    updateUI();
-                                }
-                            }
-                        })
-                    .subscribe((status) => {
-                        console.log('Rooms channel status:', status);
-                    });
+                        }
+                    })
+                    .subscribe();
 
                 if (state.user) {
                     state.balanceChannel = supabase
                         .channel('balance-channel-' + state.user.id)
-                        .on('postgres_changes',
-                            { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${state.user.id}` },
-                            (payload) => {
-                                const updatedUser = payload.new;
-                                if (updatedUser.balance !== state.user.balance) {
-                                    state.user.balance = updatedUser.balance;
-                                    updateBalanceDisplay();
-                                }
-                            })
-                        .subscribe((status) => {
-                            console.log('Balance channel status:', status);
-                        });
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${state.user.id}` }, payload => {
+                            if (payload.new.balance !== state.user.balance) {
+                                state.user.balance = payload.new.balance;
+                                updateBalanceDisplay();
+                            }
+                        })
+                        .subscribe();
                 }
             }
 
             async function restoreSession() {
-                const savedSession = localStorage.getItem('casewins_session');
-                if (savedSession) {
+                const saved = localStorage.getItem('casewins_session');
+                if (saved) {
                     try {
-                        const sessionData = JSON.parse(savedSession);
-                        const result = await loginByNickname(sessionData.username, sessionData.password);
-                        
+                        const data = JSON.parse(saved);
+                        const result = await loginByNickname(data.username, data.password);
                         if (result.success) {
                             state.user = result.user;
-                            state.sessionToken = sessionData.token;
+                            state.sessionToken = data.token;
                             mainApp.style.display = 'flex';
                             await initializeGameData();
                             initRealtimeChannels();
                             updateUI();
                             return true;
-                        } else {
-                            localStorage.removeItem('casewins_session');
                         }
-                    } catch (e) {
-                        console.error('Ошибка восстановления сессии:', e);
-                        localStorage.removeItem('casewins_session');
-                    }
+                    } catch (e) {}
+                    localStorage.removeItem('casewins_session');
                 }
                 return false;
-            }
-
-            async function initApp() {
-                const sessionRestored = await restoreSession();
-                if (!sessionRestored) {
-                    showAuthForm();
-                }
             }
 
             document.getElementById('createRoomBtn').addEventListener('click', createRoom);
             document.getElementById('profileButton').addEventListener('click', showProfileModal);
 
             updateTimerStrip(3);
-            initApp();
+            (async () => { if (!await restoreSession()) showAuthForm(); })();
         })();
     </script>
 </body>
