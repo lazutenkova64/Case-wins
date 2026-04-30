@@ -59,6 +59,12 @@
             background: #1a1f2b;
             padding: 10px;
             border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .profile:hover {
+            background: #252b38;
         }
         .avatar-circle {
             width: 42px;
@@ -450,6 +456,53 @@
             color: white;
             font-size: 16px;
         }
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+        }
+        .profile-modal-content {
+            background: #161b24;
+            border-radius: 20px;
+            padding: 25px;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 1px solid #f0b34b;
+        }
+        .avatar-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .avatar-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: #1a1f2b;
+            transition: border-color 0.2s;
+        }
+        .avatar-option.selected {
+            border-color: #f0b34b;
+        }
+        .avatar-option:hover {
+            border-color: #f0b34b;
+        }
         @keyframes pulse-gold {
             0%,
             100% {
@@ -477,7 +530,7 @@
     <div id="authContainer"></div>
     <div class="app" id="mainApp" style="display:none;">
         <div class="sidebar">
-            <div class="profile">
+            <div class="profile" id="profileButton">
                 <span class="avatar-circle" id="profileAvatar">🐺</span>
                 <div>
                     <div id="profileName">PlayerOne</div>
@@ -487,7 +540,6 @@
             </div>
             <button class="nav-btn active">🏠 Главная</button>
             <button class="nav-btn">📜 История</button>
-            <button class="nav-btn" id="logoutBtn">🚪 Выйти</button>
         </div>
         <div class="main-area">
             <div class="classic-section" id="classicBlock">
@@ -533,12 +585,15 @@
         </div>
     </div>
     <div id="spectatorContainer"></div>
+    <div id="profileModalContainer"></div>
 
     <script>
         (() => {
             const SUPABASE_URL = 'https://jwjbjdzncshylthzbwtq.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_xCVgHMfqaAI5BH7kcYuNbQ_KYZdAoRO';
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const AVAILABLE_AVATARS = ['🐺', '🦊', '🐱', '👑', '🐲', '🦁', '🐯', '🐻', '🐼', '🐨', '🐸', '🦄', '🐙', '🦑', '🐋', '🦈'];
 
             const state = {
                 user: null,
@@ -553,8 +608,7 @@
                 roomAnimations: {},
                 classicChannel: null,
                 roomsChannel: null,
-                balanceChannel: null,
-                globalRoomIdCounter: 0
+                balanceChannel: null
             };
 
             const profileAvatar = document.getElementById('profileAvatar');
@@ -575,6 +629,7 @@
             const spectatorContainer = document.getElementById('spectatorContainer');
             const authContainer = document.getElementById('authContainer');
             const mainApp = document.getElementById('mainApp');
+            const profileModalContainer = document.getElementById('profileModalContainer');
 
             function generateSessionToken() {
                 return 'session_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
@@ -1257,44 +1312,90 @@
                 </div></div>`;
             }
 
-            async function registerByNickname(nickname, password) {
-                try {
-                    const { data, error } = await supabase
-                        .rpc('register_by_nickname', {
-                            nick: nickname,
-                            pass: password
-                        });
+            function showProfileModal() {
+                const currentAvatar = state.user ? state.user.avatar : '🐺';
+                profileModalContainer.innerHTML = `
+                    <div class="profile-modal" id="profileModalOverlay">
+                        <div class="profile-modal-content">
+                            <h2 style="text-align:center;color:#f0b34b;">👤 Профиль</h2>
+                            <div style="text-align:center;">
+                                <div style="font-size:60px;margin:10px 0;" id="profileModalAvatar">${currentAvatar}</div>
+                                <h3>${state.user ? state.user.username : ''}</h3>
+                                <p style="color:#3acf6e;">💰 Баланс: ${state.user ? state.user.balance : 0}</p>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom:10px;">Выберите аватар:</h4>
+                                <div class="avatar-selector" id="avatarSelector">
+                                    ${AVAILABLE_AVATARS.map(av => 
+                                        `<div class="avatar-option ${av === currentAvatar ? 'selected' : ''}" data-avatar="${av}">${av}</div>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                            <button class="btn" id="saveAvatarBtn" style="padding:12px;font-size:14px;">💾 Сохранить аватар</button>
+                            <button class="btn" id="logoutProfileBtn" style="padding:12px;font-size:14px;background:#ff4444;color:white;">🚪 Выйти из аккаунта</button>
+                            <button class="btn" id="closeProfileBtn" style="padding:12px;font-size:14px;background:#4a5068;">✖ Закрыть</button>
+                        </div>
+                    </div>`;
 
-                    if (error) {
-                        console.error('Ошибка регистрации:', error);
-                        return { success: false, message: 'Ошибка сервера при регистрации' };
+                let selectedAvatar = currentAvatar;
+
+                document.getElementById('avatarSelector').addEventListener('click', (e) => {
+                    const avatarOption = e.target.closest('.avatar-option');
+                    if (avatarOption) {
+                        document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                        avatarOption.classList.add('selected');
+                        selectedAvatar = avatarOption.dataset.avatar;
+                        document.getElementById('profileModalAvatar').textContent = selectedAvatar;
                     }
+                });
 
-                    if (data && data.length > 0) {
-                        const result = data[0];
-                        if (result.success) {
-                            const { data: userData } = await supabase
-                                .from('users')
-                                .select('*')
-                                .eq('id', result.user_id)
-                                .single();
+                document.getElementById('saveAvatarBtn').addEventListener('click', async () => {
+                    if (state.user && selectedAvatar !== state.user.avatar) {
+                        const { error } = await supabase
+                            .from('users')
+                            .update({ avatar: selectedAvatar })
+                            .eq('id', state.user.id);
 
-                            return {
-                                success: true,
-                                user: {
-                                    id: result.user_id,
-                                    username: nickname,
-                                    balance: userData ? userData.balance : 1000,
-                                    avatar: userData ? userData.avatar : '🐺'
-                                }
-                            };
+                        if (!error) {
+                            state.user.avatar = selectedAvatar;
+                            updateUI();
+                            profileModalContainer.innerHTML = '';
+                            showProfileModal();
                         } else {
-                            return { success: false, message: result.message };
+                            alert('Ошибка сохранения аватара');
                         }
                     }
-                    return { success: false, message: 'Неизвестная ошибка' };
-                } catch (err) {
-                    console.error('Исключение при регистрации:', err);
+                });
+
+                document.getElementById('logoutProfileBtn').addEventListener('click', async () => {
+                    localStorage.removeItem('casewins_session');
+                    if (state.classicChannel) supabase.removeChannel(state.classicChannel);
+                    if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
+                    if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
+                    state.user = null;
+                    state.sessionToken = null;
+                    state.classicBets = [];
+                    state.rooms = [];
+                    state.classicSpinning = false;
+                    clearClassicInterval();
+                    profileModalContainer.innerHTML = '';
+                    mainApp.style.display = 'none';
+                    showAuthForm();
+                });
+
+                document.getElementById('closeProfileBtn').addEventListener('click', () => {
+                    profileModalContainer.innerHTML = '';
+                });
+
+                document.getElementById('profileModalOverlay').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) {
+                        profileModalContainer.innerHTML = '';
+                    }
+                });
+            }
+
+            async function registerByNickname(nickname, password) {
+                try {
                     const { data: existingUser } = await supabase
                         .from('user_nicknames')
                         .select('user_id')
@@ -1304,43 +1405,90 @@
                     if (existingUser) {
                         return { success: false, message: 'Никнейм уже занят' };
                     }
+                } catch (e) {}
+
+                try {
+                    const { data, error } = await supabase
+                        .rpc('register_by_nickname', {
+                            nick: nickname,
+                            pass: password
+                        });
+
+                    if (error) {
+                        console.error('Ошибка RPC:', error);
+                        return await fallbackRegister(nickname, password);
+                    }
+
+                    if (data && data.length > 0 && data[0].success) {
+                        return {
+                            success: true,
+                            user: {
+                                id: data[0].user_id,
+                                username: nickname,
+                                balance: 1000,
+                                avatar: '🐺'
+                            }
+                        };
+                    } else if (data && data.length > 0) {
+                        return { success: false, message: data[0].message };
+                    }
+
+                    return await fallbackRegister(nickname, password);
+                } catch (err) {
+                    console.error('Ошибка RPC:', err);
+                    return await fallbackRegister(nickname, password);
+                }
+            }
+
+            async function fallbackRegister(nickname, password) {
+                try {
+                    const newUserId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
 
                     const { data: newUser, error: insertError } = await supabase
                         .from('users')
                         .insert([{
-                            id: crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }),
+                            id: newUserId,
                             username: nickname,
                             balance: 1000,
                             avatar: '🐺'
                         }])
                         .select();
 
-                    if (insertError || !newUser || newUser.length === 0) {
+                    if (insertError) {
+                        if (insertError.message.includes('duplicate')) {
+                            return { success: false, message: 'Никнейм уже занят' };
+                        }
                         return { success: false, message: 'Ошибка создания пользователя' };
                     }
 
                     const { error: nicknameError } = await supabase
                         .from('user_nicknames')
                         .insert([{
-                            user_id: newUser[0].id,
+                            user_id: newUserId,
                             nickname: nickname,
                             password_hash: password
                         }]);
 
                     if (nicknameError) {
-                        await supabase.from('users').delete().eq('id', newUser[0].id);
-                        return { success: false, message: 'Никнейм уже занят' };
+                        await supabase.from('users').delete().eq('id', newUserId);
+                        if (nicknameError.message.includes('duplicate')) {
+                            return { success: false, message: 'Никнейм уже занят' };
+                        }
+                        return { success: false, message: 'Ошибка сохранения данных' };
                     }
 
                     return {
                         success: true,
                         user: {
-                            id: newUser[0].id,
+                            id: newUserId,
                             username: nickname,
                             balance: 1000,
                             avatar: '🐺'
                         }
                     };
+                } catch (err) {
+                    console.error('Fallback регистрация:', err);
+                    return { success: false, message: 'Ошибка сервера' };
                 }
             }
 
@@ -1425,6 +1573,7 @@
                         localStorage.setItem('casewins_session', JSON.stringify({
                             userId: state.user.id,
                             username: state.user.username,
+                            password: password,
                             token: state.sessionToken
                         }));
                         authContainer.innerHTML = '';
@@ -1451,6 +1600,7 @@
                         localStorage.setItem('casewins_session', JSON.stringify({
                             userId: state.user.id,
                             username: state.user.username,
+                            password: password,
                             token: state.sessionToken
                         }));
                         authContainer.innerHTML = '';
@@ -1618,25 +1768,18 @@
                 if (savedSession) {
                     try {
                         const sessionData = JSON.parse(savedSession);
-                        const { data: userData } = await supabase
-                            .from('users')
-                            .select('*')
-                            .eq('id', sessionData.userId)
-                            .single();
-
-                        if (userData) {
-                            state.user = {
-                                id: userData.id,
-                                username: userData.username,
-                                balance: userData.balance,
-                                avatar: userData.avatar
-                            };
+                        const result = await loginByNickname(sessionData.username, sessionData.password);
+                        
+                        if (result.success) {
+                            state.user = result.user;
                             state.sessionToken = sessionData.token;
                             mainApp.style.display = 'flex';
                             await initializeGameData();
                             initRealtimeChannels();
                             updateUI();
                             return true;
+                        } else {
+                            localStorage.removeItem('casewins_session');
                         }
                     } catch (e) {
                         console.error('Ошибка восстановления сессии:', e);
@@ -1654,20 +1797,7 @@
             }
 
             document.getElementById('createRoomBtn').addEventListener('click', createRoom);
-            document.getElementById('logoutBtn').addEventListener('click', async () => {
-                localStorage.removeItem('casewins_session');
-                if (state.classicChannel) supabase.removeChannel(state.classicChannel);
-                if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
-                if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
-                state.user = null;
-                state.sessionToken = null;
-                state.classicBets = [];
-                state.rooms = [];
-                state.classicSpinning = false;
-                clearClassicInterval();
-                mainApp.style.display = 'none';
-                showAuthForm();
-            });
+            document.getElementById('profileButton').addEventListener('click', showProfileModal);
 
             updateTimerStrip(3);
             initApp();
