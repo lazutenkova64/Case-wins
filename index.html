@@ -462,6 +462,15 @@
         .winner-avatar-center {
             animation: pulse-gold 0.8s ease-in-out infinite;
         }
+        .auth-error {
+            color: #ff4444;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+        .auth-error.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -533,6 +542,7 @@
 
             const state = {
                 user: null,
+                sessionToken: null,
                 classicBets: [],
                 classicTimer: 3,
                 classicInterval: null,
@@ -565,6 +575,10 @@
             const spectatorContainer = document.getElementById('spectatorContainer');
             const authContainer = document.getElementById('authContainer');
             const mainApp = document.getElementById('mainApp');
+
+            function generateSessionToken() {
+                return 'session_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
+            }
 
             function totalBank() { return state.classicBets.reduce((s, b) => s + b.amount, 0); }
 
@@ -1243,97 +1257,211 @@
                 </div></div>`;
             }
 
+            async function registerByNickname(nickname, password) {
+                try {
+                    const { data, error } = await supabase
+                        .rpc('register_by_nickname', {
+                            nick: nickname,
+                            pass: password
+                        });
+
+                    if (error) {
+                        console.error('Ошибка регистрации:', error);
+                        return { success: false, message: 'Ошибка сервера при регистрации' };
+                    }
+
+                    if (data && data.length > 0) {
+                        const result = data[0];
+                        if (result.success) {
+                            const { data: userData } = await supabase
+                                .from('users')
+                                .select('*')
+                                .eq('id', result.user_id)
+                                .single();
+
+                            return {
+                                success: true,
+                                user: {
+                                    id: result.user_id,
+                                    username: nickname,
+                                    balance: userData ? userData.balance : 1000,
+                                    avatar: userData ? userData.avatar : '🐺'
+                                }
+                            };
+                        } else {
+                            return { success: false, message: result.message };
+                        }
+                    }
+                    return { success: false, message: 'Неизвестная ошибка' };
+                } catch (err) {
+                    console.error('Исключение при регистрации:', err);
+                    const { data: existingUser } = await supabase
+                        .from('user_nicknames')
+                        .select('user_id')
+                        .eq('nickname', nickname)
+                        .single();
+
+                    if (existingUser) {
+                        return { success: false, message: 'Никнейм уже занят' };
+                    }
+
+                    const { data: newUser, error: insertError } = await supabase
+                        .from('users')
+                        .insert([{
+                            id: crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }),
+                            username: nickname,
+                            balance: 1000,
+                            avatar: '🐺'
+                        }])
+                        .select();
+
+                    if (insertError || !newUser || newUser.length === 0) {
+                        return { success: false, message: 'Ошибка создания пользователя' };
+                    }
+
+                    const { error: nicknameError } = await supabase
+                        .from('user_nicknames')
+                        .insert([{
+                            user_id: newUser[0].id,
+                            nickname: nickname,
+                            password_hash: password
+                        }]);
+
+                    if (nicknameError) {
+                        await supabase.from('users').delete().eq('id', newUser[0].id);
+                        return { success: false, message: 'Никнейм уже занят' };
+                    }
+
+                    return {
+                        success: true,
+                        user: {
+                            id: newUser[0].id,
+                            username: nickname,
+                            balance: 1000,
+                            avatar: '🐺'
+                        }
+                    };
+                }
+            }
+
+            async function loginByNickname(nickname, password) {
+                try {
+                    const { data: nicknameData, error: nickError } = await supabase
+                        .from('user_nicknames')
+                        .select('user_id, password_hash')
+                        .eq('nickname', nickname)
+                        .single();
+
+                    if (nickError || !nicknameData) {
+                        return { success: false, message: 'Неверный никнейм или пароль' };
+                    }
+
+                    if (nicknameData.password_hash !== password) {
+                        return { success: false, message: 'Неверный пароль' };
+                    }
+
+                    const { data: userData, error: userError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', nicknameData.user_id)
+                        .single();
+
+                    if (userError || !userData) {
+                        return { success: false, message: 'Пользователь не найден' };
+                    }
+
+                    return {
+                        success: true,
+                        user: {
+                            id: userData.id,
+                            username: userData.username,
+                            balance: userData.balance,
+                            avatar: userData.avatar
+                        }
+                    };
+                } catch (err) {
+                    console.error('Ошибка входа:', err);
+                    return { success: false, message: 'Ошибка сервера при входе' };
+                }
+            }
+
             function showAuthForm() {
                 authContainer.innerHTML = `
                     <div class="auth-overlay">
                         <div class="auth-card">
                             <h2 style="text-align:center;color:#f0b34b;">🎰 case-wins</h2>
-                            <input type="text" class="auth-input" id="authUsername" placeholder="Имя пользователя" autocomplete="off">
-                            <input type="email" class="auth-input" id="authEmail" placeholder="Email">
-                            <input type="password" class="auth-input" id="authPassword" placeholder="Пароль">
+                            <p style="text-align:center;color:#7f8690;font-size:14px;">Регистрация и вход по никнейму</p>
+                            <div class="auth-error" id="authError"></div>
+                            <input type="text" class="auth-input" id="authNickname" placeholder="Никнейм" autocomplete="off" maxlength="20">
+                            <input type="password" class="auth-input" id="authPassword" placeholder="Пароль" maxlength="50">
                             <button class="btn" id="authSignUpBtn" style="padding:12px;font-size:16px;">📝 Регистрация</button>
                             <button class="btn" id="authSignInBtn" style="padding:12px;font-size:16px;background:#4a5068;">🔑 Войти</button>
                         </div>
                     </div>`;
-                document.getElementById('authSignUpBtn').addEventListener('click', signUp);
-                document.getElementById('authSignInBtn').addEventListener('click', signIn);
-            }
 
-            async function signUp() {
-                const username = document.getElementById('authUsername').value.trim();
-                const email = document.getElementById('authEmail').value.trim();
-                const password = document.getElementById('authPassword').value;
+                const errorDiv = document.getElementById('authError');
+                const nicknameInput = document.getElementById('authNickname');
+                const passwordInput = document.getElementById('authPassword');
 
-                if (!username || !email || !password) return alert('Заполните все поля');
+                function showError(msg) {
+                    errorDiv.textContent = msg;
+                    errorDiv.classList.add('show');
+                    setTimeout(() => errorDiv.classList.remove('show'), 3000);
+                }
 
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { username } }
+                document.getElementById('authSignUpBtn').addEventListener('click', async () => {
+                    const nickname = nicknameInput.value.trim();
+                    const password = passwordInput.value;
+
+                    if (!nickname || !password) return showError('Заполните все поля');
+                    if (nickname.length < 3) return showError('Никнейм должен быть не менее 3 символов');
+                    if (password.length < 4) return showError('Пароль должен быть не менее 4 символов');
+
+                    const result = await registerByNickname(nickname, password);
+
+                    if (result.success) {
+                        state.user = result.user;
+                        state.sessionToken = generateSessionToken();
+                        localStorage.setItem('casewins_session', JSON.stringify({
+                            userId: state.user.id,
+                            username: state.user.username,
+                            token: state.sessionToken
+                        }));
+                        authContainer.innerHTML = '';
+                        mainApp.style.display = 'flex';
+                        await initializeGameData();
+                        initRealtimeChannels();
+                        updateUI();
+                    } else {
+                        showError(result.message);
+                    }
                 });
 
-                if (authError) return alert('Ошибка: ' + authError.message);
+                document.getElementById('authSignInBtn').addEventListener('click', async () => {
+                    const nickname = nicknameInput.value.trim();
+                    const password = passwordInput.value;
 
-                if (authData.user) {
-                    const { error: insertError } = await supabase
-                        .from('users')
-                        .insert([{
-                            id: authData.user.id,
-                            username,
-                            balance: 1000,
-                            avatar: '🐺'
-                        }]);
+                    if (!nickname || !password) return showError('Заполните все поля');
 
-                    if (insertError) console.error('Ошибка создания профиля:', insertError);
+                    const result = await loginByNickname(nickname, password);
 
-                    state.user = {
-                        id: authData.user.id,
-                        username,
-                        email,
-                        balance: 1000,
-                        avatar: '🐺'
-                    };
-                    authContainer.innerHTML = '';
-                    mainApp.style.display = 'flex';
-                    await initializeGameData();
-                    initRealtimeChannels();
-                    updateUI();
-                }
-            }
-
-            async function signIn() {
-                const email = document.getElementById('authEmail').value.trim();
-                const password = document.getElementById('authPassword').value;
-
-                if (!email || !password) return alert('Введите email и пароль');
-
-                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
+                    if (result.success) {
+                        state.user = result.user;
+                        state.sessionToken = generateSessionToken();
+                        localStorage.setItem('casewins_session', JSON.stringify({
+                            userId: state.user.id,
+                            username: state.user.username,
+                            token: state.sessionToken
+                        }));
+                        authContainer.innerHTML = '';
+                        mainApp.style.display = 'flex';
+                        await initializeGameData();
+                        initRealtimeChannels();
+                        updateUI();
+                    } else {
+                        showError(result.message);
+                    }
                 });
-
-                if (authError) return alert('Ошибка: ' + authError.message);
-
-                if (authData.user) {
-                    const { data: userData } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('id', authData.user.id)
-                        .single();
-
-                    state.user = {
-                        id: authData.user.id,
-                        username: userData.username || authData.user.user_metadata.username,
-                        email,
-                        balance: userData.balance || 1000,
-                        avatar: userData.avatar || '🐺'
-                    };
-                    authContainer.innerHTML = '';
-                    mainApp.style.display = 'flex';
-                    await initializeGameData();
-                    initRealtimeChannels();
-                    updateUI();
-                }
             }
 
             async function initializeGameData() {
@@ -1485,49 +1613,54 @@
                 }
             }
 
-            async function checkSession() {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    const { data: userData, error: userError } = await supabase
-                        .from('users')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
+            async function restoreSession() {
+                const savedSession = localStorage.getItem('casewins_session');
+                if (savedSession) {
+                    try {
+                        const sessionData = JSON.parse(savedSession);
+                        const { data: userData } = await supabase
+                            .from('users')
+                            .select('*')
+                            .eq('id', sessionData.userId)
+                            .single();
 
-                    if (userError) {
-                        console.error('Ошибка получения данных пользователя:', userError);
-                        state.user = {
-                            id: session.user.id,
-                            username: session.user.user_metadata.username || 'Player',
-                            email: session.user.email,
-                            balance: 1000,
-                            avatar: '🐺'
-                        };
-                    } else {
-                        state.user = {
-                            id: session.user.id,
-                            username: userData.username,
-                            email: session.user.email,
-                            balance: userData.balance,
-                            avatar: userData.avatar
-                        };
+                        if (userData) {
+                            state.user = {
+                                id: userData.id,
+                                username: userData.username,
+                                balance: userData.balance,
+                                avatar: userData.avatar
+                            };
+                            state.sessionToken = sessionData.token;
+                            mainApp.style.display = 'flex';
+                            await initializeGameData();
+                            initRealtimeChannels();
+                            updateUI();
+                            return true;
+                        }
+                    } catch (e) {
+                        console.error('Ошибка восстановления сессии:', e);
+                        localStorage.removeItem('casewins_session');
                     }
-                    mainApp.style.display = 'flex';
-                    await initializeGameData();
-                    initRealtimeChannels();
-                    updateUI();
-                } else {
+                }
+                return false;
+            }
+
+            async function initApp() {
+                const sessionRestored = await restoreSession();
+                if (!sessionRestored) {
                     showAuthForm();
                 }
             }
 
             document.getElementById('createRoomBtn').addEventListener('click', createRoom);
             document.getElementById('logoutBtn').addEventListener('click', async () => {
-                await supabase.auth.signOut();
+                localStorage.removeItem('casewins_session');
                 if (state.classicChannel) supabase.removeChannel(state.classicChannel);
                 if (state.roomsChannel) supabase.removeChannel(state.roomsChannel);
                 if (state.balanceChannel) supabase.removeChannel(state.balanceChannel);
                 state.user = null;
+                state.sessionToken = null;
                 state.classicBets = [];
                 state.rooms = [];
                 state.classicSpinning = false;
@@ -1537,7 +1670,7 @@
             });
 
             updateTimerStrip(3);
-            checkSession();
+            initApp();
         })();
     </script>
 </body>
