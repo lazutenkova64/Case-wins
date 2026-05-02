@@ -1359,7 +1359,7 @@
             flex-direction: column;
             align-items: center;
             gap: 20px;
-            margin-top: 20px;
+            margin-top: 80px;
         }
 
         .upgrade-selected-item, .upgrade-result-item {
@@ -1392,8 +1392,8 @@
         /* НОВЫЙ ДИЗАЙН КРУГА АПГРЕЙДА */
         .upgrade-wheel-container {
             position: relative;
-            width: 420px;
-            height: 420px;
+            width: 560px;
+            height: 560px;
             margin: 10px 0;
             background: transparent;
         }
@@ -1423,7 +1423,7 @@
         .arrow-pointer {
             position: absolute;
             top: -12px;
-            left: 188px;
+            left: 258px;
             width: 0;
             height: 0;
             border-top: 10px solid transparent;
@@ -1459,9 +1459,9 @@
             transform: translate(-50%, -50%);
         }
 
-        .wheel-label-25 { top: 50%; left: calc(50% + 195px); }
-        .wheel-label-50 { top: calc(50% + 195px); left: 50%; }
-        .wheel-label-75 { top: 50%; left: calc(50% - 195px); }
+        .wheel-label-25 { top: 50%; left: calc(50% + 265px); }
+        .wheel-label-50 { top: calc(50% + 265px); left: 50%; }
+        .wheel-label-75 { top: 50%; left: calc(50% - 265px); }
 
         /* ПЕРЕМЕЩЕННЫЙ ВЫБОР ШАНСОВ ВЛЕВО */
         .chance-selector-container {
@@ -2557,6 +2557,10 @@
                 width: 360px;
                 height: 360px;
             }
+            .wheel-label-25 { left: calc(50% + 170px); }
+            .wheel-label-50 { top: calc(50% + 170px); }
+            .wheel-label-75 { left: calc(50% - 170px); }
+            .arrow-pointer { left: 168px; }
         }
 
         @media (max-width: 768px) {
@@ -2659,10 +2663,10 @@
                 width: 300px;
                 height: 300px;
             }
-
-            .wheel-label-25 { left: calc(50% + 135px); }
-            .wheel-label-50 { top: calc(50% + 135px); }
-            .wheel-label-75 { left: calc(50% - 135px); }
+            .wheel-label-25 { left: calc(50% + 140px); }
+            .wheel-label-50 { top: calc(50% + 140px); }
+            .wheel-label-75 { left: calc(50% - 140px); }
+            .arrow-pointer { left: 138px; }
             
             .upgrade-selected-item,
             .upgrade-result-item {
@@ -2739,10 +2743,10 @@
                 width: 260px;
                 height: 260px;
             }
-
-            .wheel-label-25 { left: calc(50% + 115px); }
-            .wheel-label-50 { top: calc(50% + 115px); }
-            .wheel-label-75 { left: calc(50% - 115px); }
+            .wheel-label-25 { left: calc(50% + 120px); }
+            .wheel-label-50 { top: calc(50% + 120px); }
+            .wheel-label-75 { left: calc(50% - 120px); }
+            .arrow-pointer { left: 118px; }
             
             .upgrade-selected-item,
             .upgrade-result-item {
@@ -2806,10 +2810,10 @@
                 width: 220px;
                 height: 220px;
             }
-
-            .wheel-label-25 { left: calc(50% + 95px); }
-            .wheel-label-50 { top: calc(50% + 95px); }
-            .wheel-label-75 { left: calc(50% - 95px); }
+            .wheel-label-25 { left: calc(50% + 100px); }
+            .wheel-label-50 { top: calc(50% + 100px); }
+            .wheel-label-75 { left: calc(50% - 100px); }
+            .arrow-pointer { left: 98px; }
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -5767,6 +5771,7 @@
                     if (gameState.selectedCase) {
                         openCaseView(gameState.selectedCase);
                     }
+                    // Убираем проигрывание pnx после продажи
                 }
             });
 
@@ -5821,6 +5826,7 @@
                 if (gameState.selectedCase) {
                     openCaseView(gameState.selectedCase);
                 }
+                // Убираем проигрывание pnx после продажи
             });
 
             openBatchAgainBtn.addEventListener('click', () => {
@@ -6145,7 +6151,9 @@
             initDynamicScrolls(caseData);
 
             // Звук кручения ленты
-            playSound('lenta');
+            if (!gameState.fastScroll) {
+                playSound('lenta');
+            }
 
             if (gameState.fastScroll) {
                 fastCaseOpening();
@@ -6156,7 +6164,7 @@
             }
         }
 
-        // Быстрое открытие кейсов без анимации
+        // Быстрое открытие кейсов без анимации и без звука lenta
         function fastCaseOpening() {
             spinBtn.innerHTML = `<i class="fas fa-bolt"></i> Быстрая прокрутка...`;
 
@@ -6192,16 +6200,17 @@
             }, 500);
         }
 
-        // Прокрутка кейса (обычная) - увеличенное время и плавная остановка
+        // Прокрутка кейса (обычная) - увеличенное время и плавная остановка в разных местах
         function spinDynamicCase(scrollIndex) {
             return new Promise((resolve) => {
                 const scrollData = gameState.dynamicScrolls[scrollIndex];
                 const dynamicScroll = scrollData.scroll;
+                const wrapperWidth = scrollData.wrapper.getBoundingClientRect().width;
 
                 const initialSpeed = 16;
-                const constantPhaseTime = 2500; // Увеличено с 1-2 до 2.5 секунд
-                const decelerationPhaseTime = 6000; // Увеличено с 4 до 6 секунд
-                const finishPhaseTime = 3000; // Увеличено с 1.5-2 до 3 секунд
+                const constantPhaseTime = 3500; // Увеличено с 2.5 до 3.5 секунд
+                const decelerationPhaseTime = 8000; // Увеличено с 6 до 8 секунд
+                const finishPhaseTime = 4000; // Увеличено с 3 до 4 секунд
                 const fps = 60;
                 const constantFrames = Math.floor(constantPhaseTime / (1000/fps));
                 const decelerationFrames = Math.floor(decelerationPhaseTime / (1000/fps));
@@ -6218,14 +6227,14 @@
                         speed = initialSpeed;
                     } else if (frame < constantFrames + decelerationFrames) {
                         const progress = (frame - constantFrames) / decelerationFrames;
-                        speed = initialSpeed * (1 - progress * 0.85); // замедление до 15%
+                        speed = initialSpeed * (1 - progress * 0.88); // замедление до 12%
                     } else if (frame < constantFrames + decelerationFrames + finishFrames) {
                         const progress = (frame - constantFrames - decelerationFrames) / finishFrames;
-                        speed = initialSpeed * 0.15 * Math.pow(1 - progress, 2); // плавное докатывание
+                        speed = initialSpeed * 0.12 * Math.pow(1 - progress, 2.5); // более плавное докатывание
                     } else {
                         cancelAnimationFrame(animationId);
                         // Плавная остановка
-                        dynamicScroll.style.transition = 'transform 0.5s ease-out';
+                        dynamicScroll.style.transition = 'transform 0.7s ease-out';
                         dynamicScroll.style.transform = `translateX(-${scrollPosition}px)`;
 
                         setTimeout(() => {
@@ -6260,7 +6269,7 @@
                             } else {
                                 resolve(getRandomItem(casesData[gameState.selectedCase]));
                             }
-                        }, 500);
+                        }, 700);
                         return;
                     }
 
@@ -6278,7 +6287,6 @@
                 };
 
                 animationId = requestAnimationFrame(animate);
-                scrollData.animationId = animationId;
 
                 // Таймаут безопасности
                 setTimeout(() => {
@@ -6289,7 +6297,7 @@
                     dynamicScroll.style.transform = `translateX(-${scrollPosition}px)`;
                     const itemUnderArrow = getItemUnderArrow(scrollIndex);
                     resolve(itemUnderArrow || getRandomItem(casesData[gameState.selectedCase]));
-                }, 15000);
+                }, 20000);
             });
         }
 
@@ -6365,15 +6373,18 @@
             upgradeStartBtn.disabled = true;
             disableUpgradeInventory(true);
 
+            const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
+            const successDegrees = (effectiveChance / 100) * 360;
+            const halfGreen = successDegrees / 2;
+            const startGreen = 180 - halfGreen;
+            const endGreen = 180 + halfGreen;
+
+            // Рисуем заполнение круга
+            drawWheelFill(effectiveChance);
+
             if (gameState.fastUpgrade) {
                 // Быстрый апгрейд: 1.5с вращение + 0.5с пауза
                 upgradeStartBtn.innerHTML = `<i class="fas fa-bolt"></i> Быстрая прокрутка...`;
-
-                const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
-                const successDegrees = (effectiveChance / 100) * 360;
-                const halfGreen = successDegrees / 2;
-                const startGreen = 180 - halfGreen;
-                const endGreen = 180 + halfGreen;
 
                 const zeroRotations = Math.random() < 0.5;
                 let targetAngle;
@@ -6418,13 +6429,7 @@
 
                         setTimeout(() => {
                             const finalRotation = targetAngle % 360;
-                            const effectiveChanceCalc = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
-                            const successDeg = (effectiveChanceCalc / 100) * 360;
-                            const halfG = successDeg / 2;
-                            const startG = 180 - halfG;
-                            const endG = 180 + halfG;
-
-                            const isSuccessFinal = finalRotation >= startG && finalRotation <= endG && targetAngle >= 360;
+                            const isSuccessFinal = finalRotation >= startGreen && finalRotation <= endGreen && targetAngle >= 360;
 
                             const upgradeState = db.getUpgradeState();
                             if (upgradeState) {
@@ -6440,73 +6445,81 @@
                             upgradeStartBtn.disabled = false;
                             upgradeStartBtn.innerHTML = `<i class="fas fa-play"></i> Начать апгрейд`;
                             disableUpgradeInventory(false);
+                            clearWheelFill();
                         }, 500);
                     }
                 };
 
                 animationId = requestAnimationFrame(animateSpin);
             } else {
-                // Обычный апгрейд: ускорение 3с, пиковая скорость 1с, замедление с докатыванием
+                // Обычный апгрейд: непрерывное вращение с уменьшенной в 3 раза максимальной скоростью
                 upgradeStartBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Крутим...`;
 
-                const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
-                const successDegrees = (effectiveChance / 100) * 360;
-                const halfGreen = successDegrees / 2;
-                const startGreen = 180 - halfGreen;
-                const endGreen = 180 + halfGreen;
-
-                const fullRotations = Math.random() < 0.5 ? 4 : 5;
+                const fullRotations = 4 + Math.floor(Math.random() * 3); // 4-6 полных оборотов
                 let targetAngle;
                 let isSuccess;
 
-                if (fullRotations === 4) {
-                    isSuccess = false;
-                    const failStart = Math.max(5, endGreen);
-                    const failRange = 360 - failStart;
-                    targetAngle = (fullRotations * 360) + failStart + Math.random() * failRange;
+                isSuccess = Math.random() * 100 < effectiveChance;
+                if (isSuccess) {
+                    targetAngle = (fullRotations * 360) + startGreen + Math.random() * successDegrees;
                 } else {
-                    isSuccess = Math.random() * 100 < effectiveChance;
-                    if (isSuccess) {
-                        targetAngle = (fullRotations * 360) + startGreen + Math.random() * successDegrees;
+                    const randomRed = Math.random();
+                    if (randomRed < 0.5) {
+                        targetAngle = (fullRotations * 360) + Math.random() * startGreen;
                     } else {
-                        const randomRed = Math.random();
-                        if (randomRed < 0.5) {
-                            targetAngle = (fullRotations * 360) + Math.random() * startGreen;
-                        } else {
-                            targetAngle = (fullRotations * 360) + endGreen + Math.random() * (360 - endGreen);
-                        }
+                        targetAngle = (fullRotations * 360) + endGreen + Math.random() * (360 - endGreen);
                     }
                 }
 
-                // Длительность: ускорение 3с, пик 1с, замедление 4с
-                const accelerationTime = 3000;
-                const constantTime = 1000;
-                const decelerationTime = 4000;
-                const totalTime = accelerationTime + constantTime + decelerationTime;
+                // Уменьшенная максимальная скорость (в 3 раза)
+                const maxSpeed = 360; // градусов в секунду
+                const totalAngle = targetAngle;
+                const totalDuration = (totalAngle / maxSpeed) * 1000; // миллисекунды
+                
                 let startTime = null;
                 let animationId = null;
-                const maxSpeed = targetAngle / (accelerationTime * 0.5 + constantTime + decelerationTime * 0.5);
 
                 const animateSpin = (timestamp) => {
                     if (!startTime) startTime = timestamp;
                     const elapsed = timestamp - startTime;
-
-                    if (elapsed >= totalTime) {
+                    const progress = Math.min(elapsed / totalDuration, 1);
+                    
+                    // Плавное ускорение и замедление
+                    let easedProgress;
+                    if (progress < 0.2) {
+                        // Ускорение
+                        easedProgress = 0.5 * Math.pow(progress / 0.2, 2);
+                    } else if (progress > 0.8) {
+                        // Замедление
+                        const decelProgress = (progress - 0.8) / 0.2;
+                        easedProgress = 0.5 + 0.5 * (1 - Math.pow(1 - decelProgress, 2));
+                    } else {
+                        // Равномерное движение
+                        easedProgress = 0.5 + (progress - 0.2) * (0.5 / 0.6);
+                    }
+                    
+                    const currentAngle = easedProgress * totalAngle;
+                    
+                    arrowRotator.style.transition = 'none';
+                    arrowRotator.style.transform = `translate(-50%, -50%) rotate(${currentAngle}deg)`;
+                    
+                    if (progress < 1) {
+                        animationId = requestAnimationFrame(animateSpin);
+                    } else {
                         cancelAnimationFrame(animationId);
-                        arrowRotator.style.transition = 'none';
-                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${targetAngle}deg)`;
-
-                        const finalRotation = targetAngle % 360;
-                        const isSuccessFinal = finalRotation >= startGreen && finalRotation <= endGreen;
-
-                        const upgradeState = db.getUpgradeState();
-                        if (upgradeState) {
-                            upgradeState.isSuccess = isSuccessFinal;
-                            db.saveUpgradeState(upgradeState);
-                        }
-
-                        // Звуки результата
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${totalAngle}deg)`;
+                        
                         setTimeout(() => {
+                            const finalRotation = totalAngle % 360;
+                            const isSuccessFinal = finalRotation >= startGreen && finalRotation <= endGreen;
+
+                            const upgradeState = db.getUpgradeState();
+                            if (upgradeState) {
+                                upgradeState.isSuccess = isSuccessFinal;
+                                db.saveUpgradeState(upgradeState);
+                            }
+
+                            // Звуки результата
                             if (!gameState.upgradeSoundMuted) {
                                 if (isSuccessFinal) {
                                     playSound('litvin');
@@ -6524,39 +6537,77 @@
                             upgradeStartBtn.disabled = false;
                             upgradeStartBtn.innerHTML = `<i class="fas fa-play"></i> Начать апгрейд`;
                             disableUpgradeInventory(false);
+                            clearWheelFill();
                         }, 500);
-                        return;
                     }
-
-                    let rotation;
-                    if (elapsed < accelerationTime) {
-                        // Ускорение с 0
-                        const progress = elapsed / accelerationTime;
-                        const eased = progress * progress;
-                        rotation = eased * targetAngle;
-                    } else if (elapsed < accelerationTime + constantTime) {
-                        // Пиковая скорость
-                        const accelEndProgress = 1;
-                        const progress = (elapsed - accelerationTime) / constantTime;
-                        const constantProgress = accelEndProgress + progress * (1 - accelEndProgress);
-                        rotation = constantProgress * targetAngle;
-                    } else {
-                        // Замедление с докатыванием
-                        const decelElapsed = elapsed - accelerationTime - constantTime;
-                        const decelProgress = decelElapsed / decelerationTime;
-                        const easeOut = 1 - Math.pow(1 - decelProgress, 4);
-                        const decelStartProgress = accelerationTime / totalTime;
-                        const decelEndProgress = 1;
-                        rotation = (decelStartProgress + (decelEndProgress - decelStartProgress) * easeOut) * targetAngle;
-                    }
-
-                    arrowRotator.style.transition = 'none';
-                    arrowRotator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
-                    animationId = requestAnimationFrame(animateSpin);
                 };
 
                 animationId = requestAnimationFrame(animateSpin);
             }
+        }
+
+        // Функция для рисования заполнения круга
+        function drawWheelFill(chance) {
+            const container = document.getElementById('upgrade-wheel-container');
+            const wheelImg = container.querySelector('.upgrade-wheel-img');
+            
+            // Удаляем старый canvas если есть
+            const oldCanvas = container.querySelector('.wheel-fill-canvas');
+            if (oldCanvas) oldCanvas.remove();
+            
+            // Создаем canvas для заполнения
+            const canvas = document.createElement('canvas');
+            canvas.className = 'wheel-fill-canvas';
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.zIndex = '10';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.borderRadius = '50%';
+            
+            container.insertBefore(canvas, wheelImg.nextSibling);
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 20;
+            
+            // Рисуем зеленую зону (шанс успеха)
+            const successDegrees = (chance / 100) * 360;
+            const halfGreen = successDegrees / 2;
+            const startAngle = (Math.PI / 180) * (270 - halfGreen); // Начинаем с верха
+            const endAngle = (Math.PI / 180) * (270 + halfGreen);
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+            ctx.fill();
+            
+            // Рисуем красную зону (шанс провала)
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, endAngle, startAngle);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(244, 67, 54, 0.3)';
+            ctx.fill();
+            
+            // Добавляем границу
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Очистка заполнения круга
+        function clearWheelFill() {
+            const container = document.getElementById('upgrade-wheel-container');
+            const canvas = container.querySelector('.wheel-fill-canvas');
+            if (canvas) canvas.remove();
         }
 
         // Блокировка/разблокировка инвентаря апгрейда
@@ -6717,15 +6768,15 @@
             if (gameState.upgradeSelectedChance === 0) {
                 arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
                 upgradePercentDisplay.textContent = '0%';
+                clearWheelFill();
                 return;
             }
 
             const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(gameState.upgradeBalanceAmount / 100));
-            const successDegrees = (effectiveChance / 100) * 360;
-            const halfGreen = successDegrees / 2;
-            const startGreen = 180 - halfGreen;
-            const endGreen = 180 + halfGreen;
-
+            
+            // Обновляем заполнение круга
+            drawWheelFill(effectiveChance);
+            
             // Стрелка всегда указывает в нуль, не меняем визуально, просто обновляем процент
             arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
             upgradePercentDisplay.textContent = `${effectiveChance}%`;
@@ -6919,6 +6970,7 @@
 
             document.querySelectorAll('.chance-option').forEach(opt => opt.classList.remove('active'));
             updateWheelVisual();
+            clearWheelFill();
 
             loadUpgradeInventory();
         }
