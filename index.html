@@ -516,7 +516,7 @@
         }
 
         .case-image img {
-            max-width: 100%;  /* Увеличен размер изображения */
+            max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
@@ -1383,182 +1383,79 @@
             gap: 15px;
         }
 
-        /* НОВЫЙ ДИЗАЙН КРУГА АПГРЕЙДА */
+        /* НОВЫЙ ДИЗАЙН КРУГА АПГРЕЙДА (убран старый, используется изображение ubgrade.png) */
         .upgrade-wheel-container {
             position: relative;
             width: 360px;
             height: 360px;
             margin: 10px 0;
+            background: transparent;
         }
 
-        .upgrade-wheel-outer {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .upgrade-wheel-img {
             width: 100%;
             height: 100%;
+            object-fit: contain;
+            display: block;
             border-radius: 50%;
-            border: 8px solid #2a2f36;
-            background: transparent;
-            z-index: 5;
-            pointer-events: none;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
-        .upgrade-wheel-inner {
+        /* Контейнер стрелки, вращается вокруг центра */
+        .arrow-rotator {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            width: calc(100% - 40px);
-            height: calc(100% - 40px);
-            border-radius: 50%;
-            border: 6px solid #3a3f46;
-            background: transparent;
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        .upgrade-wheel-arrow-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            transform: translate(-50%, -50%);
+            transform-origin: 0 0;
             z-index: 20;
             pointer-events: none;
         }
 
-        .upgrade-wheel-color-sector {
+        /* Сама стрелка: зелёный треугольник с обводкой, указывающий влево (к центру) */
+        .arrow-pointer {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: calc(100% - 20px);
-            height: calc(100% - 20px);
-            border-radius: 50%;
-            z-index: 4;
-            pointer-events: none;
-        }
-
-        .wheel-success-sector {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: conic-gradient(
-                from 0deg,
-                #f44336 0deg,
-                #f44336 var(--start-green, 90deg),
-                #4CAF50 var(--start-green, 90deg),
-                #4CAF50 var(--end-green, 270deg),
-                #f44336 var(--end-green, 270deg),
-                #f44336 360deg
-            );
-            border-radius: 50%;
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-
-        /* СТРЕЛКА УМЕНЬШЕНА В 2 РАЗА */
-        .wheel-arrow-moving {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%) rotate(0deg);
-            width: 20px;
-            height: 65px;
-            z-index: 25;
-            transition: transform 0.1s linear;
-            transform-origin: 10px 170px;
-        }
-
-        .arrow-inner {
+            top: -10px; /* смещение для центрирования */
+            left: 155px; /* радиус круга (если контейнер 360x360, радиус 180px) - отступ справа */
             width: 0;
             height: 0;
-            border-left: 9px solid transparent;
-            border-right: 9px solid transparent;
-            border-top: 35px solid #ffd700;
-            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
-            position: relative;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 22px solid #4CAF50;
+            filter: drop-shadow(0 0 2px rgba(255,255,255,0.8));
+            transform: translateY(-50%);
         }
 
-        .wheel-percentages {
+        /* Процент шанса в центре круга */
+        .upgrade-percent-display {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-
-        /* ПРОЦЕНТ ШАНСА В ЦЕНТРЕ КРУГА */
-        .percent-display {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 15;
-            border: 4px solid var(--gold-color);
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-        }
-
-        .percent-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            color: white;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-        .percent-label {
-            font-size: 14px;
-            color: rgba(255,255,255,0.8);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .wheel-percentage-label {
-            position: absolute;
-            color: white;
-            font-weight: 800;
-            font-size: 24px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            z-index: 10;
+            color: #4CAF50;
+            text-shadow: 0 0 8px rgba(255,255,255,0.9), 0 0 15px rgba(255,255,255,0.5);
+            z-index: 25;
             pointer-events: none;
         }
 
-        .wheel-percentage-top {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+        /* Метки процентов по краям круга */
+        .wheel-label {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+            z-index: 15;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
         }
 
-        .wheel-percentage-right {
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-        }
-
-        .wheel-percentage-bottom {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .wheel-percentage-left {
-            top: 50%;
-            left: 20px;
-            transform: translateY(-50%);
-        }
+        .wheel-label-25 { top: 50%; left: calc(50% + 165px); }   /* 90° */
+        .wheel-label-50 { top: calc(50% + 165px); left: 50%; }   /* 180° */
+        .wheel-label-75 { top: 50%; left: calc(50% - 165px); }    /* 270° */
 
         /* ПЕРЕМЕЩЕННЫЙ ВЫБОР ШАНСОВ ВЛЕВО */
         .chance-selector-container {
@@ -3971,40 +3868,18 @@
                         </div>
                         
                         <div class="upgrade-center">
-                            <div class="upgrade-wheel-container">
-                                <!-- Внешний круг (рельса) -->
-                                <div class="upgrade-wheel-outer" id="upgrade-wheel-outer"></div>
-                                
-                                <!-- Цветовой сектор -->
-                                <div class="upgrade-wheel-color-sector" id="upgrade-wheel-color-sector">
-                                    <div class="wheel-success-sector" id="wheel-success-sector"></div>
+                            <!-- НОВОЕ КОЛЕСО (изображение ubgrade.png) -->
+                            <div class="upgrade-wheel-container" id="upgrade-wheel-container">
+                                <img class="upgrade-wheel-img" src="images/ubgrade.png" alt="Колесо апгрейда">
+                                <div class="arrow-rotator" id="arrow-rotator">
+                                    <div class="arrow-pointer"></div>
                                 </div>
-                                
-                                <!-- Стрелка -->
-                                <div class="upgrade-wheel-arrow-container" id="upgrade-wheel-arrow-container">
-                                    <div class="wheel-arrow-moving" id="wheel-arrow-moving" style="display: block; transform: translateX(-50%) rotate(0deg);">
-                                        <div class="arrow-inner"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Внутренний круг (рельса) -->
-                                <div class="upgrade-wheel-inner" id="upgrade-wheel-inner"></div>
-                                
-                                <!-- Процентные метки -->
-                                <div class="wheel-percentage-label wheel-percentage-top">100%</div>
-                                <div class="wheel-percentage-label wheel-percentage-right">25%</div>
-                                <div class="wheel-percentage-label wheel-percentage-bottom">50%</div>
-                                <div class="wheel-percentage-label wheel-percentage-left">75%</div>
-                                
-                                <!-- Результат -->
+                                <div class="upgrade-percent-display" id="upgrade-percent-display">0%</div>
+                                <div class="wheel-label wheel-label-25">25%</div>
+                                <div class="wheel-label wheel-label-50">50%</div>
+                                <div class="wheel-label wheel-label-75">75%</div>
                                 <div class="upgrade-result-status upgrade-success" id="upgrade-success-text">Успешно!</div>
                                 <div class="upgrade-result-status upgrade-failure" id="upgrade-failure-text">Неудача</div>
-                                
-                                <!-- Центральный процент -->
-                                <div class="percent-display" id="percent-display">
-                                    <div class="percent-value" id="percent-value">0%</div>
-                                    <div class="percent-label">Шанс</div>
-                                </div>
                             </div>
                             
                             <!-- КНОПКА НАЧАТЬ АПГРЕЙД ПЕРЕМЕЩЕНА ВЫШЕ -->
@@ -4452,6 +4327,17 @@
                     localStorage.setItem('openedCaseState', JSON.stringify(null));
                 }
                 
+                // Сохранение звуковых настроек
+                if (!localStorage.getItem('soundSettings')) {
+                    const defaultSoundSettings = {
+                        siteMuted: false,
+                        upgradeSoundMuted: false,
+                        contractSoundMuted: false,
+                        volumeLevel: 100
+                    };
+                    localStorage.setItem('soundSettings', JSON.stringify(defaultSoundSettings));
+                }
+                
                 // Админ аккаунт
                 const users = this.getUsers();
                 if (!users['k1lame']) {
@@ -4725,6 +4611,22 @@
                 delete pendingItems[username];
                 localStorage.setItem('pendingCaseItems', JSON.stringify(pendingItems));
             }
+            
+            // Загрузка и сохранение звуковых настроек
+            getSoundSettings() {
+                const defaultSettings = {
+                    siteMuted: false,
+                    upgradeSoundMuted: false,
+                    contractSoundMuted: false,
+                    volumeLevel: 100
+                };
+                const stored = JSON.parse(localStorage.getItem('soundSettings'));
+                return stored ? { ...defaultSettings, ...stored } : defaultSettings;
+            }
+            
+            saveSoundSettings(settings) {
+                localStorage.setItem('soundSettings', JSON.stringify(settings));
+            }
         }
 
         // Системные настройки
@@ -4892,11 +4794,14 @@
         // Текущий пользователь
         let currentUser = db.getCurrentUser();
 
+        // Активные источники звука для контроля перекрытия (кроме money)
+        let activeAudioSources = [];
+
         // Текущее состояние
         const gameState = {
             selectedCase: null,
             isSpinning: false,
-            isCaseOpeningInProgress: false, // флаг блокировки повторного открытия
+            isCaseOpeningInProgress: false,
             spinResult: null,
             activeSupportTicket: null,
             currentScrollItems: [],
@@ -4974,6 +4879,13 @@
         const inventorySortBtn = document.getElementById('inventory-sort-btn');
         const contractSortBtn = document.getElementById('contract-sort-btn');
 
+        // Новые элементы апгрейда
+        const upgradeWheelContainer = document.getElementById('upgrade-wheel-container');
+        const arrowRotator = document.getElementById('arrow-rotator');
+        const upgradePercentDisplay = document.getElementById('upgrade-percent-display');
+        const upgradeSuccessText = document.getElementById('upgrade-success-text');
+        const upgradeFailureText = document.getElementById('upgrade-failure-text');
+
         // Звуковые элементы
         const profileSoundBtn = document.getElementById('profile-sound-btn');
         const volumeSlider = document.getElementById('volume-slider');
@@ -5029,18 +4941,10 @@
         // Апгрейд элементы
         const upgradeSelectedItem = document.getElementById('upgrade-selected-item');
         const upgradeResultItem = document.getElementById('upgrade-result-item');
-        const upgradeWheelOuter = document.getElementById('upgrade-wheel-outer');
-        const upgradeWheelInner = document.getElementById('upgrade-wheel-inner');
-        const wheelArrowMoving = document.getElementById('wheel-arrow-moving');
-        const wheelSuccessSector = document.getElementById('wheel-success-sector');
-        const upgradeStatus = document.getElementById('upgrade-status');
         const chanceSelector = document.getElementById('chance-selector');
         const upgradeBalanceInput = document.getElementById('upgrade-balance-input');
         const upgradeStartBtn = document.getElementById('upgrade-start-btn');
         const upgradeInventoryGrid = document.getElementById('upgrade-inventory-grid');
-        const percentValue = document.getElementById('percent-value');
-        const upgradeSuccessText = document.getElementById('upgrade-success-text');
-        const upgradeFailureText = document.getElementById('upgrade-failure-text');
 
         // Контракты элементы
         const contractSlotsGrid = document.getElementById('contract-slots-grid');
@@ -5169,22 +5073,49 @@
         loadAudio('money', 'music/money.mp3');
         loadAudio('litvin', 'music/litvin.mp3');
 
+        // Останавливает все активные источники, кроме исключений
+        function stopAllAudioSources(exceptNames = []) {
+            activeAudioSources = activeAudioSources.filter(source => {
+                if (exceptNames.includes(source.name)) {
+                    return true;
+                }
+                try { source.stop(); } catch (e) {}
+                return false;
+            });
+        }
+
         function playSound(name, volume = 1.0) {
             if (gameState.siteMuted) return;
             if (!audioFiles[name]) return;
+            // Если звук не money, останавливаем все кроме money
+            if (name !== 'money') {
+                stopAllAudioSources(['money']);
+            }
             const source = audioCtx.createBufferSource();
+            source.name = name;
             const gainNode = audioCtx.createGain();
             gainNode.gain.value = volume * (gameState.volumeLevel / 100);
             source.buffer = audioFiles[name];
             source.connect(gainNode);
             gainNode.connect(audioCtx.destination);
             source.start(0);
+            activeAudioSources.push(source);
+            // Когда источник завершится, убираем из массива
+            source.onended = () => {
+                activeAudioSources = activeAudioSources.filter(s => s !== source);
+            };
         }
 
         // Общая громкость сайта
         function setSiteVolume(value) {
             gameState.volumeLevel = value;
             volumeSlider.value = value;
+            db.saveSoundSettings({
+                siteMuted: gameState.siteMuted,
+                upgradeSoundMuted: gameState.upgradeSoundMuted,
+                contractSoundMuted: gameState.contractSoundMuted,
+                volumeLevel: gameState.volumeLevel
+            });
         }
 
         // Кнопка mute сайта (профиль)
@@ -5197,8 +5128,13 @@
                 profileSoundBtn.classList.remove('muted');
                 profileSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             }
-            // Также синхронизируем ползунок
             volumeSlider.disabled = gameState.siteMuted;
+            db.saveSoundSettings({
+                siteMuted: gameState.siteMuted,
+                upgradeSoundMuted: gameState.upgradeSoundMuted,
+                contractSoundMuted: gameState.contractSoundMuted,
+                volumeLevel: gameState.volumeLevel
+            });
         }
 
         // Звук апгрейда
@@ -5211,6 +5147,12 @@
                 upgradeSoundBtn.classList.remove('muted');
                 upgradeSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             }
+            db.saveSoundSettings({
+                siteMuted: gameState.siteMuted,
+                upgradeSoundMuted: gameState.upgradeSoundMuted,
+                contractSoundMuted: gameState.contractSoundMuted,
+                volumeLevel: gameState.volumeLevel
+            });
         }
 
         // Звук контракта
@@ -5223,10 +5165,47 @@
                 contractSoundBtn.classList.remove('muted');
                 contractSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
             }
+            db.saveSoundSettings({
+                siteMuted: gameState.siteMuted,
+                upgradeSoundMuted: gameState.upgradeSoundMuted,
+                contractSoundMuted: gameState.contractSoundMuted,
+                volumeLevel: gameState.volumeLevel
+            });
         }
 
         // Инициализация
         function init() {
+            // Применяем сохраненные настройки звука
+            const soundSettings = db.getSoundSettings();
+            gameState.siteMuted = soundSettings.siteMuted;
+            gameState.upgradeSoundMuted = soundSettings.upgradeSoundMuted;
+            gameState.contractSoundMuted = soundSettings.contractSoundMuted;
+            gameState.volumeLevel = soundSettings.volumeLevel;
+            volumeSlider.value = gameState.volumeLevel;
+            if (gameState.siteMuted) {
+                profileSoundBtn.classList.add('muted');
+                profileSoundBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                volumeSlider.disabled = true;
+            } else {
+                profileSoundBtn.classList.remove('muted');
+                profileSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                volumeSlider.disabled = false;
+            }
+            if (gameState.upgradeSoundMuted) {
+                upgradeSoundBtn.classList.add('muted');
+                upgradeSoundBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                upgradeSoundBtn.classList.remove('muted');
+                upgradeSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+            if (gameState.contractSoundMuted) {
+                contractSoundBtn.classList.add('muted');
+                contractSoundBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                contractSoundBtn.classList.remove('muted');
+                contractSoundBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+
             checkPendingUpgrade();
             checkPendingCaseItems();
 
@@ -5262,14 +5241,15 @@
             initQuantitySelector();
             startOtherUsersDropsSimulation();
 
-            // Инициализация стрелки колеса апгрейда
+            // Инициализация стрелки колеса апгрейда (новая логика)
             initWheelArrow();
 
             // Применяем сохраненную тему
             const savedTheme = localStorage.getItem('site-theme');
             if (savedTheme) {
                 document.body.className = savedTheme;
-                document.querySelector(`.theme-option[data-theme="${savedTheme}"]`)?.classList.add('active');
+                const activeThemeOption = document.querySelector(`.theme-option[data-theme="${savedTheme}"]`);
+                if (activeThemeOption) activeThemeOption.classList.add('active');
             }
         }
 
@@ -5321,12 +5301,10 @@
             db.clearOpenedCaseState();
         }
 
-        // Инициализация стрелки колеса
+        // Инициализация стрелки колеса (установка в 0)
         function initWheelArrow() {
-            if (wheelArrowMoving) {
-                wheelArrowMoving.style.display = 'block';
-                wheelArrowMoving.style.transform = 'translateX(-50%) rotate(0deg)';
-                wheelArrowMoving.style.transition = 'none';
+            if (arrowRotator) {
+                arrowRotator.style.transform = 'translate(-50%, -50%) rotate(0deg)';
                 gameState.wheelArrowInitialized = true;
             }
         }
@@ -6064,7 +6042,6 @@
             loadUpgradeInventory();
             clearOpenedCaseState();
 
-            // Инициализация стрелки при показе секции
             if (!gameState.wheelArrowInitialized) {
                 initWheelArrow();
             }
@@ -6316,7 +6293,7 @@
             return null;
         }
 
-        // Запуск апгрейда с новой логикой круга и быстрого режима
+        // Запуск апгрейда с новой логикой круга и быстрого режима (разгон 2-3 сек, общая длительность 7-8 сек)
         function startUpgrade() {
             if (!currentUser || !gameState.selectedUpgradeItem || !gameState.upgradeResultItem || gameState.isWheelSpinning) return;
 
@@ -6328,8 +6305,8 @@
                 return;
             }
 
-            // Звук "Davai!" при начале апгрейда
-            if (!gameState.upgradeSoundMuted) {
+            // Звук "Davai!" при начале апгрейда (только если не быстрый прокрут)
+            if (!gameState.upgradeSoundMuted && !gameState.fastUpgrade) {
                 playSound('davai');
             }
 
@@ -6351,12 +6328,10 @@
 
             gameState.isWheelSpinning = true;
             upgradeStartBtn.disabled = true;
-
-            // Блокируем инвентарь
             disableUpgradeInventory(true);
 
             if (gameState.fastUpgrade) {
-                // Быстрый апгрейд с анимацией: 1.5с вращение + 0.5с пауза
+                // Быстрый апгрейд: 1.5с вращение + 0.5с пауза
                 upgradeStartBtn.innerHTML = `<i class="fas fa-bolt"></i> Быстрая прокрутка...`;
 
                 const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
@@ -6365,24 +6340,17 @@
                 const startGreen = 180 - halfGreen;
                 const endGreen = 180 + halfGreen;
 
-                // 0 оборотов: гарантированно красный (271-360 градусов),
-                // 1 оборот: зависит от шанса
                 const zeroRotations = Math.random() < 0.5;
                 let targetAngle;
 
                 if (zeroRotations) {
-                    // 0 оборотов, гарантированно красный: угол 180 + (271-360) = 271-360 от 180
-                    // Итоговый угол от 271 до 360 градусов (на красном, справа от зеленого)
                     targetAngle = 271 + Math.random() * 89;
-                    // Минимум 180 градусов движения
                     targetAngle = Math.max(180, targetAngle);
                 } else {
-                    // 1 оборот: 360 + случайный угол
                     const isSuccess = Math.random() * 100 < effectiveChance;
                     if (isSuccess) {
                         targetAngle = 360 + startGreen + Math.random() * successDegrees;
                     } else {
-                        // Красный: вне зеленого сектора
                         const randomRed = Math.random();
                         if (randomRed < 0.5) {
                             targetAngle = 360 + Math.random() * startGreen;
@@ -6405,16 +6373,14 @@
                         const easeOut = 1 - Math.pow(1 - t, 3);
                         const rotation = easeOut * targetAngle;
 
-                        wheelArrowMoving.style.transition = 'none';
-                        wheelArrowMoving.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+                        arrowRotator.style.transition = 'none';
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
                         animationId = requestAnimationFrame(animateSpin);
                     } else {
                         cancelAnimationFrame(animationId);
+                        arrowRotator.style.transition = 'none';
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${targetAngle}deg)`;
 
-                        wheelArrowMoving.style.transition = 'none';
-                        wheelArrowMoving.style.transform = `translateX(-50%) rotate(${targetAngle}deg)`;
-
-                        // Пауза 0.5с в конечной позиции
                         setTimeout(() => {
                             const finalRotation = targetAngle % 360;
                             const effectiveChanceCalc = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
@@ -6425,25 +6391,17 @@
 
                             const isSuccessFinal = finalRotation >= startG && finalRotation <= endG && targetAngle >= 360;
 
-                            // Обновляем состояние апгрейда
                             const upgradeState = db.getUpgradeState();
                             if (upgradeState) {
                                 upgradeState.isSuccess = isSuccessFinal;
                                 db.saveUpgradeState(upgradeState);
                             }
 
-                            // Звуки результата
-                            if (!gameState.upgradeSoundMuted) {
-                                if (isSuccessFinal) {
-                                    playSound('litvin');
-                                } else {
-                                    playSound('money');
-                                }
-                            }
+                            // Звуки результата только для обычного режима, в быстром не играем
+                            // (litvin не играем в быстром)
 
-                            // Мгновенно возвращаем стрелку на место
-                            wheelArrowMoving.style.transition = 'none';
-                            wheelArrowMoving.style.transform = 'translateX(-50%) rotate(0deg)';
+                            arrowRotator.style.transition = 'none';
+                            arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
 
                             processUpgradeResult(isSuccessFinal);
                             gameState.isWheelSpinning = false;
@@ -6456,7 +6414,7 @@
 
                 animationId = requestAnimationFrame(animateSpin);
             } else {
-                // Обычный апгрейд: 4 или 5 полных оборотов
+                // Обычный апгрейд: разгон 2-3 сек до полной скорости, затем замедление
                 upgradeStartBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Крутим...`;
 
                 const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
@@ -6488,33 +6446,26 @@
                     }
                 }
 
-                const spinDuration = 5000;
+                // Длительность: разгон 2.5 секунды, затем постоянная скорость 3 секунды, замедление 2.5 секунды (итого около 8)
+                const accelerationTime = 2500; // 2.5 сек разгон
+                const constantTime = 3000; // 3 сек полная скорость
+                const decelerationTime = 2500; // 2.5 сек замедление
+                const totalTime = accelerationTime + constantTime + decelerationTime;
                 let startTime = null;
                 let animationId = null;
 
                 const animateSpin = (timestamp) => {
                     if (!startTime) startTime = timestamp;
-                    const progress = timestamp - startTime;
+                    const elapsed = timestamp - startTime;
 
-                    if (progress < spinDuration) {
-                        const t = progress / spinDuration;
-                        const easeOut = 1 - Math.pow(1 - t, 3);
-                        const rotation = easeOut * targetAngle;
-
-                        wheelArrowMoving.style.transition = 'none';
-                        wheelArrowMoving.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
-                        animationId = requestAnimationFrame(animateSpin);
-                    } else {
+                    if (elapsed >= totalTime) {
                         cancelAnimationFrame(animationId);
+                        arrowRotator.style.transition = 'none';
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${targetAngle}deg)`;
 
-                        wheelArrowMoving.style.transition = 'none';
-                        wheelArrowMoving.style.transform = `translateX(-50%) rotate(${targetAngle}deg)`;
-
-                        // Определяем результат
                         const finalRotation = targetAngle % 360;
                         const isSuccessFinal = finalRotation >= startGreen && finalRotation <= endGreen;
 
-                        // Обновляем состояние апгрейда
                         const upgradeState = db.getUpgradeState();
                         if (upgradeState) {
                             upgradeState.isSuccess = isSuccessFinal;
@@ -6532,9 +6483,8 @@
                                 }
                             }
 
-                            // Мгновенно возвращаем стрелку на место
-                            wheelArrowMoving.style.transition = 'none';
-                            wheelArrowMoving.style.transform = 'translateX(-50%) rotate(0deg)';
+                            arrowRotator.style.transition = 'none';
+                            arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
 
                             processUpgradeResult(isSuccessFinal);
                             gameState.isWheelSpinning = false;
@@ -6542,7 +6492,35 @@
                             upgradeStartBtn.innerHTML = `<i class="fas fa-play"></i> Начать апгрейд`;
                             disableUpgradeInventory(false);
                         }, 500);
+                        return;
                     }
+
+                    let progress;
+                    if (elapsed < accelerationTime) {
+                        // Разгон: прогресс от 0 до 1 за accelerationTime
+                        progress = elapsed / accelerationTime;
+                        // Скорость меняется плавно, используем easeInQuad
+                        const eased = progress * progress;
+                        const rotation = eased * targetAngle;
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                    } else if (elapsed < accelerationTime + constantTime) {
+                        // Постоянная скорость
+                        const constantElapsed = elapsed - accelerationTime;
+                        const constantFraction = constantElapsed / constantTime;
+                        const rotation = targetAngle * (accelerationTime / totalTime + (constantFraction * (constantTime / totalTime)));
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                    } else {
+                        // Замедление
+                        const decelElapsed = elapsed - accelerationTime - constantTime;
+                        const decelFraction = decelElapsed / decelerationTime;
+                        const easeOut = 1 - Math.pow(1 - decelFraction, 3);
+                        const remainingAngle = targetAngle * (decelerationTime / totalTime);
+                        const baseAngle = targetAngle * (1 - decelerationTime / totalTime);
+                        const rotation = baseAngle + remainingAngle * easeOut;
+                        arrowRotator.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+                    }
+
+                    animationId = requestAnimationFrame(animateSpin);
                 };
 
                 animationId = requestAnimationFrame(animateSpin);
@@ -6572,11 +6550,9 @@
             contractTradeupBtn.disabled = true;
             contractTradeupBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Создание...`;
 
-            // Блокируем инвентарь контракта (делаем серым и неактивным)
             const contractGrid = document.getElementById('contract-inventory-grid');
             contractGrid.querySelectorAll('.inventory-item').forEach(item => item.classList.add('disabled'));
 
-            // Проигрываем звук создания контракта (с учетом кнопки mute)
             if (!gameState.contractSoundMuted) {
                 playSound('animeAhh');
             }
@@ -6647,7 +6623,6 @@
                 contractTradeupBtn.innerHTML = `<i class="fas fa-exchange-alt"></i> Создать контракт`;
                 gameState.contractInProgress = false;
 
-                // Разблокируем инвентарь
                 contractGrid.querySelectorAll('.inventory-item').forEach(item => item.classList.remove('disabled'));
             }, 2000);
         }
@@ -6708,12 +6683,8 @@
         // Обновление отображения круга апгрейда с новой формулой
         function updateWheelVisual() {
             if (gameState.upgradeSelectedChance === 0) {
-                wheelSuccessSector.style.setProperty('--start-green', '90deg');
-                wheelSuccessSector.style.setProperty('--end-green', '90deg');
-                wheelArrowMoving.style.display = 'block';
-                wheelArrowMoving.style.transform = 'translateX(-50%) rotate(0deg)';
-                wheelArrowMoving.style.transition = 'none';
-                percentValue.textContent = '0%';
+                arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+                upgradePercentDisplay.textContent = '0%';
                 return;
             }
 
@@ -6723,15 +6694,9 @@
             const startGreen = 180 - halfGreen;
             const endGreen = 180 + halfGreen;
 
-            wheelSuccessSector.style.setProperty('--start-green', `${startGreen}deg`);
-            wheelSuccessSector.style.setProperty('--end-green', `${endGreen}deg`);
-
-            wheelArrowMoving.style.display = 'block';
-            wheelArrowMoving.style.transform = 'translateX(-50%) rotate(0deg)';
-            wheelArrowMoving.style.transition = 'none';
-
-            // Обновляем процент в центре круга
-            percentValue.textContent = `${effectiveChance}%`;
+            // Стрелка всегда указывает в нуль, не меняем визуально, просто обновляем процент
+            arrowRotator.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+            upgradePercentDisplay.textContent = `${effectiveChance}%`;
         }
 
         // Обработка результата апгрейда
@@ -6944,7 +6909,7 @@
             }
 
             const effectiveChance = Math.min(95, gameState.upgradeSelectedChance + Math.floor(balanceAmount / 100));
-            percentValue.textContent = `${effectiveChance}%`;
+            upgradePercentDisplay.textContent = `${effectiveChance}%`;
             upgradeStartBtn.disabled = false;
 
             generatePossibleWin();
@@ -7239,7 +7204,6 @@
                 dynamicScroll.className = 'dynamic-scroll';
                 dynamicScroll.style.display = 'flex';
 
-                // Загружаем больше предметов для бесконечной прокрутки
                 loadMoreItemsToDynamicScroll(caseData, dynamicScroll, i, 0, itemWidth, 60);
 
                 dynamicContainer.appendChild(dynamicScroll);
@@ -7297,7 +7261,7 @@
             }
         }
 
-        // Одновременное открытие всех кейсов с новой логикой ожидания всех прокруток
+        // Одновременное открытие всех кейсов
         function openAllCasesSimultaneously() {
             if (gameState.caseQuantity <= 1) {
                 openNextCase();
@@ -7306,7 +7270,6 @@
 
             spinBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Открытие ${gameState.caseQuantity} кейсов...`;
 
-            // Останавливаем все предыдущие анимации
             gameState.dynamicScrolls.forEach(scrollData => {
                 if (scrollData.animationId) {
                     cancelAnimationFrame(scrollData.animationId);
@@ -7341,109 +7304,9 @@
             });
         }
 
-        // Исправленная функция для одновременной прокрутки
         function spinDynamicCaseSimultaneously(scrollIndex) {
-            return new Promise((resolve) => {
-                const scrollData = gameState.dynamicScrolls[scrollIndex];
-                if (!scrollData) {
-                    resolve(getRandomItem(casesData[gameState.selectedCase]));
-                    return;
-                }
-
-                const dynamicScroll = scrollData.scroll;
-
-                const initialSpeed = 16;
-                const constantPhaseTime = 1000 + Math.random() * 1000;
-                const decelerationPhaseTime = 4000;
-                const finishPhaseTime = 1500 + Math.random() * 500;
-                const fps = 60;
-                const constantFrames = Math.floor(constantPhaseTime / (1000/fps));
-                const decelerationFrames = Math.floor(decelerationPhaseTime / (1000/fps));
-                const finishFrames = Math.floor(finishPhaseTime / (1000/fps));
-
-                let scrollPosition = 0;
-                let frame = 0;
-                let speed = initialSpeed;
-                let lastLoadedPosition = 0;
-                let animationId = null;
-
-                const animate = () => {
-                    if (frame < constantFrames) {
-                        speed = initialSpeed;
-                    } else if (frame < constantFrames + decelerationFrames) {
-                        const progress = (frame - constantFrames) / decelerationFrames;
-                        speed = initialSpeed * (1 - progress * 0.8);
-                    } else if (frame < constantFrames + decelerationFrames + finishFrames) {
-                        const progress = (frame - constantFrames - decelerationFrames) / finishFrames;
-                        speed = initialSpeed * 0.2 * (1 - progress);
-                    } else {
-                        cancelAnimationFrame(animationId);
-
-                        dynamicScroll.style.transition = 'none';
-                        dynamicScroll.style.transform = `translateX(-${scrollPosition}px)`;
-
-                        setTimeout(() => {
-                            const dynamicItems = dynamicScroll.querySelectorAll('.dynamic-item');
-                            let centerItem = null;
-                            let minDistance = Infinity;
-
-                            dynamicItems.forEach((item) => {
-                                const rect = item.getBoundingClientRect();
-                                const wrapperRect = scrollData.wrapper.getBoundingClientRect();
-                                const itemCenter = rect.left + rect.width / 2;
-                                const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
-                                const distance = Math.abs(itemCenter - wrapperCenter);
-
-                                if (distance < minDistance) {
-                                    minDistance = distance;
-                                    centerItem = item;
-                                }
-                            });
-
-                            if (centerItem) {
-                                centerItem.classList.add('active');
-                                try {
-                                    const itemData = JSON.parse(centerItem.dataset.item);
-                                    setTimeout(() => {
-                                        centerItem.classList.remove('active');
-                                        resolve(itemData);
-                                    }, 500);
-                                } catch (e) {
-                                    resolve(getRandomItem(casesData[gameState.selectedCase]));
-                                }
-                            } else {
-                                resolve(getRandomItem(casesData[gameState.selectedCase]));
-                            }
-                        }, 500);
-                        return;
-                    }
-
-                    scrollPosition += speed;
-                    frame++;
-
-                    dynamicScroll.style.transform = `translateX(-${scrollPosition}px)`;
-
-                    if (scrollPosition > lastLoadedPosition + 5000) {
-                        loadMoreItemsToDynamicScroll(casesData[gameState.selectedCase], dynamicScroll, scrollIndex, scrollData.itemsLoaded, scrollData.itemWidth, 30);
-                        lastLoadedPosition = scrollPosition;
-                    }
-
-                    animationId = requestAnimationFrame(animate);
-                };
-
-                animationId = requestAnimationFrame(animate);
-                scrollData.animationId = animationId;
-
-                setTimeout(() => {
-                    if (animationId) {
-                        cancelAnimationFrame(animationId);
-                    }
-                    dynamicScroll.style.transition = 'none';
-                    dynamicScroll.style.transform = `translateX(-${scrollPosition}px)`;
-                    const itemUnderArrow = getItemUnderArrow(scrollIndex);
-                    resolve(itemUnderArrow || getRandomItem(casesData[gameState.selectedCase]));
-                }, 12000);
-            });
+            // Использует ту же логику времени, что и spinDynamicCase
+            return spinDynamicCase(scrollIndex);
         }
 
         function openNextCase() {
@@ -7540,7 +7403,6 @@
             user.balance += item.value;
             db.saveUser(currentUser, user);
 
-            // Звук продажи
             playSound('money');
 
             gameState.batchResults.splice(index, 1);
@@ -8095,10 +7957,9 @@
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Проигрываем звук "pnx" при заходе в кейс
+            // Звук при заходе в кейс
             playSound('pnx');
 
-            // Сохраняем состояние открытого кейса
             saveOpenedCaseState();
         }
 
@@ -8412,8 +8273,6 @@
                 return;
             }
 
-            const usedPromocodes = db.getUsedPromocodes(currentUser);
-
             user.balance += systemSettings.promocodeValue;
             db.saveUser(currentUser, user);
             db.addUsedPromocode(currentUser, promocode);
@@ -8641,6 +8500,38 @@
             }
             return 0;
         }
+
+        // Исправление бага: сброс флага isCaseOpeningInProgress при продаже перед открытием вида кейса
+        const originalSellItemBtn = sellItemBtn.onclick;
+        sellItemBtn.addEventListener('click', function() {
+            // Уже обработано внутри
+        });
+        // Переопределяем sellItemBtn.onclick в событии initEventListeners, где уже есть вызов openCaseView,
+        // добавим сброс флага перед openCaseView. 
+        // В текущей реализации sellItemBtn обработчик уже написан, добавим туда сброс.
+        // Аналогично для sellBatchAllBtn.
+        // Внесем изменения прямо в существующие обработчики, переписав их.
+        // В функции initEventListeners находим sellItemBtn.addEventListener и добавляем gameState.isCaseOpeningInProgress = false; перед openCaseView.
+        // То же для sellBatchAllBtn.
+        // Так как мы уже отправили вторую часть, и в ней initEventListeners уже определен, нужно переопределить эти обработчики.
+        // Мы можем сделать это в конце, после загрузки DOM.
+        document.addEventListener('DOMContentLoaded', function() {
+            // Продажа в модалке одного предмета
+            const sellSingleBtn = document.getElementById('sell-item-btn');
+            const sellBatchBtn = document.getElementById('sell-batch-all-btn');
+            if (sellSingleBtn) {
+                sellSingleBtn.addEventListener('click', function() {
+                    // Сбрасываем блокировку
+                    gameState.isCaseOpeningInProgress = false;
+                    // Остальная логика уже есть
+                });
+            }
+            if (sellBatchBtn) {
+                sellBatchBtn.addEventListener('click', function() {
+                    gameState.isCaseOpeningInProgress = false;
+                });
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', init);
         window.addEventListener('resize', updateOnlineCount);
