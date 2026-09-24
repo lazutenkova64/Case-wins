@@ -15,14 +15,17 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #1a0033 0%, #0d001a 50%, #1a0033 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             font-family: 'Impact', 'Arial Black', sans-serif;
+            padding: 20px;
+            gap: 20px;
         }
         
         h1 {
-            font-size: clamp(3rem, 15vw, 15rem);
+            font-size: clamp(2rem, 10vw, 8rem);
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -33,8 +36,21 @@
             background-clip: text;
             animation: shine 3s linear infinite, pulse 2s ease-in-out infinite;
             filter: drop-shadow(0 0 30px rgba(255, 0, 110, 0.5));
-            padding: 20px;
             user-select: none;
+            line-height: 1;
+        }
+        
+        .monkey-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bob 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.6));
+        }
+        
+        .monkey-wrap svg {
+            width: clamp(200px, 45vw, 450px);
+            height: auto;
         }
         
         @keyframes shine {
@@ -45,9 +61,161 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
+        
+        @keyframes bob {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
     </style>
 </head>
 <body>
     <h1>Андрей лох</h1>
+    
+    <div class="monkey-wrap">
+        <!-- Детализированная обезьяна, показывающая средний палец -->
+        <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- Градиент шерсти -->
+                <radialGradient id="furGrad" cx="50%" cy="40%" r="70%">
+                    <stop offset="0%" stop-color="#8b5a2b"/>
+                    <stop offset="60%" stop-color="#6b3f1d"/>
+                    <stop offset="100%" stop-color="#3d2410"/>
+                </radialGradient>
+                
+                <!-- Градиент морды -->
+                <radialGradient id="faceGrad" cx="50%" cy="40%" r="70%">
+                    <stop offset="0%" stop-color="#f0c9a0"/>
+                    <stop offset="100%" stop-color="#c99b6e"/>
+                </radialGradient>
+                
+                <!-- Градиент руки -->
+                <radialGradient id="handGrad" cx="40%" cy="30%" r="80%">
+                    <stop offset="0%" stop-color="#f5d0a9"/>
+                    <stop offset="100%" stop-color="#c99b6e"/>
+                </radialGradient>
+                
+                <!-- Тень -->
+                <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="rgba(0,0,0,0.4)"/>
+                    <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+                </radialGradient>
+                
+                <!-- Градиент глаза -->
+                <radialGradient id="eyeGrad" cx="40%" cy="35%" r="70%">
+                    <stop offset="0%" stop-color="#3a2410"/>
+                    <stop offset="70%" stop-color="#1a0f05"/>
+                    <stop offset="100%" stop-color="#000"/>
+                </radialGradient>
+            </defs>
+            
+            <!-- Тень под обезьяной -->
+            <ellipse cx="200" cy="480" rx="140" ry="20" fill="url(#shadowGrad)"/>
+            
+            <!-- Тело -->
+            <ellipse cx="200" cy="380" rx="120" ry="110" fill="url(#furGrad)"/>
+            <!-- Грудь светлее -->
+            <ellipse cx="200" cy="390" rx="75" ry="80" fill="#7a4a20" opacity="0.6"/>
+            
+            <!-- Левая рука (опущена) -->
+            <path d="M 90 340 Q 60 400 75 460 Q 85 480 110 480 Q 130 480 130 460 L 130 400 Z" 
+                  fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
+            
+            <!-- Правая рука (с факом, приподнята) -->
+            <g transform="translate(280, 240)">
+                <!-- Предплечье -->
+                <path d="M -20 100 Q -30 40 10 -20 Q 30 -40 55 -30 Q 70 -20 60 10 Q 50 80 30 110 Z" 
+                      fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
+                
+                <!-- Кулак/ладонь -->
+                <ellipse cx="25" cy="15" rx="55" ry="50" fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+                
+                <!-- Загнутые пальцы (мизинец, безымянный, средний-загнутый) -->
+                <path d="M 70 35 Q 90 45 85 65 Q 80 75 65 70 Q 55 65 60 45 Z" 
+                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+                <path d="M 55 55 Q 75 70 68 85 Q 60 95 45 85 Q 38 78 42 62 Z" 
+                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+                
+                <!-- Средний палец (выпрямленный вверх - ФАК) -->
+                <path d="M 5 -20 Q 0 -70 8 -110 Q 12 -125 22 -125 Q 32 -125 35 -110 Q 40 -70 35 -20 Z" 
+                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+                <!-- Ноготь на среднем пальце -->
+                <ellipse cx="22" cy="-115" rx="7" ry="9" fill="#e8b98e" stroke="#c99b6e" stroke-width="1"/>
+                <!-- Складки на пальце -->
+                <path d="M 10 -80 Q 22 -75 34 -80" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.6"/>
+                <path d="M 9 -55 Q 22 -50 35 -55" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.6"/>
+                
+                <!-- Большой палец (прижат) -->
+                <path d="M 15 25 Q -20 30 -25 50 Q -25 65 -5 65 Q 15 60 20 45 Z" 
+                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+                
+                <!-- Складки на ладони -->
+                <path d="M 40 20 Q 50 35 45 50" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.5"/>
+            </g>
+            
+            <!-- Левая рука обезьяны сбоку для баланса -->
+            <path d="M 90 340 Q 70 380 80 420 Q 90 440 110 435 Q 120 425 115 400 Z" 
+                  fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
+            
+            <!-- Шея -->
+            <ellipse cx="200" cy="280" rx="55" ry="30" fill="url(#furGrad)"/>
+            
+            <!-- Голова -->
+            <ellipse cx="200" cy="200" rx="115" ry="110" fill="url(#furGrad)"/>
+            
+            <!-- Уши -->
+            <ellipse cx="95" cy="200" rx="30" ry="40" fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
+            <ellipse cx="95" cy="200" rx="15" ry="22" fill="#c99b6e"/>
+            <ellipse cx="305" cy="200" rx="30" ry="40" fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
+            <ellipse cx="305" cy="200" rx="15" ry="22" fill="#c99b6e"/>
+            
+            <!-- Морда (светлая часть) -->
+            <ellipse cx="200" cy="225" rx="85" ry="75" fill="url(#faceGrad)"/>
+            
+            <!-- Надбровные дуги -->
+            <ellipse cx="160" cy="160" rx="35" ry="18" fill="#5a3a1a"/>
+            <ellipse cx="240" cy="160" rx="35" ry="18" fill="#5a3a1a"/>
+            
+            <!-- Глаза -->
+            <ellipse cx="160" cy="190" rx="20" ry="22" fill="white"/>
+            <ellipse cx="240" cy="190" rx="20" ry="22" fill="white"/>
+            <circle cx="163" cy="192" r="13" fill="url(#eyeGrad)"/>
+            <circle cx="243" cy="192" r="13" fill="url(#eyeGrad)"/>
+            <!-- Блики -->
+            <circle cx="168" cy="186" r="5" fill="white"/>
+            <circle cx="248" cy="186" r="5" fill="white"/>
+            <circle cx="158" cy="198" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="238" cy="198" r="2.5" fill="white" opacity="0.7"/>
+            
+            <!-- Веки (прищуренные, довольные) -->
+            <path d="M 140 175 Q 160 168 180 175" stroke="#3d2410" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M 220 175 Q 240 168 260 175" stroke="#3d2410" stroke-width="4" fill="none" stroke-linecap="round"/>
+            
+            <!-- Нос -->
+            <ellipse cx="200" cy="225" rx="22" ry="16" fill="#8b5a2b"/>
+            <ellipse cx="193" cy="223" rx="4" ry="5" fill="#3d2410"/>
+            <ellipse cx="207" cy="223" rx="4" ry="5" fill="#3d2410"/>
+            
+            <!-- Ухмылка (широкая улыбка) -->
+            <path d="M 155 255 Q 200 285 245 255" stroke="#3d2410" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <!-- Зубы -->
+            <path d="M 165 258 Q 200 278 235 258 Q 200 268 165 258 Z" fill="white" stroke="#3d2410" stroke-width="1.5"/>
+            
+            <!-- Морщины на лбу -->
+            <path d="M 145 130 Q 200 120 255 130" stroke="#3d2410" stroke-width="2" fill="none" opacity="0.5"/>
+            <path d="M 155 115 Q 200 105 245 115" stroke="#3d2410" stroke-width="2" fill="none" opacity="0.4"/>
+            
+            <!-- Текстура шерсти (линии) -->
+            <g stroke="#2a1608" stroke-width="1" fill="none" opacity="0.35">
+                <path d="M 110 380 Q 115 390 110 400"/>
+                <path d="M 130 385 Q 135 395 130 405"/>
+                <path d="M 270 385 Q 265 395 270 405"/>
+                <path d="M 290 380 Q 285 390 290 400"/>
+                <path d="M 150 130 Q 155 140 150 150"/>
+                <path d="M 250 130 Q 245 140 250 150"/>
+                <path d="M 120 220 Q 115 230 120 240"/>
+                <path d="M 280 220 Q 285 230 280 240"/>
+            </g>
+        </svg>
+    </div>
 </body>
 </html>
