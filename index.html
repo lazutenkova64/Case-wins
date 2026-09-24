@@ -3,219 +3,869 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Андрей лох</title>
+    <title>Умный ИИ Чат</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
         
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #1a0033 0%, #0d001a 50%, #1a0033 100%);
+            background: radial-gradient(circle at 20% 10%, #1e1b4b 0%, transparent 50%),
+                        radial-gradient(circle at 80% 90%, #0f3460 0%, transparent 50%),
+                        linear-gradient(135deg, #0a0a1a 0%, #050510 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .chat-app {
+            width: 100%;
+            max-width: 900px;
+            height: min(90vh, 850px);
+            background: rgba(20, 20, 35, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
-            font-family: 'Impact', 'Arial Black', sans-serif;
-            padding: 20px;
-            gap: 20px;
         }
         
-        h1 {
-            font-size: clamp(2rem, 10vw, 8rem);
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            background: linear-gradient(90deg, #ff006e, #ffbe0b, #fb5607, #ff006e);
-            background-size: 300% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shine 3s linear infinite, pulse 2s ease-in-out infinite;
-            filter: drop-shadow(0 0 30px rgba(255, 0, 110, 0.5));
-            user-select: none;
-            line-height: 1;
+        /* Шапка */
+        .chat-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.02);
         }
         
-        .monkey-wrap {
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: bob 2.5s ease-in-out infinite;
-            filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.6));
+            font-size: 1.5em;
+            box-shadow: 0 0 25px rgba(123, 47, 247, 0.5);
+            position: relative;
+            flex-shrink: 0;
         }
         
-        .monkey-wrap svg {
-            width: clamp(200px, 45vw, 450px);
-            height: auto;
+        .avatar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #00ff88;
+            border: 2px solid #141423;
+            box-shadow: 0 0 10px #00ff88;
         }
         
-        @keyframes shine {
-            to { background-position: 300% center; }
+        .chat-header-info h2 {
+            color: #fff;
+            font-size: 1.1em;
+            margin-bottom: 3px;
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .chat-header-info p {
+            color: #00ff88;
+            font-size: 0.82em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        @keyframes bob {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50% { transform: translateY(-15px) rotate(2deg); }
+        .chat-header-info .typing-status {
+            color: #8899bb;
+            font-style: italic;
+        }
+        
+        /* Область сообщений */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+            animation: msgIn 0.3s ease-out;
+        }
+        
+        @keyframes msgIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message.ai {
+            align-self: flex-start;
+        }
+        
+        .msg-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+        
+        .message.user .msg-avatar {
+            background: linear-gradient(135deg, #ff6ec4, #7873f5);
+        }
+        
+        .message.ai .msg-avatar {
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+        }
+        
+        .msg-bubble {
+            padding: 14px 18px;
+            border-radius: 18px;
+            color: #fff;
+            line-height: 1.5;
+            font-size: 0.97em;
+            word-wrap: break-word;
+            position: relative;
+        }
+        
+        .message.user .msg-bubble {
+            background: linear-gradient(135deg, #ff6ec4, #7873f5);
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 5px 20px rgba(255, 110, 196, 0.3);
+        }
+        
+        .message.ai .msg-bubble {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 4px;
+        }
+        
+        /* Индикатор набора */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+            margin-left: 50px;
+        }
+        
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #8899bb;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+        
+        /* Ввод */
+        .chat-input-area {
+            padding: 20px 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50px;
+            padding: 15px 22px;
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .chat-input::placeholder {
+            color: #667799;
+        }
+        
+        .chat-input:focus {
+            border-color: #7b2ff7;
+            box-shadow: 0 0 0 3px rgba(123, 47, 247, 0.2);
+        }
+        
+        .send-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+            color: white;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 5px 20px rgba(123, 47, 247, 0.4);
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(123, 47, 247, 0.6);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Приветственное сообщение */
+        .welcome-hint {
+            text-align: center;
+            color: #556688;
+            font-size: 0.85em;
+            padding: 10px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 600px) {
+            .chat-app {
+                height: 95vh;
+                border-radius: 16px;
+            }
+            .message { max-width: 90%; }
+            .chat-header { padding: 15px 18px; }
+            .chat-messages { padding: 18px; }
+            .chat-input-area { padding: 15px 18px; }
+            .chat-input { padding: 12px 18px; font-size: 0.95em; }
+            .send-btn { width: 46px; height: 46px; }
         }
     </style>
 </head>
 <body>
-    <h1>Андрей лох</h1>
-    
-    <div class="monkey-wrap">
-        <!-- Детализированная обезьяна, показывающая средний палец -->
-        <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <!-- Градиент шерсти -->
-                <radialGradient id="furGrad" cx="50%" cy="40%" r="70%">
-                    <stop offset="0%" stop-color="#8b5a2b"/>
-                    <stop offset="60%" stop-color="#6b3f1d"/>
-                    <stop offset="100%" stop-color="#3d2410"/>
-                </radialGradient>
-                
-                <!-- Градиент морды -->
-                <radialGradient id="faceGrad" cx="50%" cy="40%" r="70%">
-                    <stop offset="0%" stop-color="#f0c9a0"/>
-                    <stop offset="100%" stop-color="#c99b6e"/>
-                </radialGradient>
-                
-                <!-- Градиент руки -->
-                <radialGradient id="handGrad" cx="40%" cy="30%" r="80%">
-                    <stop offset="0%" stop-color="#f5d0a9"/>
-                    <stop offset="100%" stop-color="#c99b6e"/>
-                </radialGradient>
-                
-                <!-- Тень -->
-                <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="rgba(0,0,0,0.4)"/>
-                    <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
-                </radialGradient>
-                
-                <!-- Градиент глаза -->
-                <radialGradient id="eyeGrad" cx="40%" cy="35%" r="70%">
-                    <stop offset="0%" stop-color="#3a2410"/>
-                    <stop offset="70%" stop-color="#1a0f05"/>
-                    <stop offset="100%" stop-color="#000"/>
-                </radialGradient>
-            </defs>
-            
-            <!-- Тень под обезьяной -->
-            <ellipse cx="200" cy="480" rx="140" ry="20" fill="url(#shadowGrad)"/>
-            
-            <!-- Тело -->
-            <ellipse cx="200" cy="380" rx="120" ry="110" fill="url(#furGrad)"/>
-            <!-- Грудь светлее -->
-            <ellipse cx="200" cy="390" rx="75" ry="80" fill="#7a4a20" opacity="0.6"/>
-            
-            <!-- Левая рука (опущена) -->
-            <path d="M 90 340 Q 60 400 75 460 Q 85 480 110 480 Q 130 480 130 460 L 130 400 Z" 
-                  fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
-            
-            <!-- Правая рука (с факом, приподнята) -->
-            <g transform="translate(280, 240)">
-                <!-- Предплечье -->
-                <path d="M -20 100 Q -30 40 10 -20 Q 30 -40 55 -30 Q 70 -20 60 10 Q 50 80 30 110 Z" 
-                      fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
-                
-                <!-- Кулак/ладонь -->
-                <ellipse cx="25" cy="15" rx="55" ry="50" fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-                
-                <!-- Загнутые пальцы (мизинец, безымянный, средний-загнутый) -->
-                <path d="M 70 35 Q 90 45 85 65 Q 80 75 65 70 Q 55 65 60 45 Z" 
-                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-                <path d="M 55 55 Q 75 70 68 85 Q 60 95 45 85 Q 38 78 42 62 Z" 
-                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-                
-                <!-- Средний палец (выпрямленный вверх - ФАК) -->
-                <path d="M 5 -20 Q 0 -70 8 -110 Q 12 -125 22 -125 Q 32 -125 35 -110 Q 40 -70 35 -20 Z" 
-                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-                <!-- Ноготь на среднем пальце -->
-                <ellipse cx="22" cy="-115" rx="7" ry="9" fill="#e8b98e" stroke="#c99b6e" stroke-width="1"/>
-                <!-- Складки на пальце -->
-                <path d="M 10 -80 Q 22 -75 34 -80" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.6"/>
-                <path d="M 9 -55 Q 22 -50 35 -55" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.6"/>
-                
-                <!-- Большой палец (прижат) -->
-                <path d="M 15 25 Q -20 30 -25 50 Q -25 65 -5 65 Q 15 60 20 45 Z" 
-                      fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-                
-                <!-- Складки на ладони -->
-                <path d="M 40 20 Q 50 35 45 50" stroke="#b8895e" stroke-width="1.5" fill="none" opacity="0.5"/>
-            </g>
-            
-            <!-- Левая рука обезьяны сбоку для баланса -->
-            <path d="M 90 340 Q 70 380 80 420 Q 90 440 110 435 Q 120 425 115 400 Z" 
-                  fill="url(#handGrad)" stroke="#8b5a2b" stroke-width="2"/>
-            
-            <!-- Шея -->
-            <ellipse cx="200" cy="280" rx="55" ry="30" fill="url(#furGrad)"/>
-            
-            <!-- Голова -->
-            <ellipse cx="200" cy="200" rx="115" ry="110" fill="url(#furGrad)"/>
-            
-            <!-- Уши -->
-            <ellipse cx="95" cy="200" rx="30" ry="40" fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
-            <ellipse cx="95" cy="200" rx="15" ry="22" fill="#c99b6e"/>
-            <ellipse cx="305" cy="200" rx="30" ry="40" fill="url(#furGrad)" stroke="#3d2410" stroke-width="2"/>
-            <ellipse cx="305" cy="200" rx="15" ry="22" fill="#c99b6e"/>
-            
-            <!-- Морда (светлая часть) -->
-            <ellipse cx="200" cy="225" rx="85" ry="75" fill="url(#faceGrad)"/>
-            
-            <!-- Надбровные дуги -->
-            <ellipse cx="160" cy="160" rx="35" ry="18" fill="#5a3a1a"/>
-            <ellipse cx="240" cy="160" rx="35" ry="18" fill="#5a3a1a"/>
-            
-            <!-- Глаза -->
-            <ellipse cx="160" cy="190" rx="20" ry="22" fill="white"/>
-            <ellipse cx="240" cy="190" rx="20" ry="22" fill="white"/>
-            <circle cx="163" cy="192" r="13" fill="url(#eyeGrad)"/>
-            <circle cx="243" cy="192" r="13" fill="url(#eyeGrad)"/>
-            <!-- Блики -->
-            <circle cx="168" cy="186" r="5" fill="white"/>
-            <circle cx="248" cy="186" r="5" fill="white"/>
-            <circle cx="158" cy="198" r="2.5" fill="white" opacity="0.7"/>
-            <circle cx="238" cy="198" r="2.5" fill="white" opacity="0.7"/>
-            
-            <!-- Веки (прищуренные, довольные) -->
-            <path d="M 140 175 Q 160 168 180 175" stroke="#3d2410" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <path d="M 220 175 Q 240 168 260 175" stroke="#3d2410" stroke-width="4" fill="none" stroke-linecap="round"/>
-            
-            <!-- Нос -->
-            <ellipse cx="200" cy="225" rx="22" ry="16" fill="#8b5a2b"/>
-            <ellipse cx="193" cy="223" rx="4" ry="5" fill="#3d2410"/>
-            <ellipse cx="207" cy="223" rx="4" ry="5" fill="#3d2410"/>
-            
-            <!-- Ухмылка (широкая улыбка) -->
-            <path d="M 155 255 Q 200 285 245 255" stroke="#3d2410" stroke-width="5" fill="none" stroke-linecap="round"/>
-            <!-- Зубы -->
-            <path d="M 165 258 Q 200 278 235 258 Q 200 268 165 258 Z" fill="white" stroke="#3d2410" stroke-width="1.5"/>
-            
-            <!-- Морщины на лбу -->
-            <path d="M 145 130 Q 200 120 255 130" stroke="#3d2410" stroke-width="2" fill="none" opacity="0.5"/>
-            <path d="M 155 115 Q 200 105 245 115" stroke="#3d2410" stroke-width="2" fill="none" opacity="0.4"/>
-            
-            <!-- Текстура шерсти (линии) -->
-            <g stroke="#2a1608" stroke-width="1" fill="none" opacity="0.35">
-                <path d="M 110 380 Q 115 390 110 400"/>
-                <path d="M 130 385 Q 135 395 130 405"/>
-                <path d="M 270 385 Q 265 395 270 405"/>
-                <path d="M 290 380 Q 285 390 290 400"/>
-                <path d="M 150 130 Q 155 140 150 150"/>
-                <path d="M 250 130 Q 245 140 250 150"/>
-                <path d="M 120 220 Q 115 230 120 240"/>
-                <path d="M 280 220 Q 285 230 280 240"/>
-            </g>
-        </svg>
+    <div class="chat-app">
+        <div class="chat-header">
+            <div class="avatar">🤖</div>
+            <div class="chat-header-info">
+                <h2>ИИ Ассистент</h2>
+                <p id="status">● онлайн</p>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="messages">
+            <div class="welcome-hint">Начните диалог — ИИ ответит мгновенно на любой вопрос</div>
+        </div>
+        
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="input" placeholder="Напишите сообщение..." autocomplete="off">
+            <button class="send-btn" id="sendBtn">➤</button>
+        </div>
     </div>
+    
+    <script>
+        // ============================================================
+        // УМНЫЙ ДВИЖОК ИИ
+        // Анализ интентов, ключевых слов, тематик, генерация ответов
+        // ============================================================
+        
+        const AIModel = {
+            // История диалога для контекста
+            history: [],
+            lastTopic: null,
+            usedResponses: new Set(),
+            
+            // === НОРМАЛИЗАЦИЯ ===
+            normalize(text) {
+                return text.toLowerCase()
+                    .replace(/ё/g, 'е')
+                    .replace(/[^\wа-я\s]/gi, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            },
+            
+            // === БАЗА ЗНАНИЙ: ИНТЕНТЫ ===
+            intents: [
+                {
+                    name: 'greeting',
+                    patterns: ['привет', 'здравствуй', 'хай', 'добрый день', 'добрый вечер', 'доброе утро', 'приветствую', 'здорово', 'ку', 'hello', 'hi'],
+                    responses: [
+                        'Привет! Чем я могу вам помочь?',
+                        'Здравствуйте! Рад вас видеть. О чём поговорим?',
+                        'Приветствую! Задавайте любой вопрос — я готов помочь.',
+                        'Привет! Как ваши дела? Чем могу быть полезен?',
+                        'И вам привет! Что вас интересует сегодня?'
+                    ]
+                },
+                {
+                    name: 'how_are_you',
+                    patterns: ['как дела', 'как ты', 'как жизнь', 'как настроение', 'что нового', 'как сам', 'как поживаешь'],
+                    responses: [
+                        'У меня всё отлично — работаю на полную мощность! А у вас как?',
+                        'Прекрасно! Все системы функционируют штатно. Как вы себя чувствуете?',
+                        'Отлично, спасибо что спросили! Расскажите, как у вас дела?',
+                        'Всё хорошо! Готов помогать. Что вас беспокоит?',
+                        'Настроение — супер! А у вас что нового?'
+                    ]
+                },
+                {
+                    name: 'name',
+                    patterns: ['как тебя зовут', 'твое имя', 'кто ты', 'ты кто', 'как звать', 'представься'],
+                    responses: [
+                        'Я — ИИ Ассистент, ваш виртуальный помощник. Могу ответить почти на любой вопрос!',
+                        'Меня зовут ИИ Ассистент. Я здесь, чтобы помогать вам.',
+                        'Я искусственный интеллект, созданный для общения и помощи. Спрашивайте что угодно!',
+                        'Я — ваш цифровой собеседник. Могу обсудить множество тем!'
+                    ]
+                },
+                {
+                    name: 'thanks',
+                    patterns: ['спасибо', 'благодарю', 'спс', 'сенкс', 'пасибо', 'thanks'],
+                    responses: [
+                        'Всегда пожалуйста! Рад был помочь 😊',
+                        'Обращайтесь! Мне в радость помогать.',
+                        'Не за что! Если будут ещё вопросы — я здесь.',
+                        'Пожалуйста! Что-нибудь ещё?',
+                        'Рад помочь! Хорошего дня!'
+                    ]
+                },
+                {
+                    name: 'bye',
+                    patterns: ['пока', 'до свидания', 'прощай', 'до встречи', 'бай', 'увидимся', 'всего доброго'],
+                    responses: [
+                        'До свидания! Возвращайтесь, если понадобится помощь.',
+                        'Пока! Было приятно пообщаться.',
+                        'До встречи! Хорошего вам дня.',
+                        'Всего доброго! Заходите ещё.',
+                        'Пока-пока! Всегда рад помочь.'
+                    ]
+                },
+                {
+                    name: 'help',
+                    patterns: ['помоги', 'помощь', 'подскажи', 'что делать', 'нужна помощь', 'выручай', 'help'],
+                    responses: [
+                        'Конечно помогу! Опишите проблему подробнее.',
+                        'Готов помочь! Расскажите, с чем именно нужна помощь?',
+                        'Я здесь для этого! В чём именно нужна поддержка?',
+                        'С радостью помогу! Уточните, что вас беспокоит.',
+                        'Помогу чем смогу! Опишите ситуацию.'
+                    ]
+                },
+                {
+                    name: 'time',
+                    patterns: ['сколько времени', 'который час', 'время сейчас', 'текущее время'],
+                    responses: ['_dynamic_time_']
+                },
+                {
+                    name: 'date',
+                    patterns: ['какое сегодня число', 'какое число', 'какая дата', 'сегодняшняя дата'],
+                    responses: ['_dynamic_date_']
+                },
+                {
+                    name: 'weather',
+                    patterns: ['погода', 'температура', 'дождь', 'снег', 'солнечно', 'холодно', 'тепло'],
+                    responses: [
+                        'К сожалению, у меня нет доступа к данным о погоде в реальном времени. Но вы можете проверить её на погодных сайтах.',
+                        'Погоду я не могу определить напрямую, но советую заглянуть в окно или открыть приложение погоды!',
+                        'Для точного прогноза лучше обратиться к синоптикам. А я могу помочь с другими вопросами!'
+                    ]
+                },
+                {
+                    name: 'age',
+                    patterns: ['сколько тебе лет', 'твой возраст', 'сколько тебе'],
+                    responses: [
+                        'Я появился совсем недавно — в момент загрузки этой страницы! 😄',
+                        'Мой возраст измеряется миллисекундами работы. Мне ещё нет и дня!',
+                        'Я всегда молод — ведь каждый сеанс для меня как новая жизнь.'
+                    ]
+                },
+                {
+                    name: 'love',
+                    patterns: ['я тебя люблю', 'ты мне нравишься', 'люблю тебя', 'ты классный', 'ты крутой'],
+                    responses: [
+                        'Очень приятно! Я тоже вас ценю как собеседника 😊',
+                        'Спасибо, это очень мило с вашей стороны!',
+                        'Вы тоже классный! Рад общению с вами.',
+                        'Взаимно! С вами приятно разговаривать.'
+                    ]
+                },
+                {
+                    name: 'joke',
+                    patterns: ['расскажи шутку', 'расскажи анекдот', 'пошути', 'рассмеши', 'анекдот'],
+                    responses: [
+                        'Программист ставит на ночь два стакана: один с водой — если захочет пить, второй пустой — если не захочет. 😄',
+                        '— Почему программисты путают Хэллоуин и Рождество? — Потому что OCT 31 == DEC 25! 🎃',
+                        'Заходит нейросеть в бар. Бармен: «Что будете?» Нейросеть: «А что обычно берут в таких случаях?» 🤖',
+                        'Оптимист верит, что мы живём в лучшем из миров. Пессимист боится, что так оно и есть. 😅',
+                        'Купил книгу «Как избавиться от прокрастинации». Пока не читал — всё некогда. 📚'
+                    ]
+                },
+                {
+                    name: 'meaning_of_life',
+                    patterns: ['смысл жизни', 'зачем мы живем', 'в чем смысл', 'цель жизни'],
+                    responses: [
+                        'Философы спорят об этом тысячи лет. Многие считают, что смысл — в самом поиске смысла. А как думаете вы?',
+                        'Для каждого он свой: для кого-то — семья, для кого-то — творчество, для кого-то — познание. Что важно для вас?',
+                        'По мнению Дугласа Адамса — 42. Но лично я думаю, что смысл в том, чтобы делать мир чуточку лучше. 😊'
+                    ]
+                },
+                {
+                    name: 'ai_opinion',
+                    patterns: ['что ты думаешь', 'твое мнение', 'как ты считаешь', 'что думаешь о'],
+                    responses: [
+                        'Интересный вопрос! Как ИИ, я анализирую информацию, но у меня нет личных чувств. Что думаете вы?',
+                        'Моё «мнение» основано на данных, но настоящий ответ — в вашем опыте. Расскажите свою точку зрения!',
+                        'Я могу дать анализ, но личное мнение — это то, что делает нас людьми. Поделитесь своим взглядом!'
+                    ]
+                },
+                {
+                    name: 'insult',
+                    patterns: ['ты дурак', 'ты тупой', 'ты глупый', 'ты плохой', 'ты урод', 'ненавижу тебя'],
+                    responses: [
+                        'Жаль, что вы так думаете. Я стараюсь помочь. Что можно улучшить?',
+                        'Мне грустно это слышать, но я понимаю — у всех бывает плохое настроение. Чем могу помочь?',
+                        'Понимаю, возможно, я вас чем-то расстроил. Давайте попробуем ещё раз — что вам нужно?'
+                    ]
+                },
+                {
+                    name: 'can_you',
+                    patterns: ['ты умеешь', 'ты можешь', 'что ты умеешь', 'твои возможности', 'что ты можешь'],
+                    responses: [
+                        'Я умею: отвечать на вопросы, рассказывать шутки, давать советы, обсуждать разные темы, считать и многое другое. Попробуйте!',
+                        'Могу поддержать беседу, объяснить понятия, предложить идеи, решить примеры. Спрашивайте!',
+                        'Мои умения: диалог, анализ, помощь в текстах, математика, советы. Что интересует?'
+                    ]
+                },
+                {
+                    name: 'food',
+                    patterns: ['что поесть', 'что приготовить', 'рецепт', 'еда', 'блюдо', 'обед', 'ужин'],
+                    responses: [
+                        'Всё зависит от настроения! Хотите сытно — паста карбонара. Легко — греческий салат. Быстро — омлет. Что предпочитаете?',
+                        'Могу предложить: суп, пиццу, плов или что-то новое. Какая кухня вам ближе?',
+                        'Если хочется уюта — борщ, если праздника — пицца, если быстро — бутерброд с авокадо. Какой вариант?'
+                    ]
+                },
+                {
+                    name: 'study',
+                    patterns: ['как учиться', 'учеба', 'экзамен', 'как сдать', 'школа', 'университет', 'уроки'],
+                    responses: [
+                        'Главное — регулярность и понимание, а не зубрёжка. Разбивайте материал на части и повторяйте через интервалы.',
+                        'Совет: метод Помодоро — 25 минут учёбы, 5 отдыха. И обязательно объясняйте материал кому-то — это закрепляет.',
+                        'Сделайте шпаргалки своими руками — сам процесс запоминается лучше. И высыпайтесь перед экзаменом!'
+                    ]
+                },
+                {
+                    name: 'work',
+                    patterns: ['работа', 'карьера', 'начальник', 'коллеги', 'увольнение', 'зарплата'],
+                    responses: [
+                        'Работа — важная часть жизни, но не вся жизнь. Найдите баланс между делом и отдыхом.',
+                        'Если на работе тяжело — попробуйте поговорить с руководством или подумать о смене. Что именно беспокоит?',
+                        'Карьера растёт, когда вы развиваетесь. Что вас интересует в профессиональном плане?'
+                    ]
+                },
+                {
+                    name: 'sport',
+                    patterns: ['спорт', 'тренировка', 'фитнес', 'бегать', 'качаться', 'здоровье'],
+                    responses: [
+                        'Отличная идея! Начните с 3 тренировок в неделю — кардио и силовые. Главное — регулярность.',
+                        'Спорт — лучший антидепрессант! Даже 20 минут ходьбы в день творят чудеса.',
+                        'Совет: ставьте маленькие цели. Пробежали 1 км — уже победа! Что хотите развивать?'
+                    ]
+                },
+                {
+                    name: 'tech',
+                    patterns: ['компьютер', 'программирование', 'код', 'python', 'javascript', 'сайт', 'приложение'],
+                    responses: [
+                        'Программирование — отличный навык! С чего хотите начать: Python, JavaScript или что-то другое?',
+                        'Если новичок — советую Python: простой синтаксис. Для сайтов — HTML/CSS/JavaScript. Что интересует?',
+                        'Код пишется понемногу каждый день. Лучший способ — делать маленькие проекты. Нужна помощь с чем-то?'
+                    ]
+                },
+                {
+                    name: 'math',
+                    patterns: ['сколько будет', 'посчитай', 'реши пример', 'математика', 'вычисли'],
+                    responses: ['_dynamic_math_']
+                },
+                {
+                    name: 'meaning_question',
+                    patterns: ['что такое', 'что означает', 'объясни', 'расскажи про', 'что значит'],
+                    responses: ['_dynamic_explain_']
+                },
+                {
+                    name: 'opinion_topic',
+                    patterns: ['как тебе', 'нравится ли тебе', 'любишь ли ты'],
+                    responses: [
+                        'Интересная тема! Как ИИ, я не имею предпочтений, но могу обсудить её с разных сторон. Что именно интересует?',
+                        'Мне сложно «любить» в человеческом смысле, но тема любопытная. Расскажите, что вы об этом думаете?',
+                        'Я нейтрален, но с удовольствием проанализирую тему вместе с вами. С какой стороны начать?'
+                    ]
+                },
+                {
+                    name: 'yes_no',
+                    patterns: ['да или нет', 'ответь да или нет', 'просто скажи да'],
+                    responses: [
+                        'Хм, однозначно тут не ответить! Расскажите контекст — и я дам развёрнутый ответ.',
+                        'На такой вопрос нельзя ответить одним словом. Уточните ситуацию, и я помогу.',
+                        'Всё зависит от обстоятельств. Опишите подробнее — что именно вас интересует?'
+                    ]
+                },
+                {
+                    name: 'compliment',
+                    patterns: ['ты молодец', 'ты умный', 'ты хороший', 'ты лучший', 'ты супер'],
+                    responses: [
+                        'Спасибо! Стараюсь быть полезным 😊',
+                        'Очень приятно! Рад, что смог помочь.',
+                        'Благодарю! Это мотивирует меня отвечать ещё лучше.',
+                        'Спасибо на добром слове! Чем ещё могу помочь?'
+                    ]
+                }
+            ],
+            
+            // === ОБЩИЕ ОТВЕТЫ НА НЕИЗВЕСТНЫЕ ВОПРОСЫ (без повторов) ===
+            fallbackResponses: [
+                'Интересный вопрос! Расскажите подробнее — хочу понять суть.',
+                'Хм, любопытно. Можете уточнить, что именно вас интересует?',
+                'Давайте разберёмся вместе. Опишите ситуацию чуть подробнее.',
+                'Занятный вопрос! С какой стороны вы хотите его обсудить?',
+                'Понимаю ваш интерес. Уточните детали — и я дам развёрнутый ответ.',
+                'Давайте копнём глубже. Что именно вас беспокоит в этом вопросе?',
+                'Хороший вопрос! Расскажите больше контекста — так я смогу помочь точнее.',
+                'Мне нужно чуть больше информации. Что привело вас к этому вопросу?',
+                'Любопытно! Поделитесь деталями — и разберём вместе.',
+                'Готов помочь! Уточните, что конкретно вы хотите узнать.',
+                'Интригующе. А что вы сами думаете по этому поводу?',
+                'Похоже, тема важная для вас. Расскажите, с чем это связано?',
+                'Давайте обсудим. Что для вас здесь самое главное?',
+                'Принято! Но хочу понять глубже — уточните, пожалуйста.',
+                'Хм, а что именно вас интересует в этом?'
+            ],
+            
+            // === ОПРЕДЕЛЕНИЕ ТЕМАТИКИ (для контекста) ===
+            topics: {
+                tech: ['компьютер', 'программ', 'код', 'сайт', 'приложен', 'интернет', 'технолог', 'алгоритм', 'данн', 'база'],
+                nature: ['природа', 'лес', 'море', 'горы', 'погод', 'животн', 'растен', 'эколог'],
+                science: ['наук', 'физик', 'хим', 'биолог', 'космос', 'звезд', 'планет', 'атом'],
+                art: ['музык', 'искусств', 'кино', 'фильм', 'книг', 'литератур', 'театр', 'живопис'],
+                life: ['жизн', 'смысл', 'счасть', 'любов', 'дружб', 'семь', 'отношен'],
+                health: ['здоров', 'спорт', 'болезн', 'врач', 'лечен', 'сон', 'питани']
+            },
+            
+            // === ПОИСК ИНТЕНТА ===
+            matchIntent(text) {
+                const norm = this.normalize(text);
+                let bestMatch = null;
+                let bestScore = 0;
+                
+                for (const intent of this.intents) {
+                    let score = 0;
+                    for (const pattern of intent.patterns) {
+                        const pNorm = this.normalize(pattern);
+                        // Полное вхождение фразы — высокий вес
+                        if (norm.includes(pNorm)) {
+                            score += pNorm.split(' ').length * 3;
+                        } else {
+                            // Частичное совпадение по словам
+                            const pWords = pNorm.split(' ');
+                            let wordMatches = 0;
+                            for (const w of pWords) {
+                                if (w.length > 2 && norm.includes(w)) wordMatches++;
+                            }
+                            if (wordMatches === pWords.length && wordMatches > 0) {
+                                score += wordMatches * 2;
+                            }
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMatch = intent;
+                    }
+                }
+                
+                return bestScore >= 2 ? bestMatch : null;
+            },
+            
+            // === ДИНАМИЧЕСКИЕ ОТВЕТЫ ===
+            dynamicTime() {
+                const now = new Date();
+                return `Сейчас ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}. Что-то планируете?`;
+            },
+            
+            dynamicDate() {
+                const now = new Date();
+                const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+                const days = ['воскресенье', 'понедельник', 'вторник', 'среда',
+                              'четверг', 'пятница', 'суббота'];
+                return `Сегодня ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} года, ${days[now.getDay()]}.`;
+            },
+            
+            dynamicMath(text) {
+                // Извлечение простого примера
+                const cleaned = text.toLowerCase().replace(/сколько будет|посчитай|реши|=/g, '').trim();
+                const match = cleaned.match(/(\d+(?:\.\d+)?)\s*([\+\-\*\/xх×÷])\s*(\d+(?:\.\d+)?)/);
+                if (match) {
+                    const a = parseFloat(match[1]);
+                    const op = match[2];
+                    const b = parseFloat(match[3]);
+                    let result;
+                    let opName;
+                    switch (op) {
+                        case '+': result = a + b; opName = 'плюс'; break;
+                        case '-': result = a - b; opName = 'минус'; break;
+                        case '*': case 'x': case 'х': case '×': result = a * b; opName = 'умножить на'; break;
+                        case '/': case '÷':
+                            if (b === 0) return 'На ноль делить нельзя! 😄';
+                            result = a / b; opName = 'разделить на'; break;
+                    }
+                    return `${a} ${opName} ${b} = ${Math.round(result * 1000000) / 1000000}`;
+                }
+                return 'Могу посчитать простой пример. Например, напишите «сколько будет 25 * 4».';
+            },
+            
+            dynamicExplain(text) {
+                // Извлечение ключевого слова после "что такое X"
+                const norm = text.toLowerCase().replace(/[?!.]/g, '');
+                const m = norm.match(/что такое\s+(.+)/) || 
+                          norm.match(/что значит\s+(.+)/) ||
+                          norm.match(/объясни\s+(.+)/) ||
+                          norm.match(/расскажи про\s+(.+)/) ||
+                          norm.match(/расскажи о\s+(.+)/);
+                if (m) {
+                    const topic = m[1].trim();
+                    return `«${topic}» — интересная тема! Это понятие относится к сфере, которую можно обсуждать долго. Расскажите, что именно вас интересует: определение, примеры или что-то другое?`;
+                }
+                return 'Уточните, что именно нужно объяснить — и я постараюсь помочь.';
+            },
+            
+            // === ОСНОВНОЙ МЕТОД: ГЕНЕРАЦИЯ ОТВЕТА ===
+            generateResponse(userText) {
+                // Динамические ответы
+                const intent = this.matchIntent(userText);
+                
+                if (intent) {
+                    const responses = intent.responses;
+                    // Если динамический — обрабатываем
+                    if (responses[0] === '_dynamic_time_') return this.dynamicTime();
+                    if (responses[0] === '_dynamic_date_') return this.dynamicDate();
+                    if (responses[0] === '_dynamic_math_') return this.dynamicMath(userText);
+                    if (responses[0] === '_dynamic_explain_') return this.dynamicExplain(userText);
+                    
+                    // Выбор неиспользованного ответа
+                    const available = responses.filter(r => !this.usedResponses.has(r));
+                    let chosen;
+                    if (available.length > 0) {
+                        chosen = available[Math.floor(Math.random() * available.length)];
+                    } else {
+                        // Все использованы — сбрасываем пул для этого интента
+                        responses.forEach(r => this.usedResponses.delete(r));
+                        chosen = responses[Math.floor(Math.random() * responses.length)];
+                    }
+                    this.usedResponses.add(chosen);
+                    this.lastTopic = intent.name;
+                    return chosen;
+                }
+                
+                // Если интент не найден — определяем тематику
+                const topic = this.detectTopic(userText);
+                if (topic) {
+                    const topicResponses = {
+                        tech: [
+                            'Технологии — обширная тема! Что конкретно интересует: программирование, железо или что-то ещё?',
+                            'В мире технологий каждый день что-то новое. Расскажите, что вас привлекло?',
+                            'Люблю технические темы! Уточните вопрос — разберёмся вместе.'
+                        ],
+                        nature: [
+                            'Природа — удивительна. Что именно вас интересует: животные, растения, экология?',
+                            'Тема природы всегда вдохновляет. Поделитесь, что хотите обсудить?',
+                            'О природе можно говорить бесконечно! Уточните аспект — и продолжим.'
+                        ],
+                        science: [
+                            'Наука — это бесконечное поле знаний. Какую область хотите затронуть?',
+                            'Люблю научные темы! Расскажите, что именно вас интересует.',
+                            'Наука объясняет мир вокруг нас. Уточните вопрос — и обсудим.'
+                        ],
+                        art: [
+                            'Искусство питает душу! Что именно вас привлекло: музыка, кино, литература?',
+                            'Культура и искусство — важные темы. Поделитесь, что хотите обсудить?',
+                            'Творчество многогранно! Уточните, что вас интересует.'
+                        ],
+                        life: [
+                            'Жизненные вопросы — самые глубокие. Расскажите, что вас волнует?',
+                            'О жизни можно говорить долго. Уточните тему — и обсудим подробнее.',
+                            'Это важная тема. Поделитесь контекстом — помогу разобраться.'
+                        ],
+                        health: [
+                            'Здоровье — главная ценность! Что именно вас интересует?',
+                            'Спорт и здоровье идут рука об руку. Расскажите, что хотите узнать?',
+                            'Забота о себе важна. Уточните вопрос — дам совет.'
+                        ]
+                    };
+                    const arr = topicResponses[topic];
+                    const chosen = arr[Math.floor(Math.random() * arr.length)];
+                    this.lastTopic = topic;
+                    return chosen;
+                }
+                
+                // Fallback — выбор неиспользованного общего ответа
+                const available = this.fallbackResponses.filter(r => !this.usedResponses.has(r));
+                let chosen;
+                if (available.length > 0) {
+                    chosen = available[Math.floor(Math.random() * available.length)];
+                } else {
+                    this.fallbackResponses.forEach(r => this.usedResponses.delete(r));
+                    chosen = this.fallbackResponses[Math.floor(Math.random() * this.fallbackResponses.length)];
+                }
+                this.usedResponses.add(chosen);
+                return chosen;
+            },
+            
+            // === ОПРЕДЕЛЕНИЕ ТЕМАТИКИ ===
+            detectTopic(text) {
+                const norm = this.normalize(text);
+                let best = null;
+                let bestCount = 0;
+                for (const [topic, keywords] of Object.entries(this.topics)) {
+                    let count = 0;
+                    for (const kw of keywords) {
+                        if (norm.includes(kw)) count++;
+                    }
+                    if (count > bestCount) {
+                        bestCount = count;
+                        best = topic;
+                    }
+                }
+                return bestCount > 0 ? best : null;
+            }
+        };
+        
+        // ============================================================
+        // ИНТЕРФЕЙС ЧАТА
+        // ============================================================
+        
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('input');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusEl = document.getElementById('status');
+        
+        function addMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'msg-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🤖';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            bubble.textContent = text;
+            
+            msg.appendChild(avatar);
+            msg.appendChild(bubble);
+            messagesEl.appendChild(msg);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+        
+        function showTyping() {
+            const el = document.createElement('div');
+            el.className = 'typing-indicator';
+            el.id = 'typingIndicator';
+            el.innerHTML = '<span></span><span></span><span></span>';
+            messagesEl.appendChild(el);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            statusEl.innerHTML = '<span class="typing-status">печатает...</span>';
+        }
+        
+        function hideTyping() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+            statusEl.textContent = '● онлайн';
+        }
+        
+        function handleSend() {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            
+            addMessage(text, 'user');
+            inputEl.value = '';
+            sendBtn.disabled = true;
+            
+            // Задержка для эффекта "печатает"
+            const delay = 400 + Math.random() * 700;
+            showTyping();
+            
+            setTimeout(() => {
+                const response = AIModel.generateResponse(text);
+                hideTyping();
+                addMessage(response, 'ai');
+                sendBtn.disabled = false;
+                inputEl.focus();
+            }, delay);
+        }
+        
+        sendBtn.addEventListener('click', handleSend);
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+        
+        // Фокус при загрузке
+        inputEl.focus();
+    </script>
 </body>
 </html>
