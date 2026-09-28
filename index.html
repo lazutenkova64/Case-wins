@@ -3,281 +3,1074 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Частушки с озвучкой</title>
+<title>DrawWall — нарисуй и поделись</title>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "Georgia", serif;
-    background: linear-gradient(135deg, #fdf6e3 0%, #ffe9c7 100%);
-    color: #3a2a1a;
-    min-height: 100vh;
+  :root {
+    --bg: #0e0e14;
+    --bg-2: #16161f;
+    --panel: rgba(255,255,255,.04);
+    --panel-hi: rgba(255,255,255,.08);
+    --border: rgba(255,255,255,.1);
+    --text: #f2f2f7;
+    --muted: #8a8a9a;
+    --accent: #7c5cff;
+    --accent-2: #ff4d9d;
+    --gradient: linear-gradient(135deg, #7c5cff 0%, #ff4d9d 100%);
   }
-  header {
-    text-align: center;
-    padding: 40px 20px 20px;
-  }
-  header h1 {
-    margin: 0;
-    font-size: 2.6rem;
-    color: #b3452a;
-    text-shadow: 2px 2px 0 #fff3d9;
-  }
-  header p { margin: 8px 0 0; color: #7a5a3a; font-style: italic; }
 
-  .container {
-    max-width: 760px;
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(124,92,255,.25), transparent 60%),
+      radial-gradient(700px 500px at 100% 20%, rgba(255,77,157,.18), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ============ NAV ============ */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(14,14,20,.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -.02em;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: var(--gradient);
+    display: grid; place-items: center;
+    font-size: 20px;
+    box-shadow: 0 8px 24px rgba(124,92,255,.4);
+  }
+  .tabs { display: flex; gap: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px; }
+  .tab {
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: .95rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--gradient);
+    color: white;
+    box-shadow: 0 4px 16px rgba(124,92,255,.4);
+  }
+  .user-badge {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: .9rem;
+    font-weight: 600;
+  }
+  .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: .85rem;
+    color: white;
+    font-weight: 800;
   }
 
-  /* Форма */
-  .compose {
-    background: #fffaf0;
-    border: 2px dashed #d8a25b;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 18px rgba(180,120,60,.15);
+  /* ============ LAYOUT ============ */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+    position: relative;
+    z-index: 1;
   }
-  .compose h2 {
-    margin: 0 0 12px;
-    font-size: 1.3rem;
-    color: #b3452a;
+  .view { display: none; animation: fade .3s ease; }
+  .view.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ============ DRAW VIEW ============ */
+  .draw-wrap {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    align-items: start;
   }
-  .compose textarea {
-    width: 100%;
-    min-height: 110px;
-    padding: 12px;
-    font-family: inherit;
-    font-size: 1.05rem;
-    line-height: 1.5;
-    border: 2px solid #e6c89a;
+  @media (max-width: 900px) {
+    .draw-wrap { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .panel + .panel { margin-top: 16px; }
+  .panel h3 {
+    margin: 0 0 14px;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .colors {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .swatch {
+    aspect-ratio: 1;
     border-radius: 10px;
-    resize: vertical;
-    background: #fffdf8;
-    color: #3a2a1a;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform .15s, border-color .2s;
+    position: relative;
+  }
+  .swatch:hover { transform: scale(1.1); }
+  .swatch.active {
+    border-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(124,92,255,.5);
+  }
+  .swatch.custom { position: relative; overflow: hidden; background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); }
+  .swatch.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .slider-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; font-size: .9rem;
+  }
+  .slider-row span:last-child { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--panel-hi);
+    outline: none;
+    margin-bottom: 14px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gradient);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #7c5cff; cursor: pointer; border: 2px solid white;
+  }
+
+  .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .tool {
+    padding: 12px 8px;
+    background: var(--panel-hi);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .tool .ico { font-size: 1.2rem; }
+  .tool:hover { background: rgba(124,92,255,.15); border-color: rgba(124,92,255,.4); }
+  .tool.active {
+    background: var(--gradient);
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(124,92,255,.4);
+  }
+
+  .canvas-area {
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .canvas-shell {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 0 1px var(--border);
+    aspect-ratio: 4/3;
+    width: 100%;
+  }
+  @media (max-width: 700px) { .canvas-shell { aspect-ratio: 1/1; } }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: crosshair;
+  }
+
+  .canvas-toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .btn {
+    padding: 11px 20px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    font-size: .95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .2s, background .2s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary {
+    background: var(--gradient);
+    color: white;
+    box-shadow: 0 8px 24px rgba(124,92,255,.4);
+  }
+  .btn-primary:hover { box-shadow: 0 12px 32px rgba(124,92,255,.6); }
+  .btn-ghost {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--panel-hi); }
+
+  .title-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
     outline: none;
     transition: border-color .2s;
   }
-  .compose textarea:focus { border-color: #b3452a; }
-  .compose .actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
+  .title-input:focus { border-color: var(--accent); }
+  .title-input::placeholder { color: var(--muted); }
+
+  /* ============ WALL VIEW ============ */
+  .wall-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
   }
-  button {
+  .wall-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -.03em;
+  }
+  .wall-header p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+
+  .wall {
+    columns: 4 260px;
+    column-gap: 20px;
+  }
+  @media (max-width: 1100px) { .wall { columns: 3 240px; } }
+  @media (max-width: 700px)  { .wall { columns: 2 160px; } }
+
+  .card {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    position: relative;
+    animation: pop .4s cubic-bezier(.2,.9,.3,1.4);
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    border-color: rgba(124,92,255,.4);
+  }
+  .card img {
+    width: 100%;
+    display: block;
+    background: #fff;
+  }
+  .card-info {
+    padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .card-title {
+    font-weight: 700;
+    font-size: .95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-author {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .card-author .avatar { width: 22px; height: 22px; font-size: .7rem; }
+  .card-actions {
+    display: flex; gap: 6px;
+  }
+  .icon-btn {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
     cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 18px;
+    display: grid; place-items: center;
+    transition: all .2s;
+    font-size: .95rem;
+  }
+  .icon-btn:hover { background: var(--panel-hi); color: var(--text); }
+  .icon-btn.liked { color: #ff4d9d; border-color: rgba(255,77,157,.5); }
+  .card-del {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity .2s;
+    color: white;
+  }
+  .card:hover .card-del { opacity: 1; }
+  .card-del:hover { background: #e63946; color: white; }
+
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .empty .big { font-size: 4rem; margin-bottom: 12px; }
+  .empty h3 { color: var(--text); margin: 0 0 8px; }
+
+  /* ============ MODAL ============ */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.8);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fade .25s;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 20px;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex; flex-direction: column; gap: 16px;
+    animation: pop .35s cubic-bezier(.2,.9,.3,1.4);
+  }
+  .modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 12px;
+    background: white;
+    object-fit: contain;
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .modal-head h3 { margin: 0; font-size: 1.1rem; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--gradient);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 14px;
+    font-weight: 700;
+    box-shadow: 0 12px 40px rgba(124,92,255,.5);
+    z-index: 200;
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.4);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .name-modal-input {
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
     font-size: 1rem;
     font-family: inherit;
-    transition: transform .1s, background .2s;
+    outline: none;
+    width: 100%;
   }
-  button:active { transform: scale(.97); }
-  .btn-primary {
-    background: #b3452a;
-    color: #fff;
-  }
-  .btn-primary:hover { background: #93351e; }
-  .btn-secondary {
-    background: #e6c89a;
-    color: #5a3a1a;
-  }
-  .btn-secondary:hover { background: #d8b478; }
+  .name-modal-input:focus { border-color: var(--accent); }
 
-  /* Посты */
-  .post {
-    background: #fffaf0;
-    border-radius: 16px;
-    padding: 20px 22px;
-    margin-bottom: 22px;
-    box-shadow: 0 6px 18px rgba(180,120,60,.15);
-    border-left: 6px solid #b3452a;
-    animation: fadeIn .4s ease;
+  .sync-info {
+    font-size: .78rem;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px;
   }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
   }
-  .post .meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: .85rem;
-    color: #9a7a5a;
-    margin-bottom: 10px;
-  }
-  .post .text {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    margin-bottom: 14px;
-  }
-  .post .text::before { content: "🎵 "; }
-
-  audio { width: 100%; margin-top: 4px; }
-
-  .empty-hint {
-    text-align: center;
-    color: #9a7a5a;
-    font-style: italic;
-    padding: 20px;
-  }
+  .dot.off { background: #f87171; box-shadow: 0 0 8px #f87171; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🎶 Частушки с озвучкой</h1>
-  <p>Слушай, сочиняй и озвучивай свои частушки</p>
-</header>
+<nav>
+  <div class="nav-inner">
+    <div class="logo">
+      <div class="logo-icon">🎨</div>
+      <span>DrawWall</span>
+    </div>
 
-<div class="container">
+    <div class="tabs">
+      <button class="tab active" data-view="draw">✏️ Рисовать</button>
+      <button class="tab" data-view="wall">🖼 Стена <span id="wallCount" style="opacity:.7"></span></button>
+    </div>
 
-  <!-- Форма добавления -->
-  <div class="compose">
-    <h2>Сочинить частушку</h2>
-    <textarea id="userText" placeholder="Например:&#10;Я надену сарафан,&#10;Заиграю на гармошке,&#10;Пусть танцует весь Иван,&#10;И соседские три кошки!"></textarea>
-    <div class="actions">
-      <button class="btn-primary" onclick="savePost()">💾 Сохранить и озвучить</button>
-      <button class="btn-secondary" onclick="previewVoice()">🔊 Прослушать</button>
-      <button class="btn-secondary" onclick="document.getElementById('userText').value=''">🧹 Очистить</button>
+    <div class="user-badge" id="userBadge" title="Нажми, чтобы сменить имя">
+      <div class="avatar" id="userAvatar">?</div>
+      <span id="userName">Гость</span>
     </div>
   </div>
+</nav>
 
-  <!-- Лента постов -->
-  <div id="feed"></div>
+<main>
+  <!-- ============ VIEW: DRAW ============ -->
+  <section class="view active" id="view-draw">
+    <div class="draw-wrap">
+
+      <!-- Левая панель -->
+      <div>
+        <div class="panel">
+          <h3>Инструмент</h3>
+          <div class="tools-grid">
+            <button class="tool active" data-tool="brush"><span class="ico">🖌</span>Кисть</button>
+            <button class="tool" data-tool="marker"><span class="ico">🖊</span>Маркер</button>
+            <button class="tool" data-tool="neon"><span class="ico">✨</span>Неон</button>
+            <button class="tool" data-tool="eraser"><span class="ico">🧽</span>Ластик</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Цвет</h3>
+          <div class="colors" id="colors"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Размер</h3>
+          <div class="slider-row"><span>Толщина</span><span id="sizeVal">8</span></div>
+          <input type="range" id="size" min="1" max="60" value="8">
+          <div class="slider-row"><span>Прозрачность</span><span id="alphaVal">100%</span></div>
+          <input type="range" id="alpha" min="10" max="100" value="100">
+        </div>
+
+        <div class="panel">
+          <button class="btn btn-ghost" style="width:100%" onclick="clearCanvas()">🗑 Очистить холст</button>
+        </div>
+      </div>
+
+      <!-- Холст -->
+      <div class="canvas-area">
+        <div class="canvas-shell">
+          <canvas id="canvas"></canvas>
+        </div>
+
+        <input class="title-input" id="titleInput" placeholder="Название рисунка (необязательно)" maxlength="60">
+
+        <div class="canvas-toolbar">
+          <button class="btn btn-ghost" onclick="undo()">↶ Отменить</button>
+          <button class="btn btn-ghost" onclick="downloadPng()">⬇ Скачать PNG</button>
+          <button class="btn btn-primary" onclick="publish()">🚀 Опубликовать на стене</button>
+        </div>
+
+        <div class="sync-info">
+          <span class="dot" id="syncDot"></span>
+          <span id="syncText">Сохранено локально в вашем браузере</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ VIEW: WALL ============ -->
+  <section class="view" id="view-wall">
+    <div class="wall-header">
+      <div>
+        <h2>Общая стена</h2>
+        <p>Рисунки всех пользователей этого браузера</p>
+      </div>
+      <button class="btn btn-ghost" onclick="refreshWall()">🔄 Обновить</button>
+    </div>
+    <div class="wall" id="wall"></div>
+  </section>
+</main>
+
+<!-- Модальное окно просмотра -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Рисунок</h3>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <img id="modalImg" alt="">
+    <div class="canvas-toolbar">
+      <span id="modalAuthor" style="color:var(--muted); font-size:.9rem"></span>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" onclick="downloadCurrent()">⬇ Скачать</button>
+        <button class="btn btn-primary" onclick="shareCurrent()">🔗 Поделиться</button>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- Модальное окно имени -->
+<div class="modal-bg" id="nameModalBg">
+  <div class="modal" style="max-width: 420px; width: 100%;">
+    <div class="modal-head">
+      <h3>Как тебя зовут?</h3>
+    </div>
+    <p style="color:var(--muted); margin:0; font-size:.9rem">Имя будет отображаться рядом с твоими рисунками.</p>
+    <input class="name-modal-input" id="nameInput" placeholder="Например: Художник" maxlength="20">
+    <button class="btn btn-primary" style="justify-content:center" onclick="saveName()">Сохранить</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span id="toastText"></span></div>
+
 <script>
-/* ---------- Начальные посты ---------- */
-/* В поле audio можно указать ссылку на mp3-файл.
-   Если ссылки нет — плеер озвучит текст автоматически. */
-const initialPosts = [
-  {
-    text: "Я надену сарафан,\nЗаиграю на гармошке,\nПусть танцует весь Иван,\nИ соседские три кошки!",
-    author: "Народная",
-    audio: null
-  },
-  {
-    text: "Милая моя подружка,\nДай мне пряник на дорожку,\nЯ иду плясать в село,\nЧтобы вечером свело!",
-    author: "Народная",
-    audio: null
-  },
-  {
-    text: "На горе стоит берёза,\nПод берёзой — самовар,\nПриходи ко мне, милёнок,\nПить с малиною отвар!",
-    author: "Народная",
-    audio: null
-  }
+/* =====================================================
+   DrawWall — рисовалка + стена
+   Хранилище: localStorage (браузер пользователя)
+   ===================================================== */
+
+const STORAGE_KEY = 'drawwall_v1';
+const USER_KEY    = 'drawwall_user';
+
+/* ---------- Пользователь ---------- */
+const AVATAR_COLORS = [
+  'linear-gradient(135deg,#7c5cff,#ff4d9d)',
+  'linear-gradient(135deg,#06b6d4,#3b82f6)',
+  'linear-gradient(135deg,#f59e0b,#ef4444)',
+  'linear-gradient(135deg,#10b981,#84cc16)',
+  'linear-gradient(135deg,#ec4899,#8b5cf6)',
 ];
 
-/* ---------- Работа с лентой ---------- */
-const feed = document.getElementById('feed');
+let currentUser = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
 
-function renderPost(post, prepend = false) {
-  const el = document.createElement('div');
-  el.className = 'post';
-
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-  meta.innerHTML = `<span>✍️ ${post.author}</span><span>${new Date().toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</span>`;
-
-  const text = document.createElement('div');
-  text.className = 'text';
-  text.textContent = post.text;
-
-  el.appendChild(meta);
-  el.appendChild(text);
-
-  // Плеер
-  const audio = document.createElement('audio');
-  audio.controls = true;
-  if (post.audio) {
-    audio.src = post.audio;
+function ensureUser() {
+  if (!currentUser) {
+    document.getElementById('nameModalBg').classList.add('show');
   } else {
-    // Нет файла — озвучим через синтез речи
-    // Скрываем нативный плеер и создаём кнопку
-    audio.style.display = 'none';
-    const btn = document.createElement('button');
-    btn.className = 'btn-secondary';
-    btn.textContent = '🔊 Озвучить';
-    btn.onclick = () => speak(post.text);
-    el.appendChild(btn);
+    renderUser();
   }
-  el.appendChild(audio);
+}
+function renderUser() {
+  const name = currentUser?.name || 'Гость';
+  document.getElementById('userName').textContent = name;
+  const av = document.getElementById('userAvatar');
+  av.textContent = name[0].toUpperCase();
+  av.style.background = currentUser?.color || AVATAR_COLORS[0];
+}
+function saveName() {
+  const name = document.getElementById('nameInput').value.trim() || 'Гость';
+  currentUser = {
+    name,
+    color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    id: currentUser?.id || Math.random().toString(36).slice(2, 10)
+  };
+  localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+  document.getElementById('nameModalBg').classList.remove('show');
+  renderUser();
+  toast('👋 Привет, ' + name + '!');
+}
 
-  if (prepend && feed.firstChild) {
-    feed.insertBefore(el, feed.firstChild);
-  } else {
-    feed.appendChild(el);
+document.getElementById('userBadge').onclick = () => {
+  document.getElementById('nameInput').value = currentUser?.name || '';
+  document.getElementById('nameModalBg').classList.add('show');
+};
+
+/* ---------- Хранилище ---------- */
+function loadPosts() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+function savePosts(posts) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+  } catch (e) {
+    toast('⚠️ Не удалось сохранить: хранилище переполнено');
   }
 }
 
-/* ---------- Сохранение своего поста ---------- */
-function savePost() {
-  const ta = document.getElementById('userText');
-  const text = ta.value.trim();
-  if (!text) {
-    alert('Сначала напиши частушку!');
-    return;
-  }
+/* ---------- Холст ---------- */
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-  // Создаём пост со своим текстом.
-  // Здесь нет mp3 — плеер озвучит текст автоматически.
+// Настраиваем физические размеры под экран
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const img = canvas.toDataURL(); // сохраняем текущее содержимое
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // белый фон
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, rect.width, rect.height);
+  // возвращаем рисунок (если был)
+  if (img && img !== 'data:,') {
+    const im = new Image();
+    im.onload = () => {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+      pushHistory();
+    };
+    im.src = img;
+  } else {
+    pushHistory();
+  }
+}
+
+/* ---------- Состояние ---------- */
+let drawing = false;
+let tool = 'brush';
+let color = '#7c5cff';
+let size = 8;
+let alpha = 1;
+let last = null;
+let history = [];
+let historyIndex = -1;
+
+function pushHistory() {
+  const snap = canvas.toDataURL();
+  history = history.slice(0, historyIndex + 1);
+  history.push(snap);
+  if (history.length > 25) history.shift();
+  historyIndex = history.length - 1;
+}
+function undo() {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  const im = new Image();
+  im.onload = () => {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(im, 0, 0);
+    ctx.restore();
+  };
+  im.src = history[historyIndex];
+}
+
+/* ---------- Настройка инструментов ---------- */
+function applyBrush() {
+  const dpr = window.devicePixelRatio || 1;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.globalAlpha = alpha;
+
+  if (tool === 'eraser') {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = size * dpr;
+    ctx.shadowBlur = 0;
+  } else if (tool === 'marker') {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size * 1.6 * dpr;
+    ctx.globalAlpha = alpha * 0.55;
+    ctx.shadowBlur = 0;
+  } else if (tool === 'neon') {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size * dpr;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 20 * dpr;
+  } else { // brush
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size * dpr;
+    ctx.shadowBlur = 0;
+  }
+}
+
+/* ---------- Рисование ---------- */
+function pos(e) {
+  const r = canvas.getBoundingClientRect();
+  const p = e.touches ? e.touches[0] : e;
+  return { x: p.clientX - r.left, y: p.clientY - r.top };
+}
+
+function start(e) {
+  e.preventDefault();
+  drawing = true;
+  last = pos(e);
+  applyBrush();
+  // точка
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.globalAlpha = ctx.globalAlpha;
+  ctx.fill();
+}
+
+function move(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  const p = pos(e);
+  ctx.beginPath();
+  ctx.moveTo(last.x, last.y);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  last = p;
+}
+
+function end(e) {
+  if (!drawing) return;
+  drawing = false;
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+  ctx.globalCompositeOperation = 'source-over';
+  pushHistory();
+}
+
+canvas.addEventListener('mousedown', start);
+canvas.addEventListener('mousemove', move);
+canvas.addEventListener('mouseup', end);
+canvas.addEventListener('mouseleave', end);
+canvas.addEventListener('touchstart', start, { passive: false });
+canvas.addEventListener('touchmove', move, { passive: false });
+canvas.addEventListener('touchend', end);
+
+/* ---------- Палитра ---------- */
+const PALETTE = [
+  '#000000','#ffffff','#ef4444','#f59e0b','#facc15','#84cc16',
+  '#22c55e','#10b981','#06b6d4','#3b82f6','#7c5cff','#8b5cf6',
+  '#ec4899','#ff4d9d','#f97316','#78350f','#0f172a','#64748b'
+];
+
+function buildPalette() {
+  const wrap = document.getElementById('colors');
+  wrap.innerHTML = '';
+  PALETTE.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'swatch' + (c === color ? ' active' : '');
+    el.style.background = c;
+    el.dataset.color = c;
+    el.onclick = () => selectColor(c, el);
+    wrap.appendChild(el);
+  });
+  // Кастомный
+  const custom = document.createElement('div');
+  custom.className = 'swatch custom';
+  custom.title = 'Свой цвет';
+  const inp = document.createElement('input');
+  inp.type = 'color';
+  inp.value = color;
+  inp.oninput = (e) => selectColor(e.target.value, custom);
+  custom.appendChild(inp);
+  wrap.appendChild(custom);
+}
+function selectColor(c, el) {
+  color = c;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ---------- Инструменты ---------- */
+document.querySelectorAll('.tool').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tool').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    tool = t.dataset.tool;
+  };
+});
+
+document.getElementById('size').oninput = e => {
+  size = +e.target.value;
+  document.getElementById('sizeVal').textContent = size;
+};
+document.getElementById('alpha').oninput = e => {
+  alpha = +e.target.value / 100;
+  document.getElementById('alphaVal').textContent = e.target.value + '%';
+};
+
+/* ---------- Действия ---------- */
+function clearCanvas() {
+  if (!confirm('Очистить холст?')) return;
+  const r = canvas.getBoundingClientRect();
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  pushHistory();
+}
+function downloadPng() {
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'drawwall-' + Date.now() + '.png';
+  a.click();
+}
+
+function publish() {
+  if (!currentUser) { ensureUser(); return; }
+  const data = canvas.toDataURL('image/png');
+  const title = document.getElementById('titleInput').value.trim() || 'Без названия';
+
   const post = {
-    text: text,
-    author: 'Ты',
-    audio: null
+    id: Math.random().toString(36).slice(2, 10),
+    title,
+    data,
+    author: currentUser.name,
+    color: currentUser.color,
+    ts: Date.now(),
+    likes: 0
   };
 
-  renderPost(post, true);
-  ta.value = '';
-  post.scrollIntoView?.({ behavior: 'smooth' });
-  // Автоматически озвучим
-  speak(text);
+  const posts = loadPosts();
+  posts.unshift(post);
+  savePosts(posts);
+
+  // очистка холста
+  clearCanvasSilent();
+  document.getElementById('titleInput').value = '';
+
+  toast('🚀 Рисунок опубликован!');
+  renderWall();
+  updateWallCount();
+}
+function clearCanvasSilent() {
+  const r = canvas.getBoundingClientRect();
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  pushHistory();
 }
 
-/* ---------- Предпросмотр озвучки ---------- */
-function previewVoice() {
-  const text = document.getElementById('userText').value.trim();
-  if (!text) {
-    alert('Напиши текст для прослушивания!');
+/* ---------- Стена ---------- */
+let currentModalPost = null;
+
+function renderWall() {
+  const wall = document.getElementById('wall');
+  const posts = loadPosts();
+
+  if (!posts.length) {
+    wall.innerHTML = `
+      <div class="empty" style="column-span: all">
+        <div class="big">🎨</div>
+        <h3>Пока пусто</h3>
+        <p>Стань первым, кто нарисует на стене!</p>
+      </div>`;
     return;
   }
-  speak(text);
+
+  wall.innerHTML = '';
+  posts.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img src="${p.data}" alt="${escapeHtml(p.title)}" loading="lazy">
+      <div class="card-info">
+        <div style="min-width:0; flex:1">
+          <div class="card-title">${escapeHtml(p.title)}</div>
+          <div class="card-author">
+            <div class="avatar" style="background:${p.color}">${escapeHtml(p.author[0].toUpperCase())}</div>
+            <span>${escapeHtml(p.author)}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn ${p.liked ? 'liked' : ''}" data-act="like" title="Нравится">❤</button>
+          <button class="icon-btn" data-act="del" title="Удалить">🗑</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('[data-act="like"]').onclick = (e) => {
+      e.stopPropagation();
+      toggleLike(p.id);
+    };
+    card.querySelector('[data-act="del"]').onclick = (e) => {
+      e.stopPropagation();
+      if (confirm('Удалить этот рисунок?')) {
+        deletePost(p.id);
+      }
+    };
+    card.querySelector('img').onclick = () => openModal(p);
+    card.querySelector('.card-title').onclick = () => openModal(p);
+
+    wall.appendChild(card);
+  });
 }
 
-/* ---------- Синтез речи (Web Speech API) ---------- */
-function speak(text) {
-  if (!('speechSynthesis' in window)) {
-    alert('К сожалению, ваш браузер не поддерживает синтез речи.');
-    return;
+function toggleLike(id) {
+  const posts = loadPosts();
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  p.liked = !p.liked;
+  p.likes = Math.max(0, (p.likes || 0) + (p.liked ? 1 : -1));
+  savePosts(posts);
+  renderWall();
+}
+
+function deletePost(id) {
+  const posts = loadPosts().filter(p => p.id !== id);
+  savePosts(posts);
+  renderWall();
+  updateWallCount();
+  toast('🗑 Рисунок удалён');
+}
+
+function openModal(p) {
+  currentModalPost = p;
+  document.getElementById('modalImg').src = p.data;
+  document.getElementById('modalTitle').textContent = p.title;
+  document.getElementById('modalAuthor').textContent = 'Автор: ' + p.author;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('show');
+  currentModalPost = null;
+}
+function downloadCurrent() {
+  if (!currentModalPost) return;
+  const a = document.createElement('a');
+  a.href = currentModalPost.data;
+  a.download = (currentModalPost.title || 'drawing') + '.png';
+  a.click();
+}
+async function shareCurrent() {
+  if (!currentModalPost) return;
+  try {
+    const blob = await (await fetch(currentModalPost.data)).blob();
+    const file = new File([blob], 'drawing.png', { type: 'image/png' });
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: currentModalPost.title });
+    } else {
+      await navigator.clipboard.writeText(currentModalPost.title);
+      toast('📋 Ссылка недоступна — скопировано название');
+    }
+  } catch {
+    toast('⚠️ Не удалось поделиться');
   }
-  window.speechSynthesis.cancel();
-
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'ru-RU';
-  utter.rate = 0.95;
-  utter.pitch = 1.1;
-
-  // Пытаемся найти русский голос
-  const voices = window.speechSynthesis.getVoices();
-  const ru = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ru'));
-  if (ru) utter.voice = ru;
-
-  window.speechSynthesis.speak(utter);
 }
 
-// Подгружаем голоса (в некоторых браузерах асинхронно)
-if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => {};
+function refreshWall() {
+  renderWall();
+  toast('🔄 Стена обновлена');
+}
+function updateWallCount() {
+  const n = loadPosts().length;
+  document.getElementById('wallCount').textContent = n ? `· ${n}` : '';
 }
 
-/* ---------- Первичная отрисовка ---------- */
-initialPosts.forEach(p => renderPost(p));
+/* ---------- Вкладки ---------- */
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('view-' + t.dataset.view).classList.add('active');
+    if (t.dataset.view === 'wall') renderWall();
+  };
+});
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- Утилиты ---------- */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ---------- Инициализация ---------- */
+window.addEventListener('resize', () => {
+  clearTimeout(window._rz);
+  window._rz = setTimeout(resizeCanvas, 200);
+});
+
+document.getElementById('modalBg').onclick = (e) => {
+  if (e.target.id === 'modalBg') closeModal();
+};
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); document.getElementById('nameModalBg').classList.remove('show'); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+});
+
+buildPalette();
+ensureUser();
+resizeCanvas();
+renderWall();
+updateWallCount();
 </script>
 
 </body>
